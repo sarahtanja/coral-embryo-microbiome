@@ -1,0 +1,66 @@
+Directions from the mim_c core at UW:
+
+> Here is how you get the reads:
+>
+> 1.  open web browser on your PC/mac go to here: [My Buckets (uw.edu)](https://cloudfiles.labmed.uw.edu/) you have to log in using dual factor authentication
+>
+> 2.  click the dlmp-research/labs/salipante button
+>
+> 3.  click transfer directory
+>
+> 4.  click Gamino directory
+>
+> 5.  click the checkbox next to 241121_StonyCoral.tar
+>
+> 6.  click the caret in the Download Selected button, two options come up Via Browser and Via command line, select Via command line
+>
+> 7.  A window will appear with command to download the file so copy the command and then login to your linux machine and run the command and it should download the file into the directory you are in
+>
+> 8.  Copy that file wherever you want it and then run this command to pull the reads out of the tarball: tar --xvf 241121_StonyCoral.tar
+>
+> 9.  The tarball file size for confirmation of a good download is in bold(it should be the same size on your machine):
+>
+>     -rw-rw-r\-- 1 waalkes domain\^users **15801456640** Nov 21 15:40 241121_StonyCoral.tar
+
+```{r, engine='bash'}
+
+ls /media/4TB_JPG_ext/labs/salipante/transfer/Gamino/241121_StonyCoral.tar
+```
+
+```{r, engine='bash'}
+ls /media/4TB_JPG_ext/stanja/gitprojects/coral-embryo-microbiome/data/
+```
+
+```{r, engine='bash'}
+mv /media/4TB_JPG_ext/labs/salipante/transfer/Gamino/241121_StonyCoral.tar /media/4TB_JPG_ext/stanja/gitprojects/coral-embryo-microbiome/data/
+```
+
+> The tarball file size for confirmation of a good download is in bold (it should be the same size on your machine):
+>
+> -rw-rw-r\-- 1 waalkes domain\^users **15801456640** Nov 21 15:40 241121_StonyCoral.tar
+
+```{r, engine='bash'}
+
+ls -lh ../data/241121_StonyCoral.tar
+stat ../data/241121_StonyCoral.tar
+```
+
+`stat` command checks out! Same size after transfer and directory move.
+
+I will go ahead and delete the empty directory structure that the file was initially moved from.
+
+> run this command to pull the reads out of the tarball: tar --xvf 241121_StonyCoral.tar
+
+```{r, engine='bash'}
+cd ../data/
+tar -xvf 241121_StonyCoral.tar
+```
+
+Generate md5 for each fastq.gz and save it in the data directory
+
+```{r, engine='bash'}
+
+for file in ../data/*.fastq.gz; do
+    md5sum "$file" > "${file}.md5"
+done
+```

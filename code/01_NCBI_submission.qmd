@@ -1,0 +1,54 @@
+See [Submitting NGS sequences to NCBI SRA](https://sarahtanja.github.io/quarto-blog/posts/ncbi-sra-submission/ncbi-sra-submission.html) lab notebook post on instructions
+
+each sample has 4 files to upload:
+
+-   R1 fastq.gz
+
+-   R1 fastq.gz.md5
+
+-   R2 fastq.gz
+
+-   R2 fastq.gz.md5
+
+submission upload says it is missing files for samples `7C14` and `89C14`
+
+```{r, engine='bash'}
+
+ls ../data/*7C14*
+```
+
+```{r, engine='bash'}
+
+ls ../data/*89C14*
+```
+
+The files are in our data folder so they must have not made the upload on the NCBI end
+
+How many total files need to transfer?
+
+```{r, engine='bash'}
+
+ls -1 ../data/*fastq* | wc -l
+```
+
+252 files transferred! 4 files for each sample, and we have 63 samples.
+
+::: callout-warning
+
+**Warning:**
+
+:   456L9_S42_R2_001.fastq.gz.md5 may be corrupted. If it is an archive, please re-compress it and upload it again.\
+    Please double check that you had uploaded the correct file(s)
+:::
+
+```{r, engine='bash'}
+cd ../data/
+md5sum -c 456L9_S42_R2_001.fastq.gz.md5 #check if the md5sum is OK
+md5sum 456L9_S42_R2_001.fastq.gz.md5 #write out checksum 
+
+
+```
+
+The checksum looks good, I just clicked 'submit' again and it went through.
+
+Status is submitted awaiting processing. This SRA will be released on 2026-01-01 or upon publication.
