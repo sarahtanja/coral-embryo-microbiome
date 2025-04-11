@@ -18,9 +18,7 @@ Directions from the mim_c core at UW:
 >
 > 8.  Copy that file wherever you want it and then run this command to pull the reads out of the tarball: tar --xvf 241121_StonyCoral.tar
 >
-> 9.  The tarball file size for confirmation of a good download is in bold(it should be the same size on your machine):
->
->     -rw-rw-r\-- 1 waalkes domain\^users **15801456640** Nov 21 15:40 241121_StonyCoral.tar
+> 9.  The tarball file size for confirmation of a good download is in bold (it should be the same size on your machine):
 
 ```{r, engine='bash'}
 

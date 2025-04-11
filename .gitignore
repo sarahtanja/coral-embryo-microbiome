@@ -2,3 +2,13 @@
 .Rhistory
 .RData
 .Ruserdata
+.bashvars
+*.bam
+*.sam
+*.fastq
+*.fq
+*.fastq.gz
+*.fq.gz
+*.fasta
+*.fa
+*.gff3
