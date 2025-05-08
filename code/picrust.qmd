@@ -1,0 +1,55 @@
+---
+title: "Running PICRUSt2"
+author: "Sarah Tanja"
+format: gfm
+toc: true
+toc-title: Contents <i class="bi bi-bookmark-heart"></i>
+toc-depth: 5
+toc-location: left
+bibliography: "../microbiome_bibtex.bib"
+reference-location: margin
+citation-location: margin
+---
+
+> Yes it is reasonable to look at picrust output and see if there are functional shifts, but it is not clear how adequate picrust libraries are to allow metabolic inference of these particular populations.  I would recommend that the actual analysis of metabolic shifts be conducted in Maaslin, as before, to account for covariates.
+>
+> it is possible to give sarah the input files she would need for the analysis. \[see [https://forum.qiime2.org/t/picrust2-input-files-for-bacteria/27968](https://urldefense.com/v3/__https://forum.qiime2.org/t/picrust2-input-files-for-bacteria/27968__;!!K-Hz7m0Vt54!iZIXAiB2i2QtliEgrFMztEKZHQZuAILNAY54WW_klnDOn0rCNia6tnE-GrFq0efQ8IeJkkAwEJWtIM0$)\]. For the record, you could isolate the ASV table from DADA2 in qiime (these are stored in rep-seqs-dada2.qza, according to [https://forum.qiime2.org/t/how-to-generate-an-asv-table-from-dada2-output/9973](https://urldefense.com/v3/__https://forum.qiime2.org/t/how-to-generate-an-asv-table-from-dada2-output/9973__;!!K-Hz7m0Vt54!iZIXAiB2i2QtliEgrFMztEKZHQZuAILNAY54WW_klnDOn0rCNia6tnE-GrFq0efQ8IeJkkAwpWyxhvY$)), and convert it to biom format \[[https://forum.qiime2.org/t/how-to-generate-an-asv-table-from-dada2-output/9973/2](https://urldefense.com/v3/__https://forum.qiime2.org/t/how-to-generate-an-asv-table-from-dada2-output/9973/2__;!!K-Hz7m0Vt54!iZIXAiB2i2QtliEgrFMztEKZHQZuAILNAY54WW_klnDOn0rCNia6tnE-GrFq0efQ8IeJkkAwc-L0gtk$)\]. 
+>
+> having said this it may just be easier to use the picrust2 plugin for qiime and hand over those outputs, since we already have the inputs ready in qiime
+>
+> [https://github.com/picrust/picrust2/wiki/q2-picrust2-Tutorial](https://urldefense.com/v3/__https://github.com/picrust/picrust2/wiki/q2-picrust2-Tutorial__;!!K-Hz7m0Vt54!iZIXAiB2i2QtliEgrFMztEKZHQZuAILNAY54WW_klnDOn0rCNia6tnE-GrFq0efQ8IeJkkAwVcNVfvQ$)
+>
+> [https://github.com/picrust/picrust2/wiki/Manually-install-QIIME-2-plugin](https://urldefense.com/v3/__https://github.com/picrust/picrust2/wiki/Manually-install-QIIME-2-plugin__;!!K-Hz7m0Vt54!iZIXAiB2i2QtliEgrFMztEKZHQZuAILNAY54WW_klnDOn0rCNia6tnE-GrFq0efQ8IeJkkAwAif4ef0$)\
+> \
+> id say generate those outputs and then run them through maaslin to look for significant feature abundances. -- S.S.
+
+# Install Miniconda3
+
+```{r, engine='bash'}
+cd ../../../Miniconda3
+
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+```
+
+Run this in terminal because you have to interact with prompts to press ENTER etc.
+
+```         
+cd ../../../Miniconda3
+bash Miniconda3-latest-Linux-x86_64.sh
+```
+
+```{r, engine='bash'}
+conda update conda
+```
+
+## Add it to shell PATH
+
+This temporarily adds it to your shell path
+
+```{r, engine='bash'}
+export PATH="/home/shared/8TB_HDD_02/stanja/miniconda3/bin:$PATH"
+```
+
+```{bash}
+conda --version
+```

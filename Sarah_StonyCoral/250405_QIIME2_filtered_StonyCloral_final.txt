@@ -1,0 +1,67 @@
+. ~/miniconda3/etc/profile.d/conda.sh
+conda activate qiime2-amplicon-2023.9
+vi 250414_StonyCoral_read_manifest.tsv
+qiime tools import --type 'SampleData[PairedEndSequencesWithQuality]' --input-path 250414_StonyCoral_read_manifest.tsv --output-path 250414_StonyCoral_imported_reads.qza --input-format PairedEndFastqManifestPhred33V2
+Imported 250414_StonyCoral_read_manifest.tsv as PairedEndFastqManifestPhred33V2 to 250414_StonyCoral_imported_reads.qza
+
+#klind primers so:
+qiime cutadapt trim-paired --i-demultiplexed-sequences 250414_StonyCoral_imported_reads.qza --p-cores 20 --p-front-f CCTACGGGNGGCWGCAG --p-front-r GACTACHVGGGTATCTAATCC --verbose --p-discard-untrimmed   --o-trimmed-sequences 250414_StonyCoral_imported_reads_trimmed.qza
+qiime demux summarize --i-data 250414_StonyCoral_imported_reads_trimmed.qza --o-visualization 250414_StonyCoral_imported_reads_trimmed.qzv
+
+#qualities seemed fine, running across a number of trims to see which is best
+(qiime2-amplicon-2023.9) tron:/mnt/labs/salipante/data/projects/241121_StonyCoral/270x200 $ qiime dada2 denoise-paired --i-demultiplexed-seqs ../250414_StonyCoral_imported_reads_trimmed.qza --p-n-threads 20 --p-trunc-len-f 270 --p-trunc-len-r 200 --verbose --o-table 250414_StonyCoral_270x200_featureTable.qza --o-representative-sequences 250414_StonyCoral_240x230_representative-sequences.qza --o-denoising-stats 250414_StonyCoral_240x230_denoising-stats.qza           
+
+# 4 other read lengths
+qiime feature-table summarize --i-table 250414_StonyCoral_270x200_featureTable.qza --o-visualization 250414_StonyCoral_270x200_featureTable.qzv --m-sample-metadata-file ../250416_StonyCoral_metadata.tsv
+qiime feature-table tabulate-seqs --i-data 250414_StonyCoral_270x200_representative-sequences.qza --o-visualization 250414_StonyCoral_270x200_representative-sequences.qzv
+qiime metadata tabulate --m-input-file 250414_StonyCoral_270x200_denoising-stats.qza --o-visualization 250414_StonyCoral_270x200_denoising-stats.qzv
+qiime diversity alpha-rarefaction --i-table 250414_StonyCoral_270x200_featureTable.qza  --p-min-depth 10 --p-steps 30 --p-max-depth 400000 --m-metadata-file ../250416_StonyCoral_metadata.tsv --o-visualization 250416_StonyCoral_270x200_alpha_rarefaction_curves.qzv
+
+# looked at the curves and 270x200 was best as usual, and 400K looked good
+
+# classify reads
+qiime feature-classifier classify-sklearn --i-classifier ../training-feature-classifiers/silva-naive-bayes-classifier.qza --i-reads 250414_StonyCoral_270x200_representative-sequences.qza --p-n-jobs 40 --o-classification 250414_270x200_representative-sequences_taxonomy
+
+# after meeting decided to remove Unassigned, mitochodria and chloroplast
+qiime taxa barplot --i-table 250414_StonyCoral_270x200_featureTable.qza --i-taxonomy 250414_270x200_representative-sequences_taxonomy.qza --m-metadata-file ../250416_StonyCoral_metadata.tsv --o-visualization 250414_StonyCoral_270x200_taxa-bar-plots.qzv
+qiime taxa filter-table \
+  --i-table 250414_StonyCoral_270x200_featureTable.qza \
+  --i-taxonomy 250414_270x200_representative-sequences_taxonomy.qza \
+  --p-exclude mitochondria,chloroplast,Unassigned \
+  --o-filtered-table 250414_StonyCoral_270x200_featureTable_filtered.qza
+
+# create new taxa barcharts
+qiime taxa barplot --i-table 250414_StonyCoral_270x200_featureTable_filtered.qza --i-taxonomy 250414_270x200_representative-sequences_taxonomy.qza --m-metadata-file ../250416_StonyCoral_metadata.tsv --o-visualization 250414_StonyCoral_270x200_filtered_taxa-bar-plots.qzv
+
+#ran script to export all levels here it the script
+cat taxa_collapse_filtered.sh
+
+# collapse at levels 1 (kingdom) through 7 (species)
+for LEVEL in {1..7}; do
+  qiime taxa collapse \
+    --i-table 250414_StonyCoral_270x200_featureTable_filtered.qza \
+    --i-taxonomy 250414_270x200_representative-sequences_taxonomy.qza \
+    --p-level $LEVEL \
+    --o-collapsed-table collapsed-l${LEVEL}.qza
+done
+./taxa_collapse_filtered.sh
+
+#merged 7 levels into single table
+qiime feature-table merge \
+  --i-tables collapsed-l1.qza collapsed-l2.qza collapsed-l3.qza collapsed-l4.qza collapsed-l5.qza collapsed-l6.qza  collapsed-l7.qza \
+  --p-overlap-method sum \
+  --o-merged-table hierarchical-table.qza
+qiime tools export \
+  --input-path hierarchical-table.qza \
+  --output-path hierarchical-export/
+biom convert \
+  -i hierarchical-export/feature-table.biom \
+  -o hierarchical.tsv \
+  --to-tsv \
+  --header-key taxonomy
+
+#export shannon diversity levels for all samples
+qiime metadata tabulate \
+    --m-input-file shannon_vector.qza \
+    --o-visualization shannon_vector.qzv
+

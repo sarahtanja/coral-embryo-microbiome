@@ -45,8 +45,6 @@ ls -1 ../data/*fastq* | wc -l
 cd ../data/
 md5sum -c 456L9_S42_R2_001.fastq.gz.md5 #check if the md5sum is OK
 md5sum 456L9_S42_R2_001.fastq.gz.md5 #write out checksum 
-
-
 ```
 
 The checksum looks good, I just clicked 'submit' again and it went through.

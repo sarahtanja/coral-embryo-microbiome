@@ -62,3 +62,42 @@ for file in ../data/*.fastq.gz; do
     md5sum "$file" > "${file}.md5"
 done
 ```
+
+# 08May2025 - PICRUSt2 input files
+
+```{r, engine = "bash"}
+#!/bin/bash
+mkdir -p "labs/salipante/transfer/Gamino"
+
+curl --silent --create-dirs -o "labs/salipante/transfer/Gamino/250507_StonyCoral_QIIME2.tar.gz" "https://dlmp-research.s3.amazonaws.com/labs/salipante/transfer/Gamino/250507_StonyCoral_QIIME2.tar.gz?AWSAccessKeyId=ASIA2QGGSOBK4XTN4YLM&Signature=a8TFCBZX1wb8eHtucH4vYXfOE3M%3D&x-amz-security-token=IQoJb3JpZ2luX2VjEND%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQCqILEdnTOgb61dY5YlLTNI%2B1J5yiV%2FKsvJ4lHtR%2BO4DwIgaMX4%2F12V4Ssror5nqgnCoHJPuktqzxW9tNjAI0z4DkcqjwQIeRAAGgw3MjE5NzA5NTAyMjkiDPGC5XG5ks1Hlb%2FHuSrsA9BGlVVbGzxWGxBoRPjpNIQmg005LCWxeg0f8KZyGj8O2KS4wpjmzzxB8dWUpqd%2Fmh9C6yXpJFpPqOZxXPGMJUDh5iODlkK6iDRdO3RflxRsNf8plIZcjD7pyzalhvYh%2FPV7jGrILobXj05WHZUB7it3EzBlnAr6WVl2s9lpd4D8CpfL8MvowWYY9kubGX6znsdU8v%2FT7nG8e4oEQxkQyxr5HoBneVMemr7LNSst3B%2Bwt6oT%2FxdBz%2FHY2ehkjsVatvpVaIb0bb4h4f9MraskptWqAuKvPeMdDncRQovRlo8mj%2Fik%2FWpqGM29x5fmDjB%2Bjz6J%2F9YQ8ZJLE4%2Fc6jut1fwKDhCBmI%2BjVcbR8CJZkzGB6DC0DCNXT2osrkV0x8I6WJuB%2FsSGN7iXamgI5VcU1NEOHBD%2FZ7fcwcvpVrEmWFC536NJZy%2FLaFo1VTyMm5pCVg5J%2B%2FHnGpsl15vfo51xWFEK7e6dCOzY4RTqkXSiC1RsyaVsXYXUZAw2Hx06y0Pa8rHsFflz65S8N6k8AXzFM%2Bis8%2BI4kfjRHmfTE6QQaMSrk0SsSsCuELZxTdKIK9ng%2B3kJxpO0mKf73iyex0%2FYaDNAaHrcQYqoNl0j4T1Uc2uT9HrcV3O59uaQUp4TCvLzZGhvlacpJIm3sdHQzTC%2BnPPABjqlAcat0lzYntF1ENTrXI00lKD8BF9YBXECqS7CIzJMUiERN7lZomK%2FDySNTxtc8iEbQaoMCZj3vnv2Yz1JnjP9ydE5QawcDWDHe5qcduiCi%2BGL40%2FfBd0blJcCh52iDMzrFh2xFceE9EVEe8xuNopf%2F4FtVb7rNr7ZJMakXFNJrx5NiJFUXQrTyDvDmdBBAGtJrL9Bmea%2FPcGZomSr0%2Fi97Iyxc8RZqg%3D%3D&Expires=1746755278"
+```
+
+Move tar.gz file to input folder
+
+```{r, engine = "bash"}
+mv labs/salipante/transfer/Gamino/250507_StonyCoral_QIIME2.tar.gz ../input/250507_StonyCoral_QIIME2.tar.gz
+```
+
+remove recursively the now empty labs directory
+
+```{r, engine = "bash"}
+rm -r labs
+```
+
+unzip tar.gz file
+
+-   `-x` → extract
+
+```{=html}
+<!-- -->
+```
+-   `-z` → decompress using gzip
+
+-   `-f` → file name follow
+
+```{r, engine = "bash"}
+
+cd ../input
+
+tar -xzf 250507_StonyCoral_QIIME2.tar.gz
+```
