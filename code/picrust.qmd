@@ -47,7 +47,7 @@ library(reticulate)
 
 # Activate qiime2 environment in R
 
-```{r load-qiime-env, eval=TRUE}
+```{r load-qiime-env}
 use_condaenv(condaenv = "qiime2-2023.5", conda = "/home/shared/8TB_HDD_02/stanja/miniconda3/condabin/conda")
 
 # Check successful env loading
@@ -60,7 +60,6 @@ Your conda and qiime environments should be listed in your \$PATH:
 
 ```{r, engine='bash'}
 echo $PATH
-
 ```
 
 And the following qiime command should run:
@@ -146,5 +145,5 @@ qiime picrust2 full-pipeline \
    --p-max-nsti 2 \
    --verbose
 ```
-
-# 
+> Standard error of the above failed command:
+Warning - 1169 input sequences aligned poorly to reference sequences (--min_align option specified a minimum proportion of 0.8 aligning to reference sequences).
