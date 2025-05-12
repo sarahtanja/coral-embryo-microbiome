@@ -10,11 +10,8 @@ Sarah Tanja
 - [Feature table (BIOM)](#feature-table-biom)
 - [Sequence file](#sequence-file)
 - [PICRUSt2 qiime pipeline](#picrust2-qiime-pipeline)
-- [](#section)
 
 # Goals
-
-Run
 
 > Yes it is reasonable to look at picrust output and see if there are
 > functional shifts, but it is not clear how adequate picrust libraries
@@ -58,6 +55,15 @@ use_condaenv(condaenv = "qiime2-2023.5", conda = "/home/shared/8TB_HDD_02/stanja
 # Check successful env loading
 py_config()
 ```
+
+    python:         /home/shared/8TB_HDD_02/stanja/miniconda3/envs/qiime2-2023.5/bin/python
+    libpython:      /home/shared/8TB_HDD_02/stanja/miniconda3/envs/qiime2-2023.5/lib/libpython3.8.so
+    pythonhome:     /home/shared/8TB_HDD_02/stanja/miniconda3/envs/qiime2-2023.5:/home/shared/8TB_HDD_02/stanja/miniconda3/envs/qiime2-2023.5
+    version:        3.8.16 | packaged by conda-forge | (default, Feb  1 2023, 16:01:55)  [GCC 11.3.0]
+    numpy:          /home/shared/8TB_HDD_02/stanja/miniconda3/envs/qiime2-2023.5/lib/python3.8/site-packages/numpy
+    numpy_version:  1.23.5
+
+    NOTE: Python version was forced by use_python() function
 
 If this is successful, the first line of output should show that the
 Python environment being used is the one in your conda environment path.
@@ -131,6 +137,10 @@ located at path
 qiime tools peek ../input/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza
 ```
 
+    UUID:        3cc95575-462c-4b0f-a4b0-b83a259906d9
+    Type:        FeatureTable[Frequency]
+    Data format: BIOMV210DirFmt
+
 # Sequence file
 
 located at path
@@ -139,6 +149,10 @@ located at path
 ``` bash
 qiime tools peek ../input/241121_StonyCoral/270x200/250414_StonyCoral_270x200_representative-sequences.qza
 ```
+
+    UUID:        25349e49-dda5-4954-8d2e-46bdcf0ef058
+    Type:        FeatureData[Sequence]
+    Data format: DNASequencesDirectoryFormat
 
 # PICRUSt2 qiime pipeline
 
@@ -158,4 +172,15 @@ qiime picrust2 full-pipeline \
    --verbose
 ```
 
-# 
+> [!WARNING]
+>
+> Standard error of the above failed command: Warning - 1169 input
+> sequences aligned poorly to reference sequences (–min_align option
+> specified a minimum proportion of 0.8 aligning to reference
+> sequences).
+
+See [issue#122](https://github.com/picrust/picrust2/issues/122)
+
+> In case some one may need this, use seqtk to get reverse complementary
+> seqs, then using picrust2_pipeline.py. seqtk seq -r
+> otus.fa.format.fasta \> otus_rc.fa
