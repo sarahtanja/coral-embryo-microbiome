@@ -7,7 +7,7 @@ toc-title: Contents <i class="bi bi-bookmark-heart"></i>
 toc-depth: 5
 toc-location: left
 bibliography: "../microbiome_bibtex.bib"
-reference-location: margin
+reference-location: margins
 citation-location: margin
 ---
 
@@ -152,4 +152,24 @@ See [issue#122](https://github.com/picrust/picrust2/issues/122)
 > There's a good chance your input sequences are on the negative strand and aren't being aligned properly. 
 In case some one may need this, use seqtk to get reverse complementary seqs, then using picrust2_pipeline.py. seqtk seq -r otus.fa.format.fasta \> otus_rc.fa
 
+# Install SEQTK
+
+Run in terminal and proceed with 'y'
+```
+conda install -c bioconda seqtk
+```
+
+# Representative sequences (.qza → .fasta)
+
+```{r, engine='bash'}
+qiime tools export --help
+```
+
+
+```{r, engine='bash'}
+qiime tools export \
+  --input-path salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_representative-sequences.qza \
+  --output-path ../output/rep_seqs_export.fasta
+
+```
 

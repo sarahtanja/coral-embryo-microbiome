@@ -1,0 +1,62 @@
+---
+title: "Assign taxonomy"
+author: "Sarah Tanja"
+format: gfm
+toc: true
+toc-title: Contents <i class="bi bi-bookmark-heart"></i>
+toc-depth: 5
+toc-location: left
+bibliography: "../microbiome_bibtex.bib"
+reference-location: margin
+citation-location: margin
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,         # Display code chunks
+  eval = FALSE,        # Evaluate code chunks
+  warning = FALSE,     # Hide warnings
+  message = FALSE,     # Hide messages
+  comment = ""         # Prevents appending '##' to beginning of lines in code output
+)
+```
+
+# Goals
+
+Assign taxonomy to all the feature table sequences
+
+# Load packages
+
+```{r}
+library(knitr)
+library(dplyr)
+library(stringr)
+library(readr)
+library(reticulate)
+```
+
+# Get taxonomy classifier
+```{r}
+# Specify the directory where you want to save the downloaded file
+output_directory <- ''
+
+# Download the file and save it to the specified directory
+wget.download('https://data.qiime2.org/2023.9/common/silva-138-99-515-806-nb-classifier.qza', out=output_directory)
+```
+
+
+# Activate qiime2 environment in R
+
+This is equivalent to `conda activate qiime2-2023.5` in the terminal but allows running qiime commands in r chunks with engine ='bash' throughout the quarto markdown doc.
+
+```{r load-qiime-env, eval=TRUE}
+use_condaenv(condaenv = "qiime2-2023.5", conda = "/home/shared/8TB_HDD_02/stanja/miniconda3/condabin/conda")
+
+# Check successful env loading
+py_config()
+```
+
+
+
+> # classify reads
+qiime feature-classifier classify-sklearn --i-classifier ../training-feature-classifiers/silva-naive-bayes-classifier.qza --i-reads 250414_StonyCoral_270x200_representative-sequences.qza --p-n-jobs 40 --o-classification 250414_270x200_representative-sequences_taxonomy
