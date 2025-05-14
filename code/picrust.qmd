@@ -7,7 +7,7 @@ toc-title: Contents <i class="bi bi-bookmark-heart"></i>
 toc-depth: 5
 toc-location: left
 bibliography: "../microbiome_bibtex.bib"
-reference-location: margins
+reference-location: margin
 citation-location: margin
 ---
 
@@ -35,6 +35,8 @@ knitr::opts_chunk$set(
 > \
 > id say generate those outputs and then run them through maaslin to look for significant feature abundances. -- S.S.
 
+# Setup
+
 # Load packages
 
 ```{r, eval=TRUE}
@@ -43,10 +45,59 @@ library(dplyr)
 library(reticulate)
 ```
 
+# Install miniconda
+
+Installation instruction for miniconda are [here](https://www.anaconda.com/docs/getting-started/miniconda/install#linux) - create a new directory named "miniconda3" in your home directory. - download the Linux Miniconda installation script for your chosen chip architecture and save the script as miniconda.sh in the miniconda3 directory. - run the miniconda.sh installation script in silent mode using bash. - remove the miniconda.sh installation script file after installation is complete.
+
+```{r, engine='bash'}
+mkdir -p ~/miniconda3
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
+bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+rm ~/miniconda3/miniconda.sh
+```
+
+After installiong Miniconda make sure you're running the latest version of `conda`.
+
+```{r, engine='bash'}
+conda update conda
+```
+
+# Install QIIME2 as a conda environment
+
+Here I'm installing qiime2 version 2023.9 because it's the same one used by the Salipante Lab ...but it is using python 3.8 and picrust needs python 3.9 so there is a incompatible package conflict
+
+## 2023.5
+
+```{r create-qiime-env, engine='bash'}
+wget https://data.qiime2.org/distro/core/qiime2-2023.5-py38-linux-conda.yml
+conda env create -n qiime2-2023.5 --file qiime2-2023.5-py38-linux-conda.yml
+rm qiime2-2023.5-py38-linux-conda.yml
+```
+
+## 2023.9
+
+::: callout-note
+Use this version if possible because it's the same one the Salipante Lab is using!
+:::
+
+```{r create-qiime-env, engine='bash'}
+conda env create \
+  --name qiime2-amplicon-2023.9 \
+  --file https://raw.githubusercontent.com/qiime2/distributions/refs/heads/dev/2023.9/amplicon/released/qiime2-amplicon-ubuntu-latest-conda.yml
+```
+
+## 2024.4
+
+```{r create-qiime-env, engine='bash'}
+conda env create \
+  --name qiime2-amplicon-2024.2 \
+  --file https://raw.githubusercontent.com/qiime2/distributions/refs/heads/dev/2024.2/amplicon/released/qiime2-amplicon-ubuntu-latest-conda.yml
+```
+
 # Activate qiime2 environment in R
 
 ```{r load-qiime-env, eval=TRUE}
-use_condaenv(condaenv = "qiime2-2023.5", conda = "/home/shared/8TB_HDD_02/stanja/miniconda3/condabin/conda")
+use_condaenv(condaenv = "qiime2-amplicon-2023.9", conda = "/home/shared/8TB_HDD_02/stanja/miniconda3/condabin/conda")
 
 # Check successful env loading
 py_config()
@@ -56,74 +107,53 @@ If this is successful, the first line of output should show that the Python envi
 
 Your conda and qiime environments should be listed in your \$PATH:
 
-```{r, engine='bash'}
+```{r test-path, engine='bash'}
 echo $PATH
-```
-
-And the following qiime command should run:
-
-```{r, engine='bash'}
-qiime --help
 ```
 
 # Install picrust2
 
-Follow [this](https://github.com/picrust/picrust2/wiki/Manually-install-QIIME-2-plugin) picrust2 instruction page. Run the following code in the Terminal and type 'y' when prompted.
+This must be done from within the active qiime2 conda environment!
+
+`qiime2` depends on `python 3.8` but `picrust2` uses `python 3.9` ... This results in package conflicts!!! The qiime2 library plugin for q2-picrust2 warms about this and suggests installing the plugin manually to avoid the "mysterious incompatibility errors"
+
+> If you run into incompatibility errors ... try [installing the plugin manually](https://github.com/picrust/picrust2/wiki/Manually-install-QIIME-2-plugin) instead.
+
+Run the following code in the Terminal and type 'y' when prompted to first install picrust2.
 
 ```         
 conda install -c bioconda -c conda-forge picrust2
 ```
 
-# Download & install q2-picrust2 plugin
+# Install q2-picrust2 plugin
+
+Download, unzip, and install the q2-picrust2 qiime2 plugin!
+
+1\. Get and unzip the plugin
 
 ```{r, engine='bash'}
 cd /home/shared/8TB_HDD_02/stanja
-wget https://github.com/picrust/q2-picrust2/archive/refs/tags/2023.2_0.tar.gz
-tar -xzvf 2023.2_0.tar.gz
+wget https://github.com/picrust/q2-picrust2/archive/refs/tags/2024.5_1.tar.gz
+tar -xzvf 2024.5_1.tar.gz
 ```
 
+2.  Move into the plugin directory and `pip install` the `setup.py` script.
+
 ```{r, engine='bash'}
-cd /home/shared/8TB_HDD_02/stanja/q2-picrust2-2023.2_0
+cd /home/shared/8TB_HDD_02/stanja/q2-picrust2-2024.5_1
 pip install -e .
+```
+
+3.  Refresh the qiime cache
+
+```{r,engine='bash'}
 qiime dev refresh-cache
 ```
 
+4.  Test that the plugin is working
+
 ```{r, engine='bash'}
 qiime picrust2 --help
-```
-
-`Usage: qiime picrust2 [OPTIONS] COMMAND [ARGS]…`
-
-`Description: This QIIME 2 plugin wraps the default 16S PICRUSt2 pipeline to run metagenome inference based on marker gene data. Currently only unstratified output is supported.`
-
-`Plugin website: https://github.com/gavinmdouglas/q2-picrust2`
-
-`Getting user support: Please post to the QIIME 2 forum for help with this plugin: https://forum.qiime2.org`
-
-`Options: –version Show the version and exit. –example-data PATH Write example data and exit. –citations Show citations and exit. –help Show this message and exit.`
-
-`Commands: custom-tree-pipeline 16S PICRUSt2 pipeline with custom tree full-pipeline Default 16S PICRUSt2 Pipeline`
-
-> The required inputs are --i-table and --i-seq, which need to correspond to QIIME 2 artifacts of types FeatureTable\[Frequency\] and FeatureData\[Sequence\], respectively. The Feature Table needs to contain the abundances of ASVs (i.e. a BIOM table) and the sequence file needs to be a FASTA file containing the sequences for each ASV.
-
-> These files correspond to the ASV count table, ASV sequences, and metadata for the samples.
-
-# Feature table (BIOM)
-
-located at path `../input/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza`
-
-```{r, engine='bash', eval=TRUE}
-qiime tools peek ../input/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza
-
-```
-
-# Sequence file
-
-located at path `../input/241121_StonyCoral/270x200/250414_StonyCoral_270x200_representative-sequences.qza`
-
-```{r, engine='bash', eval=TRUE}
-qiime tools peek ../input/241121_StonyCoral/270x200/250414_StonyCoral_270x200_representative-sequences.qza
-
 ```
 
 # PICRUSt2 qiime pipeline
@@ -132,44 +162,221 @@ qiime tools peek ../input/241121_StonyCoral/270x200/250414_StonyCoral_270x200_re
 qiime picrust2 full-pipeline --help
 ```
 
+> The required inputs are --i-table and --i-seq, which need to correspond to QIIME 2 artifacts of types FeatureTable\[Frequency\] and FeatureData\[Sequence\], respectively. The Feature Table needs to contain the abundances of ASVs (i.e. a BIOM table) and the sequence file needs to be a FASTA file containing the sequences for each ASV.
+
+> These files correspond to the ASV count table, ASV sequences, and metadata for the samples.
+
+## Feature table (BIOM)
+
+located at path `../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza`
+
+```{r, engine='bash', eval=TRUE}
+qiime tools peek ../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza
+
+```
+
+## Sequence file
+
+located at path `../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_representative-sequences.qza`
+
+```{r, engine='bash', eval=TRUE}
+qiime tools peek ../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_representative-sequences.qza
+
+```
+
+## Run `qiime picrust2 full-pipeline`
+
 ```{r, engine='bash'}
 qiime picrust2 full-pipeline \
-   --i-table ../input/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable.qza \
-   --i-seq ../input/241121_StonyCoral/270x200/250414_StonyCoral_270x200_representative-sequences.qza \
-   --output-dir ../q2-picrust2_output \
+   --i-table ../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza \
+   --i-seq ../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_representative-sequences.qza \
+   --output-dir ../output/picrust2 \
    --p-placement-tool sepp \
    --p-threads 4 \
    --p-hsp-method pic \
    --p-max-nsti 2 \
    --verbose
 ```
+
 ::: callout-warning
- Standard error of the above failed command: Warning - 1169 input sequences aligned poorly to reference sequences (--min_align option specified a minimum proportion of 0.8 aligning to reference sequences).
+Standard error of the above failed command: Warning - 1169 input sequences aligned poorly to reference sequences (--min_align option specified a minimum proportion of 0.8 aligning to reference sequences).
 :::
 
 See [issue#122](https://github.com/picrust/picrust2/issues/122)
 
-> There's a good chance your input sequences are on the negative strand and aren't being aligned properly. 
-In case some one may need this, use seqtk to get reverse complementary seqs, then using picrust2_pipeline.py. seqtk seq -r otus.fa.format.fasta \> otus_rc.fa
+> There's a good chance your input sequences are on the negative strand and aren't being aligned properly. In case some one may need this, use seqtk to get reverse complementary seqs, then using picrust2_pipeline.py. seqtk seq -r otus.fa.format.fasta \> otus_rc.fa
 
-# Install SEQTK
+### Install SEQTK
 
 Run in terminal and proceed with 'y'
-```
+
+```         
 conda install -c bioconda seqtk
 ```
 
-# Representative sequences (.qza → .fasta)
+### Reverse compliment
+
+Representative sequences (.qza → .fasta)
 
 ```{r, engine='bash'}
 qiime tools export --help
 ```
 
-
 ```{r, engine='bash'}
 qiime tools export \
-  --input-path salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_representative-sequences.qza \
-  --output-path ../output/rep_seqs_export.fasta
+  --input-path ../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_representative-sequences.qza \
+  --output-path ../output/
 
 ```
 
+Reverse compliment the sequences with `seqtk`
+
+```{r, engine='bash'}
+seqtk seq -r ../output/dna-sequences.fasta > ../output/rep_seqs_rc.fasta
+```
+
+```{r, engine='bash'}
+qiime tools list-types
+```
+
+```{r, engine='bash'}
+qiime tools import \
+  --type 'FeatureData[Sequence]' \
+  --input-path ../output/rep_seqs_rc.fasta \
+  --output-path ../output/rep_seqs_rc.qza \
+  --input-format DNAFASTAFormat
+```
+
+```{r, engine='bash'}
+qiime tools peek ../output/rep_seqs_rc.qza
+```
+
+### Run picrust with reverse compliment
+
+```{r, engine='bash'}
+qiime picrust2 full-pipeline \
+   --i-table ../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza \
+   --i-seq ../output/rep_seqs_rc.qza \
+   --output-dir ../output/picrust2 \
+   --p-placement-tool sepp \
+   --p-threads 4 \
+   --p-hsp-method pic \
+   --p-max-nsti 2 \
+   --verbose
+```
+
+::: callout-warning
+```         
+Standard error of the above failed command:
+Stopping - all 7182 input sequences aligned poorly to reference sequences (--min_align option specified a minimum proportion of 0.8 aligning to reference sequences).
+```
+
+OK this likely indicates that input sequences were originally on the positive strand, and the seqtk reverse compliment we made is the negative strand.. the number of input sequences that failed to align increased from 1169/7182 (16%) to 7182/7182 (100%)
+:::
+
+> can also consider lowering the \--min_align flag so reads have a better chance of matching poorly characterized taxa.
+
+--p-min-align PROPORTION Range(0.0, 1.0) Proportion of the total length of an input query sequence that must align with reference sequences. Any sequences with lengths below this value after making an alignment with reference sequences will be excluded from the placement and all subsequent steps. \[default: 0.8\]
+
+## Lower --p-min-align
+
+```{r, engine='bash'}
+qiime picrust2 full-pipeline \
+   --i-table ../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza \
+   --i-seq ../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_representative-sequences.qza \
+   --output-dir ../output/picrust2 \
+   --p-placement-tool sepp \
+   --p-threads 4 \
+   --p-hsp-method pic \
+   --p-max-nsti 2 \
+   --verbose \
+   --p-min-align 0.1
+```
+
+### Troubleshoot error
+
+::: callout-warning
+Error running this command:
+mv /tmp/tmpulv7acg9/picrust2_out/intermediate/place_seqs/sepp_out/output_placement.newick /tmp/tmpulv7acg9/picrust2_out/out.tre
+
+Standard error of the above failed command:
+mv: relocation error: /lib/x86_64-linux-gnu/libacl.so.1: symbol getxattr version ATTR_1.0 not defined in file libattr.so.1 with link time reference
+:::
+
+
+
+Best Solution: Use Conda-provided coreutils
+The error is coming from mv, which may be using a system version that doesn't play well with Conda's environment. So:
+
+1. Install coreutils inside your Conda env (Run in Terminal (inside activated conda env!) and proceed by typing `y`)
+
+```
+conda install -c conda-forge coreutils
+```
+
+This brings in a `mv` and related tools that are self-contained and avoid conflicting system libraries.
+
+
+2. Force use of Conda's `mv`
+After installing `coreutils`, Conda will install binaries like `gmv` (GNU mv). Use it like this:
+
+```
+gmv /tmp/tmpulv7acg9/picrust2_out/intermediate/place_seqs/sepp_out/output_placement.newick /tmp/tmpulv7acg9/picrust2_out/out.tre
+```
+
+## Set `LD_LIBRARY_PATH` when running QIIME
+```{r, engine='bash'}
+LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH \
+qiime picrust2 full-pipeline \
+   --i-table ../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza \
+   --i-seq ../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_representative-sequences.qza \
+   --output-dir ../output/picrust2 \
+   --p-placement-tool sepp \
+   --p-threads 4 \
+   --p-hsp-method pic \
+   --p-max-nsti 2 \
+   --verbose \
+   --p-min-align 0.1
+```
+
+
+The output artifacts of this command are the red boxes in the flowchart [here](https://huttenhower.sph.harvard.edu/picrust/#:~:text=PICRUSt%202.0%20Flowchart).
+
+These output files in (q2-picrust2_output) are:
+
+ec_metagenome.qza - EC metagenome predictions (rows are EC numbers and columns are samples).
+ko_metagenome.qza - KO metagenome predictions (rows are KOs and columns are samples).
+pathway_abundance.qza - MetaCyc pathway abundance predictions (rows are pathways and columns are samples).
+
+The artifacts are all of type FeatureTable[Frequency], which means they can be used with QIIME 2 plugins that process and analyze these datatypes.
+
+
+
+
+
+
+
+multiple or corrupted versions between `libacl.so.1` and `libattr.so.1` on your system
+
+🔍Check for multiple or corrupted versions by running:
+
+```{r, engine='bash'}
+ldconfig -p | grep libattr
+```
+
+Make sure there's only one version of libattr.so.1, typically pointing to something like: `libattr.so.1 (libc6,x86-64) => /lib/x86_64-linux-gnu/libattr.so.1`
+
+🧹 Clean up custom installs (if applicable) If you compiled libattr or libacl from source in the past, remove them or make sure the system-installed ones take priority.
+
+You can inspect where the faulty libattr.so.1 is:
+
+```{r, engine='bash'}
+ls -l /lib/x86_64-linux-gnu/libattr.so.1
+```
+
+Then check its version:
+
+```{r, engine='bash'}
+strings /lib/x86_64-linux-gnu/libattr.so.1 | grep getxattr
+```
+You should see something like `getxattr@@ATTR_1.0`.

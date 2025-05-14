@@ -1,0 +1,28 @@
+---
+title: "Differential abundance of bacterial taxa analysis"
+subtitle: "Using Maaslin2"
+author: "Sarah Tanja"
+date: 2025-05-12
+date-modified: "`r system('git log -1 --format=%ad --date=short', intern = TRUE)`"
+format: gfm
+toc: true
+toc-title: Contents <i class="bi bi-bookmark-heart"></i>
+toc-depth: 5
+toc-location: left
+bibliography: "../microbiome_bibtex.bib"
+reference-location: margin
+citation-location: margin
+---
+
+
+
+
+library(Maaslin2)
+
+#now using the filtered data that removed chloroplast and mitochondria
+
+df_Level7_filtered_data = read.table(file= '250425_level7_x100_flipped_filtered_maalin2_input.txt', header= TRUE, sep= "\t", row.names= 1, stringsAsFactors = FALSE)
+
+df_Level7_filtered_metadata = read.table(file= '250425_metadata_only_maaslin2.txt', header= TRUE, sep= "\t", row.names= 1, stringsAsFactors = FALSE)
+
+fit_Level7_filtered_data = Maaslin2(input_data= df_Level7_filtered_data, input_metadata = df_Level7_filtered_metadata, min_prevalence = 0.05, min_abundance = 0.001,normalization  = "NONE", output= "Level7_filtered_organism_output", fixed_effects  = c("leachate","timepoint"), random_effects = c("cross"))
