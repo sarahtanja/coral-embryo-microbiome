@@ -68,7 +68,7 @@ Here I'm installing qiime2 version 2023.9 because it's the same one used by the 
 
 ## 2023.5
 
-```{r create-qiime-env, engine='bash'}
+```{r create-qiime-2023.5, engine='bash'}
 wget https://data.qiime2.org/distro/core/qiime2-2023.5-py38-linux-conda.yml
 conda env create -n qiime2-2023.5 --file qiime2-2023.5-py38-linux-conda.yml
 rm qiime2-2023.5-py38-linux-conda.yml
@@ -80,7 +80,7 @@ rm qiime2-2023.5-py38-linux-conda.yml
 Use this version if possible because it's the same one the Salipante Lab is using!
 :::
 
-```{r create-qiime-env, engine='bash'}
+```{r create-qiime-2023.9, engine='bash'}
 conda env create \
   --name qiime2-amplicon-2023.9 \
   --file https://raw.githubusercontent.com/qiime2/distributions/refs/heads/dev/2023.9/amplicon/released/qiime2-amplicon-ubuntu-latest-conda.yml
@@ -88,7 +88,7 @@ conda env create \
 
 ## 2024.4
 
-```{r create-qiime-env, engine='bash'}
+```{r create-qiime-2024.4, engine='bash'}
 conda env create \
   --name qiime2-amplicon-2024.2 \
   --file https://raw.githubusercontent.com/qiime2/distributions/refs/heads/dev/2024.2/amplicon/released/qiime2-amplicon-ubuntu-latest-conda.yml
@@ -296,35 +296,15 @@ qiime picrust2 full-pipeline \
 ### Troubleshoot error
 
 ::: callout-warning
-Error running this command:
-mv /tmp/tmpulv7acg9/picrust2_out/intermediate/place_seqs/sepp_out/output_placement.newick /tmp/tmpulv7acg9/picrust2_out/out.tre
+Error running this command: mv /tmp/tmpulv7acg9/picrust2_out/intermediate/place_seqs/sepp_out/output_placement.newick /tmp/tmpulv7acg9/picrust2_out/out.tre
 
-Standard error of the above failed command:
-mv: relocation error: /lib/x86_64-linux-gnu/libacl.so.1: symbol getxattr version ATTR_1.0 not defined in file libattr.so.1 with link time reference
+Standard error of the above failed command: mv: relocation error: /lib/x86_64-linux-gnu/libacl.so.1: symbol getxattr version ATTR_1.0 not defined in file libattr.so.1 with link time reference
 :::
 
-
-
-Best Solution: Use Conda-provided coreutils
-The error is coming from mv, which may be using a system version that doesn't play well with Conda's environment. So:
-
-1. Install coreutils inside your Conda env (Run in Terminal (inside activated conda env!) and proceed by typing `y`)
-
-```
-conda install -c conda-forge coreutils
-```
-
-This brings in a `mv` and related tools that are self-contained and avoid conflicting system libraries.
-
-
-2. Force use of Conda's `mv`
-After installing `coreutils`, Conda will install binaries like `gmv` (GNU mv). Use it like this:
-
-```
-gmv /tmp/tmpulv7acg9/picrust2_out/intermediate/place_seqs/sepp_out/output_placement.newick /tmp/tmpulv7acg9/picrust2_out/out.tre
-```
+The error indicates there are multiple or corrupted versions between `libacl.so.1` and `libattr.so.1` on your system. To get around this we can set the library path when running qiime commands.
 
 ## Set `LD_LIBRARY_PATH` when running QIIME
+
 ```{r, engine='bash'}
 LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH \
 qiime picrust2 full-pipeline \
@@ -339,44 +319,55 @@ qiime picrust2 full-pipeline \
    --p-min-align 0.1
 ```
 
+> ::: callout-warning
+> Warning - 661 input sequences aligned poorly to reference sequences (--min_align option specified a minimum proportion of 0.1 aligning to reference sequences). These input sequences will not be placed and will be excluded from downstream steps. 323 of 6521 ASVs were above the max NSTI cut-off of 2.0 and were removed from the downstream analyses.
+> :::
 
 The output artifacts of this command are the red boxes in the flowchart [here](https://huttenhower.sph.harvard.edu/picrust/#:~:text=PICRUSt%202.0%20Flowchart).
 
 These output files in (q2-picrust2_output) are:
 
-ec_metagenome.qza - EC metagenome predictions (rows are EC numbers and columns are samples).
-ko_metagenome.qza - KO metagenome predictions (rows are KOs and columns are samples).
-pathway_abundance.qza - MetaCyc pathway abundance predictions (rows are pathways and columns are samples).
+-   ec_metagenome.qza : EC metagenome predictions (rows are EC numbers and columns are samples).
 
-The artifacts are all of type FeatureTable[Frequency], which means they can be used with QIIME 2 plugins that process and analyze these datatypes.
+-   ko_metagenome.qza : KO metagenome predictions (rows are KOs and columns are samples).
 
+-   pathway_abundance.qza : MetaCyc pathway abundance predictions (rows are pathways and columns are samples).
 
+The artifacts are all of type FeatureTable\[Frequency\], which means they can be used with QIIME 2 plugins that process and analyze these datatypes.
 
+# Run with `mp` & `epa-ng`
 
+> if users have at least 16 GB of RAM they should place reads with `epa-ng`
 
-
-
-multiple or corrupted versions between `libacl.so.1` and `libattr.so.1` on your system
-
-🔍Check for multiple or corrupted versions by running:
-
-```{r, engine='bash'}
-ldconfig -p | grep libattr
+```         
+--p-placement-tool TEXT Choices('epa-ng', 'sepp')
+                       Placement tool to use when placing sequences into
+                       reference tree. EPA-ng is the default, but SEPP is less
+                       memory intensive.                   [default: 'epa-ng']
 ```
 
-Make sure there's only one version of libattr.so.1, typically pointing to something like: `libattr.so.1 (libc6,x86-64) => /lib/x86_64-linux-gnu/libattr.so.1`
+> **We recommend that in practice users use the `mp` method**
 
-🧹 Clean up custom installs (if applicable) If you compiled libattr or libacl from source in the past, remove them or make sure the system-installed ones take priority.
-
-You can inspect where the faulty libattr.so.1 is:
-
-```{r, engine='bash'}
-ls -l /lib/x86_64-linux-gnu/libattr.so.1
+```         
+--p-hsp-method TEXT Choices('mp', 'emp_prob', 'pic', 'scp',
+    'subtree_average') Which hidden-state prediction method to use.
+                                                               [default: 'mp']
 ```
 
-Then check its version:
-
 ```{r, engine='bash'}
-strings /lib/x86_64-linux-gnu/libattr.so.1 | grep getxattr
+LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH \
+qiime picrust2 full-pipeline \
+   --i-table ../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza \
+   --i-seq ../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_representative-sequences.qza \
+   --output-dir ../output/picrust2_epa-ng \
+   --p-placement-tool epa-ng \
+   --p-threads 20 \
+   --p-hsp-method mp \
+   --p-max-nsti 2 \
+   --verbose \
+   --p-min-align 0.1
 ```
-You should see something like `getxattr@@ATTR_1.0`.
+
+::: callout-warning
+Warning - 661 input sequences aligned poorly to reference sequences (--min_align option specified a minimum proportion of 0.1 aligning to reference sequences). These input sequences will not be placed and will be excluded from downstream steps. 287 of 6521 ASVs were above the max NSTI cut-off of 2.0 and were removed from the downstream analyses.
+:::
