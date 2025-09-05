@@ -1,8 +1,8 @@
 ---
 title: "Import, Trim, and Denoise ASVs"
 author: "Sarah Tanja"
-date: 
-date-modified: 
+date: 09/02/2025
+date-modified: today
 format: gfm
 toc: true
 toc-title: Contents <i class="bi bi-bookmark-heart"></i>
@@ -22,6 +22,8 @@ knitr::opts_chunk$set(
   comment = ""         # Prevents appending '##' to beginning of lines in code output
 )
 ```
+
+# Background
 
 I'm re-running the commands already run by Adam Waalkes of the Salipante Lab (qiime2 commands found in `../salipante/Sarah_StonyCoral/250405_QIIME2_filtered_StonyCloral_final.txt`), the original commands I re-use and/or modify are also block-quoted prior to executable code chunks in this document.
 
@@ -62,7 +64,7 @@ metadata <- read_tsv("../metadata/metadata.tsv")
 ```{r, engine='bash'}
 qiime metadata tabulate \
   --m-input-file ../metadata/metadata.tsv \
-  --o-visualization ../output/metadata.qzv
+  --o-visualization ../output/denoise/metadata.qzv
 ```
 
 # Modify read manifest
@@ -108,7 +110,7 @@ write_tsv(read_manifest_mod, "../input/read_manifest.tsv")
 qiime tools import \
   --type 'SampleData[PairedEndSequencesWithQuality]' \
   --input-path ../input/read_manifest.tsv \
-  --output-path ../output/imported_reads.qza \
+  --output-path ../output/denoise/imported_reads.qza \
   --input-format PairedEndFastqManifestPhred33V2 
 ```
 
@@ -118,17 +120,17 @@ qiime tools import \
 
 ```{r, engine='bash'}
 qiime cutadapt trim-paired \
-  --i-demultiplexed-sequences ../output/imported_reads.qza \
+  --i-demultiplexed-sequences ../output/denoise/imported_reads.qza \
   --p-cores 20 \
   --p-front-f CCTACGGGNGGCWGCAG \
   --p-front-r GACTACHVGGGTATCTAATCC \
   --verbose \
   --p-discard-untrimmed \
-  --o-trimmed-sequences ../output/imported_reads_trimmed.qza
+  --o-trimmed-sequences ../output/denoise/imported_reads_trimmed.qza
 ```
 
 ```{r, engine='bash'}
-qiime tools peek ../output/imported_reads_trimmed.qza
+qiime tools peek ../output/denoise/imported_reads_trimmed.qza
 ```
 
 ## Create qzv of trimmed reads
@@ -137,13 +139,13 @@ qiime tools peek ../output/imported_reads_trimmed.qza
 
 ```{r, engine='bash'}
 qiime demux summarize \
-  --i-data ../output/imported_reads_trimmed.qza \
-  --o-visualization ../output/imported_reads_trimmed.qzv
+  --i-data ../output/denoise/imported_reads_trimmed.qza \
+  --o-visualization ../output/denoise/imported_reads_trimmed.qzv
 ```
 
-Use QIIME 2 View to view the `.qzv` file:
+Use QIIME 2 View to view the `.qzv` files:
 
-1.  Copy the `.qzv` or file to your local machine via <https://github.com/sarahtanja/coral-embryo-microbiome/blob/main/output/imported_reads_trimmed.qzv>
+1.  Copy the `.qzv` or file to your local machine via <https://github.com/sarahtanja/coral-embryo-microbiome/blob/main/output/>
 
     Open <https://view.qiime2.org> in a browser.
 
@@ -155,14 +157,14 @@ Use QIIME 2 View to view the `.qzv` file:
 
 ```{r, engine='bash'}
 qiime dada2 denoise-paired \
-  --i-demultiplexed-seqs ../output/imported_reads_trimmed.qza \
+  --i-demultiplexed-seqs ../output/denoise/imported_reads_trimmed.qza \
   --p-n-threads 20 \
   --p-trunc-len-f 270 \
   --p-trunc-len-r 200 \
   --verbose \
-  --o-table ../output/feature_table.qza \
-  --o-representative-sequences ../output/representative_sequences.qza \
-  --o-denoising-stats ../output/denoising_stats.qza
+  --o-table ../output/denoise/feature_table.qza \
+  --o-representative-sequences ../output/denoise/representative_sequences.qza \
+  --o-denoising-stats ../output/denoise/denoising_stats.qza
 ```
 
 # Filter representative sequences
@@ -207,3 +209,5 @@ qiime metadata tabulate \
 ```
 
 > \# looked at the curves and 270x200 was best as usual, and 400K looked good
+
+# Summary & next steps

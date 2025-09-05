@@ -36,14 +36,18 @@ library(reticulate)
 ```
 
 # Get taxonomy classifier
-```{r}
+
+```{r, engine='bash'}
 # Specify the directory where you want to save the downloaded file
-output_directory <- ''
+cd ../input
 
-# Download the file and save it to the specified directory
-wget.download('https://data.qiime2.org/2023.9/common/silva-138-99-515-806-nb-classifier.qza', out=output_directory)
+# Download the classifier and save it under input directory
+wget -O silva-138-99-515-806-nb-classifier.qza \
+  https://data.qiime2.org/2023.9/common/silva-138-99-515-806-nb-classifier.qza
+
+wget -O silva-138-99-nb-classifier.qza \ 
+  https://data.qiime2.org/classifiers/sklearn-1.4.2/silva/silva-138-99-nb-classifier.qza
 ```
-
 
 # Activate qiime2 environment in R
 
@@ -56,7 +60,37 @@ use_condaenv(condaenv = "qiime2-2023.5", conda = "/home/shared/8TB_HDD_02/stanja
 py_config()
 ```
 
+> # Classify reads
+>
+> qiime feature-classifier classify-sklearn\\
+>
+> --i-classifier ../training-feature-classifiers/silva-naive-bayes-classifier.qza \\
+>
+> --i-reads 250414_StonyCoral_270x200_representative-sequences.qza \\
+>
+> --p-n-jobs 40 \\
+>
+> --o-classification 250414_270x200_representative-sequences_taxonomy
 
+```{r, engine='bash'}
+qiime feature-classifier classify-sklearn \
+    --i-reads ../output/dada2/representative_sequences.qza \
+    --i-classifier ../input/silva-138-99-515-806-nb-classifier.qza \
+    --p-n-jobs 2 \
+    --output-dir ../output/taxonomy --verbose
 
-> # classify reads
-qiime feature-classifier classify-sklearn --i-classifier ../training-feature-classifiers/silva-naive-bayes-classifier.qza --i-reads 250414_StonyCoral_270x200_representative-sequences.qza --p-n-jobs 40 --o-classification 250414_270x200_representative-sequences_taxonomy
+```
+
+> # Remove Unassigned, mitochodria and chloroplast
+>
+> qiime taxa barplot \--i-table 250414_StonyCoral_270x200_featureTable.qza \--i-taxonomy 250414_270x200_representative-sequences_taxonomy.qza \--m-metadata-file ../250416_StonyCoral_metadata.tsv \--o-visualization 250414_StonyCoral_270x200_taxa-bar-plots.qzv
+>
+> qiime taxa filter-table \\
+>
+> \--i-table 250414_StonyCoral_270x200_featureTable.qza \\
+>
+> \--i-taxonomy 250414_270x200_representative-sequences_taxonomy.qza \\
+>
+> \--p-exclude mitochondria,chloroplast,Unassigned \\
+>
+> \--o-filtered-table 250414_StonyCoral_270x200_featureTable_filtered.qza
