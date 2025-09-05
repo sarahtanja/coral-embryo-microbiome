@@ -1,0 +1,1300 @@
+2025-05-20 14:28:13 INFO::Writing function arguments to log file
+2025-05-20 14:28:13 DEBUG::Function arguments
+2025-05-20 14:28:13 DEBUG::Output folder: filtered_path_TSS_output
+2025-05-20 14:28:13 DEBUG::Min Abundance: 0.001000
+2025-05-20 14:28:13 DEBUG::Min Prevalence: 0.050000
+2025-05-20 14:28:13 DEBUG::Normalization: TSS
+2025-05-20 14:28:13 DEBUG::Transform: LOG
+2025-05-20 14:28:13 DEBUG::Analysis method: LM
+2025-05-20 14:28:13 DEBUG::Max significance: 0.250000
+2025-05-20 14:28:13 DEBUG::Random effects: cross
+2025-05-20 14:28:13 DEBUG::Fixed effects: leachate,timepoint
+2025-05-20 14:28:13 DEBUG::Correction method: BH
+2025-05-20 14:28:13 DEBUG::Standardize: TRUE
+2025-05-20 14:28:13 DEBUG::Cores: 1
+2025-05-20 14:28:13 INFO::Verifying options selected are valid
+2025-05-20 14:28:13 INFO::Determining format of input files
+2025-05-20 14:28:13 INFO::Input format is data samples as rows and metadata samples as rows
+2025-05-20 14:28:13 DEBUG::A total of 63 samples were found in both the data and metadata
+2025-05-20 14:28:13 DEBUG::Reordering data/metadata to use same sample ordering
+2025-05-20 14:28:13 INFO::Formula for random effects: expr ~ (1 | cross)
+2025-05-20 14:28:13 INFO::Formula for fixed effects: expr ~  leachate + timepoint
+2025-05-20 14:28:13 INFO::Filter data based on min abundance and min prevalence
+2025-05-20 14:28:13 INFO::Total samples in data: 63
+2025-05-20 14:28:13 INFO::Min samples required with min abundance for a feature not to be filtered: 3.150000
+2025-05-20 14:28:13 INFO::Total filtered features: 14
+2025-05-20 14:28:13 INFO::Filtered feature names from abundance and prevalence filtering: BENZCOA.PWY, CENTBENZCOA.PWY, PWY.3081, PWY.5184, PWY.5675, PWY.5743, PWY.5744, PWY.6143, PWY.622, PWY.7024, PWY.7031, PWY.7084, PWY.7385, PWY5F9.12
+2025-05-20 14:28:13 INFO::Total filtered features with variance filtering: 0
+2025-05-20 14:28:13 INFO::Filtered feature names from variance filtering:
+2025-05-20 14:28:13 INFO::Running selected normalization method: TSS
+2025-05-20 14:28:13 INFO::Applying z-score to standardize continuous metadata
+2025-05-20 14:28:13 INFO::Running selected transform method: LOG
+2025-05-20 14:28:13 INFO::Running selected analysis method: LM
+2025-05-20 14:28:13 INFO::Fitting model to feature number 1, X1CMET2.PWY
+2025-05-20 14:28:13 INFO::Fitting model to feature number 2, X3.HYDROXYPHENYLACETATE.DEGRADATION.PWY
+2025-05-20 14:28:13 INFO::Fitting model to feature number 3, AEROBACTINSYN.PWY
+2025-05-20 14:28:13 INFO::Fitting model to feature number 4, ALL.CHORISMATE.PWY
+2025-05-20 14:28:13 INFO::Fitting model to feature number 5, ANAEROFRUCAT.PWY
+2025-05-20 14:28:13 INFO::Fitting model to feature number 6, ANAGLYCOLYSIS.PWY
+2025-05-20 14:28:13 INFO::Fitting model to feature number 7, ARG...SYN
+2025-05-20 14:28:13 INFO::Fitting model to feature number 8, ARGDEG.PWY
+2025-05-20 14:28:13 INFO::Fitting model to feature number 9, ARGORNPROST.PWY
+2025-05-20 14:28:13 INFO::Fitting model to feature number 10, ARGSYN.PWY
+2025-05-20 14:28:13 INFO::Fitting model to feature number 11, ARGSYNBSUB.PWY
+2025-05-20 14:28:13 INFO::Fitting model to feature number 12, ARO.PWY
+2025-05-20 14:28:13 INFO::Fitting model to feature number 13, ASPASN.PWY
+2025-05-20 14:28:13 INFO::Fitting model to feature number 14, AST.PWY
+2025-05-20 14:28:14 INFO::Fitting model to feature number 15, BIOTIN.BIOSYNTHESIS.PWY
+2025-05-20 14:28:14 INFO::Fitting model to feature number 16, BRANCHED.CHAIN.AA.SYN.PWY
+2025-05-20 14:28:14 INFO::Fitting model to feature number 17, CALVIN.PWY
+2025-05-20 14:28:14 INFO::Fitting model to feature number 18, CATECHOL.ORTHO.CLEAVAGE.PWY
+2025-05-20 14:28:14 INFO::Fitting model to feature number 19, CENTFERM.PWY
+2025-05-20 14:28:14 INFO::Fitting model to feature number 20, CHLOROPHYLL.SYN
+2025-05-20 14:28:14 INFO::Fitting model to feature number 21, COA.PWY
+2025-05-20 14:28:14 INFO::Fitting model to feature number 22, COBALSYN.PWY
+2025-05-20 14:28:14 INFO::Fitting model to feature number 23, CODH.PWY
+2025-05-20 14:28:14 INFO::Fitting model to feature number 24, COLANSYN.PWY
+2025-05-20 14:28:14 INFO::Fitting model to feature number 25, COMPLETE.ARO.PWY
+2025-05-20 14:28:14 INFO::Fitting model to feature number 26, CRNFORCAT.PWY
+2025-05-20 14:28:14 INFO::Fitting model to feature number 27, DAPLYSINESYN.PWY
+2025-05-20 14:28:14 INFO::Fitting model to feature number 28, DENITRIFICATION.PWY
+2025-05-20 14:28:14 INFO::Fitting model to feature number 29, DENOVOPURINE2.PWY
+2025-05-20 14:28:14 INFO::Fitting model to feature number 30, DHGLUCONATE.PYR.CAT.PWY
+2025-05-20 14:28:14 INFO::Fitting model to feature number 31, DTDPRHAMSYN.PWY
+2025-05-20 14:28:14 INFO::Fitting model to feature number 32, ECASYN.PWY
+2025-05-20 14:28:15 INFO::Fitting model to feature number 33, ENTBACSYN.PWY
+2025-05-20 14:28:15 INFO::Fitting model to feature number 34, FAO.PWY
+2025-05-20 14:28:15 INFO::Fitting model to feature number 35, FASYN.ELONG.PWY
+2025-05-20 14:28:15 INFO::Fitting model to feature number 36, FASYN.INITIAL.PWY
+2025-05-20 14:28:15 INFO::Fitting model to feature number 37, FERMENTATION.PWY
+2025-05-20 14:28:15 INFO::Fitting model to feature number 38, FOLSYN.PWY
+2025-05-20 14:28:15 INFO::Fitting model to feature number 39, FUC.RHAMCAT.PWY
+2025-05-20 14:28:15 INFO::Fitting model to feature number 40, FUCCAT.PWY
+2025-05-20 14:28:15 INFO::Fitting model to feature number 41, GALACT.GLUCUROCAT.PWY
+2025-05-20 14:28:15 INFO::Fitting model to feature number 42, GALACTARDEG.PWY
+2025-05-20 14:28:15 INFO::Fitting model to feature number 43, GALACTUROCAT.PWY
+2025-05-20 14:28:15 INFO::Fitting model to feature number 44, GALLATE.DEGRADATION.I.PWY
+2025-05-20 14:28:15 INFO::Fitting model to feature number 45, GALLATE.DEGRADATION.II.PWY
+2025-05-20 14:28:15 INFO::Fitting model to feature number 46, GLCMANNANAUT.PWY
+2025-05-20 14:28:15 INFO::Fitting model to feature number 47, GLUCARDEG.PWY
+2025-05-20 14:28:15 INFO::Fitting model to feature number 48, GLUCARGALACTSUPER.PWY
+2025-05-20 14:28:15 INFO::Fitting model to feature number 49, GLUCONEO.PWY
+2025-05-20 14:28:15 INFO::Fitting model to feature number 50, GLUCOSE1PMETAB.PWY
+2025-05-20 14:28:15 INFO::Fitting model to feature number 51, GLUCUROCAT.PWY
+2025-05-20 14:28:15 INFO::Fitting model to feature number 52, GLUTORN.PWY
+2025-05-20 14:28:16 INFO::Fitting model to feature number 53, GLYCOCAT.PWY
+2025-05-20 14:28:16 INFO::Fitting model to feature number 54, GLYCOGENSYNTH.PWY
+2025-05-20 14:28:16 INFO::Fitting model to feature number 55, GLYCOL.GLYOXDEG.PWY
+2025-05-20 14:28:16 INFO::Fitting model to feature number 56, GLYCOLYSIS
+2025-05-20 14:28:16 INFO::Fitting model to feature number 57, GLYCOLYSIS.E.D
+2025-05-20 14:28:16 INFO::Fitting model to feature number 58, GLYCOLYSIS.TCA.GLYOX.BYPASS
+2025-05-20 14:28:16 INFO::Fitting model to feature number 59, GLYOXYLATE.BYPASS
+2025-05-20 14:28:16 INFO::Fitting model to feature number 60, GOLPDLCAT.PWY
+2025-05-20 14:28:16 INFO::Fitting model to feature number 61, HCAMHPDEG.PWY
+2025-05-20 14:28:16 INFO::Fitting model to feature number 62, HEME.BIOSYNTHESIS.II
+2025-05-20 14:28:16 INFO::Fitting model to feature number 63, HEMESYN2.PWY
+2025-05-20 14:28:16 INFO::Fitting model to feature number 64, HEXITOLDEGSUPER.PWY
+2025-05-20 14:28:16 INFO::Fitting model to feature number 65, HISDEG.PWY
+2025-05-20 14:28:16 INFO::Fitting model to feature number 66, HISTSYN.PWY
+2025-05-20 14:28:16 INFO::Fitting model to feature number 67, HOMOSER.METSYN.PWY
+2025-05-20 14:28:16 INFO::Fitting model to feature number 68, HSERMETANA.PWY
+2025-05-20 14:28:16 INFO::Fitting model to feature number 69, ILEUSYN.PWY
+2025-05-20 14:28:16 INFO::Fitting model to feature number 70, KDO.NAGLIPASYN.PWY
+2025-05-20 14:28:16 INFO::Fitting model to feature number 71, KETOGLUCONMET.PWY
+2025-05-20 14:28:17 INFO::Fitting model to feature number 72, LACTOSECAT.PWY
+2025-05-20 14:28:17 INFO::Fitting model to feature number 73, LEU.DEG2.PWY
+2025-05-20 14:28:17 INFO::Fitting model to feature number 74, LIPASYN.PWY
+2025-05-20 14:28:17 INFO::Fitting model to feature number 75, LPSSYN.PWY
+2025-05-20 14:28:17 INFO::Fitting model to feature number 76, MET.SAM.PWY
+2025-05-20 14:28:17 INFO::Fitting model to feature number 77, METH.ACETATE.PWY
+2025-05-20 14:28:17 INFO::Fitting model to feature number 78, METHANOGENESIS.PWY
+2025-05-20 14:28:17 INFO::Fitting model to feature number 79, METHGLYUT.PWY
+2025-05-20 14:28:17 INFO::Fitting model to feature number 80, METHYLGALLATE.DEGRADATION.PWY
+2025-05-20 14:28:17 INFO::Fitting model to feature number 81, NAD.BIOSYNTHESIS.II
+2025-05-20 14:28:17 INFO::Fitting model to feature number 82, NADSYN.PWY
+2025-05-20 14:28:17 INFO::Fitting model to feature number 83, NAGLIPASYN.PWY
+2025-05-20 14:28:17 INFO::Fitting model to feature number 84, NONMEVIPP.PWY
+2025-05-20 14:28:17 INFO::Fitting model to feature number 85, NONOXIPENT.PWY
+2025-05-20 14:28:17 INFO::Fitting model to feature number 86, OANTIGEN.PWY
+2025-05-20 14:28:17 INFO::Fitting model to feature number 87, ORNARGDEG.PWY
+2025-05-20 14:28:17 INFO::Fitting model to feature number 88, ORNDEG.PWY
+2025-05-20 14:28:17 INFO::Fitting model to feature number 89, P101.PWY
+2025-05-20 14:28:17 INFO::Fitting model to feature number 90, P105.PWY
+2025-05-20 14:28:17 INFO::Fitting model to feature number 91, P108.PWY
+2025-05-20 14:28:18 INFO::Fitting model to feature number 92, P122.PWY
+2025-05-20 14:28:18 INFO::Fitting model to feature number 93, P124.PWY
+2025-05-20 14:28:18 INFO::Fitting model to feature number 94, P125.PWY
+2025-05-20 14:28:18 INFO::Fitting model to feature number 95, P161.PWY
+2025-05-20 14:28:18 INFO::Fitting model to feature number 96, P162.PWY
+2025-05-20 14:28:18 INFO::Fitting model to feature number 97, P163.PWY
+2025-05-20 14:28:18 INFO::Fitting model to feature number 98, P164.PWY
+2025-05-20 14:28:18 INFO::Fitting model to feature number 99, P184.PWY
+2025-05-20 14:28:18 INFO::Fitting model to feature number 100, P221.PWY
+2025-05-20 14:28:18 INFO::Fitting model to feature number 101, P23.PWY
+2025-05-20 14:28:18 INFO::Fitting model to feature number 102, P241.PWY
+2025-05-20 14:28:18 INFO::Fitting model to feature number 103, P261.PWY
+2025-05-20 14:28:18 INFO::Fitting model to feature number 104, P281.PWY
+2025-05-20 14:28:18 INFO::Fitting model to feature number 105, P341.PWY
+2025-05-20 14:28:18 INFO::Fitting model to feature number 106, P381.PWY
+2025-05-20 14:28:18 INFO::Fitting model to feature number 107, P4.PWY
+2025-05-20 14:28:18 INFO::Fitting model to feature number 108, P42.PWY
+2025-05-20 14:28:18 INFO::Fitting model to feature number 109, P441.PWY
+2025-05-20 14:28:18 INFO::Fitting model to feature number 110, P461.PWY
+2025-05-20 14:28:18 INFO::Fitting model to feature number 111, P562.PWY
+2025-05-20 14:28:19 INFO::Fitting model to feature number 112, P621.PWY
+2025-05-20 14:28:19 INFO::Fitting model to feature number 113, PANTO.PWY
+2025-05-20 14:28:19 INFO::Fitting model to feature number 114, PANTOSYN.PWY
+2025-05-20 14:28:19 INFO::Fitting model to feature number 115, PENTOSE.P.PWY
+2025-05-20 14:28:19 INFO::Fitting model to feature number 116, PEPTIDOGLYCANSYN.PWY
+2025-05-20 14:28:19 INFO::Fitting model to feature number 117, PHOSLIPSYN.PWY
+2025-05-20 14:28:19 INFO::Fitting model to feature number 118, POLYAMINSYN3.PWY
+2025-05-20 14:28:19 INFO::Fitting model to feature number 119, POLYAMSYN.PWY
+2025-05-20 14:28:19 INFO::Fitting model to feature number 120, POLYISOPRENSYN.PWY
+2025-05-20 14:28:19 INFO::Fitting model to feature number 121, PPGPPMET.PWY
+2025-05-20 14:28:19 INFO::Fitting model to feature number 122, PROTOCATECHUATE.ORTHO.CLEAVAGE.PWY
+2025-05-20 14:28:19 INFO::Fitting model to feature number 123, PRPP.PWY
+2025-05-20 14:28:19 INFO::Fitting model to feature number 124, PWY.1269
+2025-05-20 14:28:19 INFO::Fitting model to feature number 125, PWY.1361
+2025-05-20 14:28:19 INFO::Fitting model to feature number 126, PWY.1422
+2025-05-20 14:28:19 INFO::Fitting model to feature number 127, PWY.1501
+2025-05-20 14:28:19 INFO::Fitting model to feature number 128, PWY.1541
+2025-05-20 14:28:19 INFO::Fitting model to feature number 129, PWY.1622
+2025-05-20 14:28:19 INFO::Fitting model to feature number 130, PWY.181
+2025-05-20 14:28:20 INFO::Fitting model to feature number 131, PWY.1861
+2025-05-20 14:28:20 INFO::Fitting model to feature number 132, PWY.1882
+2025-05-20 14:28:20 INFO::Fitting model to feature number 133, PWY.2221
+2025-05-20 14:28:20 INFO::Fitting model to feature number 134, PWY.2941
+2025-05-20 14:28:20 INFO::Fitting model to feature number 135, PWY.2942
+2025-05-20 14:28:20 INFO::Fitting model to feature number 136, PWY.3001
+2025-05-20 14:28:20 INFO::Fitting model to feature number 137, PWY.3661
+2025-05-20 14:28:20 INFO::Fitting model to feature number 138, PWY.3781
+2025-05-20 14:28:20 INFO::Fitting model to feature number 139, PWY.3801
+2025-05-20 14:28:20 INFO::Fitting model to feature number 140, PWY.3941
+2025-05-20 14:28:20 INFO::Fitting model to feature number 141, PWY.4361
+2025-05-20 14:28:20 INFO::Fitting model to feature number 142, PWY.4722
+2025-05-20 14:28:20 INFO::Fitting model to feature number 143, PWY.4984
+2025-05-20 14:28:20 INFO::Fitting model to feature number 144, PWY.5005
+2025-05-20 14:28:20 INFO::Fitting model to feature number 145, PWY.5022
+2025-05-20 14:28:20 INFO::Fitting model to feature number 146, PWY.5028
+2025-05-20 14:28:20 INFO::Fitting model to feature number 147, PWY.5088
+2025-05-20 14:28:20 INFO::Fitting model to feature number 148, PWY.5097
+2025-05-20 14:28:20 INFO::Fitting model to feature number 149, PWY.5100
+2025-05-20 14:28:20 INFO::Fitting model to feature number 150, PWY.5101
+2025-05-20 14:28:21 INFO::Fitting model to feature number 151, PWY.5103
+2025-05-20 14:28:21 INFO::Fitting model to feature number 152, PWY.5104
+2025-05-20 14:28:21 INFO::Fitting model to feature number 153, PWY.5121
+2025-05-20 14:28:21 INFO::Fitting model to feature number 154, PWY.5154
+2025-05-20 14:28:21 INFO::Fitting model to feature number 155, PWY.5177
+2025-05-20 14:28:21 INFO::Fitting model to feature number 156, PWY.5178
+2025-05-20 14:28:21 INFO::Fitting model to feature number 157, PWY.5180
+2025-05-20 14:28:21 INFO::Fitting model to feature number 158, PWY.5181
+2025-05-20 14:28:21 INFO::Fitting model to feature number 159, PWY.5182
+2025-05-20 14:28:21 INFO::Fitting model to feature number 160, PWY.5183
+2025-05-20 14:28:21 INFO::Fitting model to feature number 161, PWY.5188
+2025-05-20 14:28:21 INFO::Fitting model to feature number 162, PWY.5189
+2025-05-20 14:28:21 INFO::Fitting model to feature number 163, PWY.5198
+2025-05-20 14:28:21 INFO::Fitting model to feature number 164, PWY.5265
+2025-05-20 14:28:21 INFO::Fitting model to feature number 165, PWY.5266
+2025-05-20 14:28:21 INFO::Fitting model to feature number 166, PWY.5273
+2025-05-20 14:28:21 INFO::Fitting model to feature number 167, PWY.5304
+2025-05-20 14:28:21 INFO::Fitting model to feature number 168, PWY.5345
+2025-05-20 14:28:21 INFO::Fitting model to feature number 169, PWY.5347
+2025-05-20 14:28:22 INFO::Fitting model to feature number 170, PWY.5384
+2025-05-20 14:28:22 INFO::Fitting model to feature number 171, PWY.5392
+2025-05-20 14:28:22 INFO::Fitting model to feature number 172, PWY.5415
+2025-05-20 14:28:22 INFO::Fitting model to feature number 173, PWY.5417
+2025-05-20 14:28:22 INFO::Fitting model to feature number 174, PWY.5419
+2025-05-20 14:28:22 INFO::Fitting model to feature number 175, PWY.5420
+2025-05-20 14:28:22 INFO::Fitting model to feature number 176, PWY.5427
+2025-05-20 14:28:22 INFO::Fitting model to feature number 177, PWY.5430
+2025-05-20 14:28:22 INFO::Fitting model to feature number 178, PWY.5431
+2025-05-20 14:28:22 INFO::Fitting model to feature number 179, PWY.5484
+2025-05-20 14:28:22 INFO::Fitting model to feature number 180, PWY.5499
+2025-05-20 14:28:22 INFO::Fitting model to feature number 181, PWY.5505
+2025-05-20 14:28:22 INFO::Fitting model to feature number 182, PWY.5507
+2025-05-20 14:28:22 INFO::Fitting model to feature number 183, PWY.5509
+2025-05-20 14:28:22 INFO::Fitting model to feature number 184, PWY.5529
+2025-05-20 14:28:22 INFO::Fitting model to feature number 185, PWY.5531
+2025-05-20 14:28:22 INFO::Fitting model to feature number 186, PWY.5532
+2025-05-20 14:28:22 INFO::Fitting model to feature number 187, PWY.5647
+2025-05-20 14:28:22 INFO::Fitting model to feature number 188, PWY.5651
+2025-05-20 14:28:22 INFO::Fitting model to feature number 189, PWY.5654
+2025-05-20 14:28:23 INFO::Fitting model to feature number 190, PWY.5655
+2025-05-20 14:28:23 INFO::Fitting model to feature number 191, PWY.5659
+2025-05-20 14:28:23 INFO::Fitting model to feature number 192, PWY.5667
+2025-05-20 14:28:23 INFO::Fitting model to feature number 193, PWY.5676
+2025-05-20 14:28:23 INFO::Fitting model to feature number 194, PWY.5677
+2025-05-20 14:28:23 INFO::Fitting model to feature number 195, PWY.5686
+2025-05-20 14:28:23 INFO::Fitting model to feature number 196, PWY.5695
+2025-05-20 14:28:23 INFO::Fitting model to feature number 197, PWY.5705
+2025-05-20 14:28:23 INFO::Fitting model to feature number 198, PWY.5741
+2025-05-20 14:28:23 INFO::Fitting model to feature number 199, PWY.5747
+2025-05-20 14:28:23 INFO::Fitting model to feature number 200, PWY.5837
+2025-05-20 14:28:23 INFO::Fitting model to feature number 201, PWY.5838
+2025-05-20 14:28:23 INFO::Fitting model to feature number 202, PWY.5840
+2025-05-20 14:28:23 INFO::Fitting model to feature number 203, PWY.5845
+2025-05-20 14:28:23 INFO::Fitting model to feature number 204, PWY.5850
+2025-05-20 14:28:23 INFO::Fitting model to feature number 205, PWY.5855
+2025-05-20 14:28:23 INFO::Fitting model to feature number 206, PWY.5856
+2025-05-20 14:28:23 INFO::Fitting model to feature number 207, PWY.5857
+2025-05-20 14:28:23 INFO::Fitting model to feature number 208, PWY.5860
+2025-05-20 14:28:23 INFO::Fitting model to feature number 209, PWY.5861
+2025-05-20 14:28:24 INFO::Fitting model to feature number 210, PWY.5862
+2025-05-20 14:28:24 INFO::Fitting model to feature number 211, PWY.5863
+2025-05-20 14:28:24 INFO::Fitting model to feature number 212, PWY.5896
+2025-05-20 14:28:24 INFO::Fitting model to feature number 213, PWY.5897
+2025-05-20 14:28:24 INFO::Fitting model to feature number 214, PWY.5898
+2025-05-20 14:28:24 INFO::Fitting model to feature number 215, PWY.5899
+2025-05-20 14:28:24 INFO::Fitting model to feature number 216, PWY.5910
+2025-05-20 14:28:24 INFO::Fitting model to feature number 217, PWY.5913
+2025-05-20 14:28:24 INFO::Fitting model to feature number 218, PWY.5918
+2025-05-20 14:28:24 INFO::Fitting model to feature number 219, PWY.5920
+2025-05-20 14:28:24 INFO::Fitting model to feature number 220, PWY.5941
+2025-05-20 14:28:24 INFO::Fitting model to feature number 221, PWY.5971
+2025-05-20 14:28:24 INFO::Fitting model to feature number 222, PWY.5973
+2025-05-20 14:28:24 INFO::Fitting model to feature number 223, PWY.5989
+2025-05-20 14:28:24 INFO::Fitting model to feature number 224, PWY.6071
+2025-05-20 14:28:24 INFO::Fitting model to feature number 225, PWY.6107
+2025-05-20 14:28:24 INFO::Fitting model to feature number 226, PWY.6121
+2025-05-20 14:28:24 INFO::Fitting model to feature number 227, PWY.6122
+2025-05-20 14:28:24 INFO::Fitting model to feature number 228, PWY.6123
+2025-05-20 14:28:25 INFO::Fitting model to feature number 229, PWY.6125
+2025-05-20 14:28:25 INFO::Fitting model to feature number 230, PWY.6126
+2025-05-20 14:28:25 INFO::Fitting model to feature number 231, PWY.6147
+2025-05-20 14:28:25 INFO::Fitting model to feature number 232, PWY.6148
+2025-05-20 14:28:25 INFO::Fitting model to feature number 233, PWY.6151
+2025-05-20 14:28:25 INFO::Fitting model to feature number 234, PWY.6163
+2025-05-20 14:28:25 INFO::Fitting model to feature number 235, PWY.6165
+2025-05-20 14:28:25 INFO::Fitting model to feature number 236, PWY.6167
+2025-05-20 14:28:25 INFO::Fitting model to feature number 237, PWY.6174
+2025-05-20 14:28:25 INFO::Fitting model to feature number 238, PWY.6182
+2025-05-20 14:28:25 INFO::Fitting model to feature number 239, PWY.6185
+2025-05-20 14:28:25 INFO::Fitting model to feature number 240, PWY.621
+2025-05-20 14:28:25 INFO::Fitting model to feature number 241, PWY.6210
+2025-05-20 14:28:25 INFO::Fitting model to feature number 242, PWY.6263
+2025-05-20 14:28:25 INFO::Fitting model to feature number 243, PWY.6269
+2025-05-20 14:28:25 INFO::Fitting model to feature number 244, PWY.6277
+2025-05-20 14:28:25 INFO::Fitting model to feature number 245, PWY.6282
+2025-05-20 14:28:25 INFO::Fitting model to feature number 246, PWY.6317
+2025-05-20 14:28:25 INFO::Fitting model to feature number 247, PWY.6338
+2025-05-20 14:28:25 INFO::Fitting model to feature number 248, PWY.6339
+2025-05-20 14:28:25 INFO::Fitting model to feature number 249, PWY.6349
+2025-05-20 14:28:26 INFO::Fitting model to feature number 250, PWY.6350
+2025-05-20 14:28:26 INFO::Fitting model to feature number 251, PWY.6353
+2025-05-20 14:28:26 INFO::Fitting model to feature number 252, PWY.6383
+2025-05-20 14:28:26 INFO::Fitting model to feature number 253, PWY.6385
+2025-05-20 14:28:26 INFO::Fitting model to feature number 254, PWY.6386
+2025-05-20 14:28:26 INFO::Fitting model to feature number 255, PWY.6387
+2025-05-20 14:28:26 INFO::Fitting model to feature number 256, PWY.6396
+2025-05-20 14:28:26 INFO::Fitting model to feature number 257, PWY.6397
+2025-05-20 14:28:26 INFO::Fitting model to feature number 258, PWY.6404
+2025-05-20 14:28:26 INFO::Fitting model to feature number 259, PWY.6467
+2025-05-20 14:28:26 INFO::Fitting model to feature number 260, PWY.6470
+2025-05-20 14:28:26 INFO::Fitting model to feature number 261, PWY.6471
+2025-05-20 14:28:26 INFO::Fitting model to feature number 262, PWY.6478
+2025-05-20 14:28:26 INFO::Fitting model to feature number 263, PWY.6505
+2025-05-20 14:28:26 INFO::Fitting model to feature number 264, PWY.6507
+2025-05-20 14:28:26 INFO::Fitting model to feature number 265, PWY.6519
+2025-05-20 14:28:26 INFO::Fitting model to feature number 266, PWY.6545
+2025-05-20 14:28:26 INFO::Fitting model to feature number 267, PWY.6562
+2025-05-20 14:28:26 INFO::Fitting model to feature number 268, PWY.6565
+2025-05-20 14:28:26 INFO::Fitting model to feature number 269, PWY.6572
+2025-05-20 14:28:27 INFO::Fitting model to feature number 270, PWY.6581
+2025-05-20 14:28:27 INFO::Fitting model to feature number 271, PWY.6588
+2025-05-20 14:28:27 INFO::Fitting model to feature number 272, PWY.6590
+2025-05-20 14:28:27 INFO::Fitting model to feature number 273, PWY.6608
+2025-05-20 14:28:27 INFO::Fitting model to feature number 274, PWY.6609
+2025-05-20 14:28:27 INFO::Fitting model to feature number 275, PWY.6612
+2025-05-20 14:28:27 INFO::Fitting model to feature number 276, PWY.6628
+2025-05-20 14:28:27 INFO::Fitting model to feature number 277, PWY.6629
+2025-05-20 14:28:27 INFO::Fitting model to feature number 278, PWY.6630
+2025-05-20 14:28:27 INFO::Fitting model to feature number 279, PWY.6641
+2025-05-20 14:28:27 INFO::Fitting model to feature number 280, PWY.6654
+2025-05-20 14:28:27 INFO::Fitting model to feature number 281, PWY.6690
+2025-05-20 14:28:27 INFO::Fitting model to feature number 282, PWY.6700
+2025-05-20 14:28:27 INFO::Fitting model to feature number 283, PWY.6703
+2025-05-20 14:28:27 INFO::Fitting model to feature number 284, PWY.6708
+2025-05-20 14:28:27 INFO::Fitting model to feature number 285, PWY.6713
+2025-05-20 14:28:27 INFO::Fitting model to feature number 286, PWY.6728
+2025-05-20 14:28:27 INFO::Fitting model to feature number 287, PWY.6731
+2025-05-20 14:28:27 INFO::Fitting model to feature number 288, PWY.6737
+2025-05-20 14:28:28 INFO::Fitting model to feature number 289, PWY.6749
+2025-05-20 14:28:28 INFO::Fitting model to feature number 290, PWY.6876
+2025-05-20 14:28:28 INFO::Fitting model to feature number 291, PWY.6891
+2025-05-20 14:28:28 INFO::Fitting model to feature number 292, PWY.6892
+2025-05-20 14:28:28 INFO::Fitting model to feature number 293, PWY.6895
+2025-05-20 14:28:28 INFO::Fitting model to feature number 294, PWY.6897
+2025-05-20 14:28:28 INFO::Fitting model to feature number 295, PWY.6901
+2025-05-20 14:28:28 INFO::Fitting model to feature number 296, PWY.6906
+2025-05-20 14:28:28 INFO::Fitting model to feature number 297, PWY.6944
+2025-05-20 14:28:28 INFO::Fitting model to feature number 298, PWY.6948
+2025-05-20 14:28:28 INFO::Fitting model to feature number 299, PWY.6956
+2025-05-20 14:28:28 INFO::Fitting model to feature number 300, PWY.6957
+2025-05-20 14:28:28 INFO::Fitting model to feature number 301, PWY.6969
+2025-05-20 14:28:28 INFO::Fitting model to feature number 302, PWY.6992
+2025-05-20 14:28:28 INFO::Fitting model to feature number 303, PWY.7003
+2025-05-20 14:28:28 INFO::Fitting model to feature number 304, PWY.7007
+2025-05-20 14:28:28 INFO::Fitting model to feature number 305, PWY.7013
+2025-05-20 14:28:28 INFO::Fitting model to feature number 306, PWY.7046
+2025-05-20 14:28:29 INFO::Fitting model to feature number 307, PWY.7090
+2025-05-20 14:28:29 INFO::Fitting model to feature number 308, PWY.7094
+2025-05-20 14:28:29 INFO::Fitting model to feature number 309, PWY.7097
+2025-05-20 14:28:29 INFO::Fitting model to feature number 310, PWY.7098
+2025-05-20 14:28:29 INFO::Fitting model to feature number 311, PWY.7111
+2025-05-20 14:28:29 INFO::Fitting model to feature number 312, PWY.7159
+2025-05-20 14:28:29 INFO::Fitting model to feature number 313, PWY.7184
+2025-05-20 14:28:29 INFO::Fitting model to feature number 314, PWY.7187
+2025-05-20 14:28:29 INFO::Fitting model to feature number 315, PWY.7196
+2025-05-20 14:28:29 INFO::Fitting model to feature number 316, PWY.7197
+2025-05-20 14:28:29 INFO::Fitting model to feature number 317, PWY.7198
+2025-05-20 14:28:29 INFO::Fitting model to feature number 318, PWY.7199
+2025-05-20 14:28:29 INFO::Fitting model to feature number 319, PWY.7200
+2025-05-20 14:28:29 INFO::Fitting model to feature number 320, PWY.7208
+2025-05-20 14:28:29 INFO::Fitting model to feature number 321, PWY.7210
+2025-05-20 14:28:29 INFO::Fitting model to feature number 322, PWY.7211
+2025-05-20 14:28:29 INFO::Fitting model to feature number 323, PWY.7219
+2025-05-20 14:28:29 INFO::Fitting model to feature number 324, PWY.722
+2025-05-20 14:28:29 INFO::Fitting model to feature number 325, PWY.7220
+2025-05-20 14:28:29 INFO::Fitting model to feature number 326, PWY.7221
+2025-05-20 14:28:30 INFO::Fitting model to feature number 327, PWY.7222
+2025-05-20 14:28:30 INFO::Fitting model to feature number 328, PWY.7228
+2025-05-20 14:28:30 INFO::Fitting model to feature number 329, PWY.7229
+2025-05-20 14:28:30 INFO::Fitting model to feature number 330, PWY.7234
+2025-05-20 14:28:30 INFO::Fitting model to feature number 331, PWY.7237
+2025-05-20 14:28:30 INFO::Fitting model to feature number 332, PWY.7242
+2025-05-20 14:28:30 INFO::Fitting model to feature number 333, PWY.7254
+2025-05-20 14:28:30 INFO::Fitting model to feature number 334, PWY.7255
+2025-05-20 14:28:30 INFO::Fitting model to feature number 335, PWY.7286
+2025-05-20 14:28:30 INFO::Fitting model to feature number 336, PWY.7295
+2025-05-20 14:28:30 INFO::Fitting model to feature number 337, PWY.7315
+2025-05-20 14:28:30 INFO::Fitting model to feature number 338, PWY.7323
+2025-05-20 14:28:30 INFO::Fitting model to feature number 339, PWY.7328
+2025-05-20 14:28:30 INFO::Fitting model to feature number 340, PWY.7332
+2025-05-20 14:28:30 INFO::Fitting model to feature number 341, PWY.7347
+2025-05-20 14:28:30 INFO::Fitting model to feature number 342, PWY.7371
+2025-05-20 14:28:30 INFO::Fitting model to feature number 343, PWY.7373
+2025-05-20 14:28:30 INFO::Fitting model to feature number 344, PWY.7374
+2025-05-20 14:28:31 INFO::Fitting model to feature number 345, PWY.7376
+2025-05-20 14:28:31 INFO::Fitting model to feature number 346, PWY.7377
+2025-05-20 14:28:31 INFO::Fitting model to feature number 347, PWY.7391
+2025-05-20 14:28:31 INFO::Fitting model to feature number 348, PWY.7392
+2025-05-20 14:28:31 INFO::Fitting model to feature number 349, PWY.7400
+2025-05-20 14:28:31 INFO::Fitting model to feature number 350, PWY.7431
+2025-05-20 14:28:31 INFO::Fitting model to feature number 351, PWY.7446
+2025-05-20 14:28:31 INFO::Fitting model to feature number 352, PWY.7456
+2025-05-20 14:28:31 INFO::Fitting model to feature number 353, PWY.7527
+2025-05-20 14:28:31 INFO::Fitting model to feature number 354, PWY.7528
+2025-05-20 14:28:31 INFO::Fitting model to feature number 355, PWY.7539
+2025-05-20 14:28:31 INFO::Fitting model to feature number 356, PWY.7560
+2025-05-20 14:28:31 INFO::Fitting model to feature number 357, PWY.7616
+2025-05-20 14:28:31 INFO::Fitting model to feature number 358, PWY.7644
+2025-05-20 14:28:31 INFO::Fitting model to feature number 359, PWY.7663
+2025-05-20 14:28:31 INFO::Fitting model to feature number 360, PWY.7664
+2025-05-20 14:28:31 INFO::Fitting model to feature number 361, PWY.841
+2025-05-20 14:28:31 INFO::Fitting model to feature number 362, PWY.922
+2025-05-20 14:28:31 INFO::Fitting model to feature number 363, PWY0.1061
+2025-05-20 14:28:31 INFO::Fitting model to feature number 364, PWY0.1241
+2025-05-20 14:28:31 INFO::Fitting model to feature number 365, PWY0.1261
+2025-05-20 14:28:32 INFO::Fitting model to feature number 366, PWY0.1277
+2025-05-20 14:28:32 INFO::Fitting model to feature number 367, PWY0.1296
+2025-05-20 14:28:32 INFO::Fitting model to feature number 368, PWY0.1297
+2025-05-20 14:28:32 INFO::Fitting model to feature number 369, PWY0.1298
+2025-05-20 14:28:32 INFO::Fitting model to feature number 370, PWY0.1319
+2025-05-20 14:28:32 INFO::Fitting model to feature number 371, PWY0.1338
+2025-05-20 14:28:32 INFO::Fitting model to feature number 372, PWY0.1415
+2025-05-20 14:28:32 INFO::Fitting model to feature number 373, PWY0.1479
+2025-05-20 14:28:32 INFO::Fitting model to feature number 374, PWY0.1533
+2025-05-20 14:28:32 INFO::Fitting model to feature number 375, PWY0.1586
+2025-05-20 14:28:32 INFO::Fitting model to feature number 376, PWY0.162
+2025-05-20 14:28:32 INFO::Fitting model to feature number 377, PWY0.166
+2025-05-20 14:28:32 INFO::Fitting model to feature number 378, PWY0.321
+2025-05-20 14:28:32 INFO::Fitting model to feature number 379, PWY0.41
+2025-05-20 14:28:32 INFO::Fitting model to feature number 380, PWY0.42
+2025-05-20 14:28:32 INFO::Fitting model to feature number 381, PWY0.781
+2025-05-20 14:28:32 INFO::Fitting model to feature number 382, PWY0.845
+2025-05-20 14:28:32 INFO::Fitting model to feature number 383, PWY0.862
+2025-05-20 14:28:32 INFO::Fitting model to feature number 384, PWY1G.0
+2025-05-20 14:28:32 INFO::Fitting model to feature number 385, PWY490.3
+2025-05-20 14:28:32 INFO::Fitting model to feature number 386, PWY4FS.7
+2025-05-20 14:28:33 INFO::Fitting model to feature number 387, PWY4FS.8
+2025-05-20 14:28:33 INFO::Fitting model to feature number 388, PWYG.321
+2025-05-20 14:28:33 INFO::Fitting model to feature number 389, PYRIDNUCSAL.PWY
+2025-05-20 14:28:33 INFO::Fitting model to feature number 390, PYRIDNUCSYN.PWY
+2025-05-20 14:28:33 INFO::Fitting model to feature number 391, PYRIDOXSYN.PWY
+2025-05-20 14:28:33 INFO::Fitting model to feature number 392, REDCITCYC
+2025-05-20 14:28:33 INFO::Fitting model to feature number 393, RHAMCAT.PWY
+2025-05-20 14:28:33 INFO::Fitting model to feature number 394, RIBOSYN2.PWY
+2025-05-20 14:28:33 INFO::Fitting model to feature number 395, RUMP.PWY
+2025-05-20 14:28:33 INFO::Fitting model to feature number 396, SALVADEHYPOX.PWY
+2025-05-20 14:28:33 INFO::Fitting model to feature number 397, SER.GLYSYN.PWY
+2025-05-20 14:28:33 INFO::Fitting model to feature number 398, SO4ASSIM.PWY
+2025-05-20 14:28:33 INFO::Fitting model to feature number 399, SUCSYN.PWY
+2025-05-20 14:28:33 INFO::Fitting model to feature number 400, SULFATE.CYS.PWY
+2025-05-20 14:28:33 INFO::Fitting model to feature number 401, TCA
+2025-05-20 14:28:33 INFO::Fitting model to feature number 402, TCA.GLYOX.BYPASS
+2025-05-20 14:28:33 INFO::Fitting model to feature number 403, TEICHOICACID.PWY
+2025-05-20 14:28:33 INFO::Fitting model to feature number 404, THISYN.PWY
+2025-05-20 14:28:33 INFO::Fitting model to feature number 405, THREOCAT.PWY
+2025-05-20 14:28:33 INFO::Fitting model to feature number 406, THRESYN.PWY
+2025-05-20 14:28:33 INFO::Fitting model to feature number 407, TRNA.CHARGING.PWY
+2025-05-20 14:28:34 INFO::Fitting model to feature number 408, TRPSYN.PWY
+2025-05-20 14:28:34 INFO::Fitting model to feature number 409, TYRFUMCAT.PWY
+2025-05-20 14:28:34 INFO::Fitting model to feature number 410, UBISYN.PWY
+2025-05-20 14:28:34 INFO::Fitting model to feature number 411, UDPNAGSYN.PWY
+2025-05-20 14:28:34 INFO::Fitting model to feature number 412, VALDEG.PWY
+2025-05-20 14:28:34 INFO::Fitting model to feature number 413, VALSYN.PWY
+2025-05-20 14:28:34 INFO::Counting total values for each feature
+2025-05-20 14:28:34 INFO::Writing residuals to file filtered_path_TSS_output/residuals.rds
+2025-05-20 14:28:34 INFO::Writing fitted values to file filtered_path_TSS_output/fitted.rds
+2025-05-20 14:28:34 INFO::Writing extracted random effects to file filtered_path_TSS_output/ranef.rds
+2025-05-20 14:28:34 INFO::Writing all results to file (ordered by increasing q-values): filtered_path_TSS_output/all_results.tsv
+2025-05-20 14:28:34 INFO::Writing the significant results (those which are less than or equal to the threshold of 0.250000 ) to file (ordered by increasing q-values): filtered_path_TSS_output/significant_results.tsv
+2025-05-20 14:28:34 INFO::Writing heatmap of significant results to file: filtered_path_TSS_output/heatmap.pdf
+2025-05-20 14:28:34 INFO::Writing association plots (one for each significant association) to output folder: filtered_path_TSS_output
+2025-05-20 14:28:34 INFO::Plotting associations from most to least significant, grouped by metadata
+2025-05-20 14:28:34 INFO::Plotting data for metadata number 1, timepoint
+2025-05-20 14:28:34 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6749
+2025-05-20 14:28:34 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:34 INFO::Creating scatter plot for continuous data, timepoint vs FUCCAT.PWY
+2025-05-20 14:28:34 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:34 INFO::Creating scatter plot for continuous data, timepoint vs DHGLUCONATE.PYR.CAT.PWY
+2025-05-20 14:28:34 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:34 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5654
+2025-05-20 14:28:35 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:35 INFO::Creating scatter plot for continuous data, timepoint vs DTDPRHAMSYN.PWY
+2025-05-20 14:28:35 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:35 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6263
+2025-05-20 14:28:35 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:35 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5647
+2025-05-20 14:28:35 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:35 INFO::Creating scatter plot for continuous data, timepoint vs PWY1G.0
+2025-05-20 14:28:35 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:35 INFO::Creating scatter plot for continuous data, timepoint vs HCAMHPDEG.PWY
+2025-05-20 14:28:35 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:35 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6690
+2025-05-20 14:28:36 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:36 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6944
+2025-05-20 14:28:36 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:36 INFO::Creating scatter plot for continuous data, timepoint vs PWY0.1277
+2025-05-20 14:28:36 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:36 INFO::Creating scatter plot for continuous data, timepoint vs X1CMET2.PWY
+2025-05-20 14:28:36 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:36 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5989
+2025-05-20 14:28:36 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:36 INFO::Creating scatter plot for continuous data, timepoint vs P461.PWY
+2025-05-20 14:28:36 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:36 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6397
+2025-05-20 14:28:37 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:37 INFO::Creating scatter plot for continuous data, timepoint vs PWY0.1061
+2025-05-20 14:28:37 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:37 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6467
+2025-05-20 14:28:37 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:37 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6383
+2025-05-20 14:28:37 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:37 INFO::Creating scatter plot for continuous data, timepoint vs GLUCONEO.PWY
+2025-05-20 14:28:37 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:37 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6505
+2025-05-20 14:28:37 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:37 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7007
+2025-05-20 14:28:37 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:37 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6731
+2025-05-20 14:28:38 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:38 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6641
+2025-05-20 14:28:38 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:38 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6210
+2025-05-20 14:28:38 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:38 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5655
+2025-05-20 14:28:38 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:38 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7371
+2025-05-20 14:28:38 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:38 INFO::Creating scatter plot for continuous data, timepoint vs PWY0.845
+2025-05-20 14:28:38 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:38 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7373
+2025-05-20 14:28:38 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:38 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5417
+2025-05-20 14:28:39 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:39 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5431
+2025-05-20 14:28:39 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:39 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7616
+2025-05-20 14:28:39 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:39 INFO::Creating scatter plot for continuous data, timepoint vs PWY0.1338
+2025-05-20 14:28:39 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:39 INFO::Creating scatter plot for continuous data, timepoint vs OANTIGEN.PWY
+2025-05-20 14:28:39 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:39 INFO::Creating scatter plot for continuous data, timepoint vs ASPASN.PWY
+2025-05-20 14:28:40 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:40 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5304
+2025-05-20 14:28:40 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:40 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6282
+2025-05-20 14:28:40 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:40 INFO::Creating scatter plot for continuous data, timepoint vs ARGDEG.PWY
+2025-05-20 14:28:40 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:40 INFO::Creating scatter plot for continuous data, timepoint vs ENTBACSYN.PWY
+2025-05-20 14:28:40 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:40 INFO::Creating scatter plot for continuous data, timepoint vs ORNARGDEG.PWY
+2025-05-20 14:28:40 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:40 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7374
+2025-05-20 14:28:40 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:40 INFO::Creating scatter plot for continuous data, timepoint vs GALLATE.DEGRADATION.I.PWY
+2025-05-20 14:28:41 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:41 INFO::Creating scatter plot for continuous data, timepoint vs GALLATE.DEGRADATION.II.PWY
+2025-05-20 14:28:41 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:41 INFO::Creating scatter plot for continuous data, timepoint vs METHYLGALLATE.DEGRADATION.PWY
+2025-05-20 14:28:41 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:41 INFO::Creating scatter plot for continuous data, timepoint vs P184.PWY
+2025-05-20 14:28:41 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:41 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6338
+2025-05-20 14:28:41 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:41 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7097
+2025-05-20 14:28:41 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:41 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5183
+2025-05-20 14:28:41 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:41 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5741
+2025-05-20 14:28:42 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:42 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6182
+2025-05-20 14:28:42 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:42 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7098
+2025-05-20 14:28:42 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:42 INFO::Creating scatter plot for continuous data, timepoint vs NONOXIPENT.PWY
+2025-05-20 14:28:42 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:42 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6404
+2025-05-20 14:28:42 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:42 INFO::Creating scatter plot for continuous data, timepoint vs ORNDEG.PWY
+2025-05-20 14:28:42 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:42 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5103
+2025-05-20 14:28:42 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:42 INFO::Creating scatter plot for continuous data, timepoint vs PWY0.41
+2025-05-20 14:28:42 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:42 INFO::Creating scatter plot for continuous data, timepoint vs PWY0.1297
+2025-05-20 14:28:43 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:43 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6713
+2025-05-20 14:28:43 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:43 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6629
+2025-05-20 14:28:43 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:43 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6470
+2025-05-20 14:28:43 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:43 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6948
+2025-05-20 14:28:43 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:43 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6969
+2025-05-20 14:28:43 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:43 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5022
+2025-05-20 14:28:43 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:43 INFO::Creating scatter plot for continuous data, timepoint vs KDO.NAGLIPASYN.PWY
+2025-05-20 14:28:44 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:44 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7255
+2025-05-20 14:28:44 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:44 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5971
+2025-05-20 14:28:44 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:44 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6562
+2025-05-20 14:28:44 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:44 INFO::Creating scatter plot for continuous data, timepoint vs FUC.RHAMCAT.PWY
+2025-05-20 14:28:44 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:44 INFO::Creating scatter plot for continuous data, timepoint vs GLYCOL.GLYOXDEG.PWY
+2025-05-20 14:28:44 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:44 INFO::Creating scatter plot for continuous data, timepoint vs P281.PWY
+2025-05-20 14:28:44 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:44 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7664
+2025-05-20 14:28:45 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:45 INFO::Creating scatter plot for continuous data, timepoint vs P105.PWY
+2025-05-20 14:28:45 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:45 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5005
+2025-05-20 14:28:45 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:45 INFO::Creating scatter plot for continuous data, timepoint vs PWY0.862
+2025-05-20 14:28:45 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:45 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5973
+2025-05-20 14:28:45 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:45 INFO::Creating scatter plot for continuous data, timepoint vs PWY0.781
+2025-05-20 14:28:45 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:45 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7295
+2025-05-20 14:28:45 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:45 INFO::Creating scatter plot for continuous data, timepoint vs FASYN.ELONG.PWY
+2025-05-20 14:28:46 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:46 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6122
+2025-05-20 14:28:46 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:46 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6277
+2025-05-20 14:28:46 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:46 INFO::Creating scatter plot for continuous data, timepoint vs ECASYN.PWY
+2025-05-20 14:28:46 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:46 INFO::Creating scatter plot for continuous data, timepoint vs GLYCOLYSIS.E.D
+2025-05-20 14:28:46 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:46 INFO::Creating scatter plot for continuous data, timepoint vs CATECHOL.ORTHO.CLEAVAGE.PWY
+2025-05-20 14:28:46 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:46 INFO::Creating scatter plot for continuous data, timepoint vs PWY0.1415
+2025-05-20 14:28:46 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:46 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7003
+2025-05-20 14:28:47 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:47 INFO::Creating scatter plot for continuous data, timepoint vs SALVADEHYPOX.PWY
+2025-05-20 14:28:47 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:47 INFO::Creating scatter plot for continuous data, timepoint vs PWY0.1296
+2025-05-20 14:28:47 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:47 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5178
+2025-05-20 14:28:47 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:47 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6185
+2025-05-20 14:28:47 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:47 INFO::Creating scatter plot for continuous data, timepoint vs P441.PWY
+2025-05-20 14:28:47 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:47 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7377
+2025-05-20 14:28:47 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:47 INFO::Creating scatter plot for continuous data, timepoint vs GLCMANNANAUT.PWY
+2025-05-20 14:28:48 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:48 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7242
+2025-05-20 14:28:48 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:48 INFO::Creating scatter plot for continuous data, timepoint vs RHAMCAT.PWY
+2025-05-20 14:28:48 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:48 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6728
+2025-05-20 14:28:48 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:48 INFO::Creating scatter plot for continuous data, timepoint vs GLUCARDEG.PWY
+2025-05-20 14:28:48 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:48 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5861
+2025-05-20 14:28:48 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:48 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6396
+2025-05-20 14:28:48 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:48 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7221
+2025-05-20 14:28:49 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:49 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5507
+2025-05-20 14:28:49 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:49 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5838
+2025-05-20 14:28:49 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:49 INFO::Creating scatter plot for continuous data, timepoint vs BRANCHED.CHAIN.AA.SYN.PWY
+2025-05-20 14:28:49 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:49 INFO::Creating scatter plot for continuous data, timepoint vs METHGLYUT.PWY
+2025-05-20 14:28:49 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:49 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5154
+2025-05-20 14:28:49 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:49 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6957
+2025-05-20 14:28:50 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:50 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5897
+2025-05-20 14:28:50 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:50 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5898
+2025-05-20 14:28:50 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:50 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5899
+2025-05-20 14:28:50 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:50 INFO::Creating scatter plot for continuous data, timepoint vs HOMOSER.METSYN.PWY
+2025-05-20 14:28:50 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:50 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6339
+2025-05-20 14:28:50 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:50 INFO::Creating scatter plot for continuous data, timepoint vs PWY0.1298
+2025-05-20 14:28:50 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:50 INFO::Creating scatter plot for continuous data, timepoint vs GALACTARDEG.PWY
+2025-05-20 14:28:51 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:51 INFO::Creating scatter plot for continuous data, timepoint vs GLUCARGALACTSUPER.PWY
+2025-05-20 14:28:51 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:51 INFO::Creating scatter plot for continuous data, timepoint vs PWY.722
+2025-05-20 14:28:51 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:51 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7228
+2025-05-20 14:28:51 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:51 INFO::Creating scatter plot for continuous data, timepoint vs P125.PWY
+2025-05-20 14:28:51 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:51 INFO::Creating scatter plot for continuous data, timepoint vs GLUCUROCAT.PWY
+2025-05-20 14:28:51 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:51 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6125
+2025-05-20 14:28:51 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:51 INFO::Creating scatter plot for continuous data, timepoint vs PWY490.3
+2025-05-20 14:28:52 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:52 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6906
+2025-05-20 14:28:52 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:52 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6386
+2025-05-20 14:28:52 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:52 INFO::Creating scatter plot for continuous data, timepoint vs TCA
+2025-05-20 14:28:52 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:52 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5677
+2025-05-20 14:28:52 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:52 INFO::Creating scatter plot for continuous data, timepoint vs P101.PWY
+2025-05-20 14:28:52 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:52 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6519
+2025-05-20 14:28:52 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:52 INFO::Creating scatter plot for continuous data, timepoint vs GLYCOLYSIS
+2025-05-20 14:28:53 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:53 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7446
+2025-05-20 14:28:53 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:53 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6565
+2025-05-20 14:28:53 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:53 INFO::Creating scatter plot for continuous data, timepoint vs PWY.1501
+2025-05-20 14:28:53 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:53 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5863
+2025-05-20 14:28:53 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:53 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5651
+2025-05-20 14:28:53 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:53 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5347
+2025-05-20 14:28:54 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:54 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7254
+2025-05-20 14:28:54 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:54 INFO::Creating scatter plot for continuous data, timepoint vs ANAGLYCOLYSIS.PWY
+2025-05-20 14:28:54 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:54 INFO::Creating scatter plot for continuous data, timepoint vs PPGPPMET.PWY
+2025-05-20 14:28:54 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:54 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5837
+2025-05-20 14:28:54 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:54 INFO::Creating scatter plot for continuous data, timepoint vs REDCITCYC
+2025-05-20 14:28:54 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:54 INFO::Creating scatter plot for continuous data, timepoint vs NADSYN.PWY
+2025-05-20 14:28:54 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:54 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5101
+2025-05-20 14:28:55 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:55 INFO::Creating scatter plot for continuous data, timepoint vs PWY.2941
+2025-05-20 14:28:55 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:55 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5705
+2025-05-20 14:28:55 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:55 INFO::Creating scatter plot for continuous data, timepoint vs P4.PWY
+2025-05-20 14:28:55 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:55 INFO::Creating scatter plot for continuous data, timepoint vs CENTFERM.PWY
+2025-05-20 14:28:55 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:55 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6590
+2025-05-20 14:28:56 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:56 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7200
+2025-05-20 14:28:56 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:56 INFO::Creating scatter plot for continuous data, timepoint vs MET.SAM.PWY
+2025-05-20 14:28:56 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:56 INFO::Creating scatter plot for continuous data, timepoint vs P164.PWY
+2025-05-20 14:28:56 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:56 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5181
+2025-05-20 14:28:56 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:56 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7391
+2025-05-20 14:28:56 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:56 INFO::Creating scatter plot for continuous data, timepoint vs LACTOSECAT.PWY
+2025-05-20 14:28:56 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:56 INFO::Creating scatter plot for continuous data, timepoint vs LEU.DEG2.PWY
+2025-05-20 14:28:57 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:57 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6471
+2025-05-20 14:28:57 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:57 INFO::Creating scatter plot for continuous data, timepoint vs PWY.3781
+2025-05-20 14:28:57 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:57 INFO::Creating scatter plot for continuous data, timepoint vs ILEUSYN.PWY
+2025-05-20 14:28:57 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:57 INFO::Creating scatter plot for continuous data, timepoint vs TRPSYN.PWY
+2025-05-20 14:28:57 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:57 INFO::Creating scatter plot for continuous data, timepoint vs VALSYN.PWY
+2025-05-20 14:28:58 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:58 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6628
+2025-05-20 14:28:58 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:58 INFO::Creating scatter plot for continuous data, timepoint vs PWYG.321
+2025-05-20 14:28:58 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:58 INFO::Creating scatter plot for continuous data, timepoint vs P261.PWY
+2025-05-20 14:28:58 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:58 INFO::Creating scatter plot for continuous data, timepoint vs HEXITOLDEGSUPER.PWY
+2025-05-20 14:28:58 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:58 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5265
+2025-05-20 14:28:58 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:58 INFO::Creating scatter plot for continuous data, timepoint vs PWY.4361
+2025-05-20 14:28:59 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:59 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7527
+2025-05-20 14:28:59 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:59 INFO::Creating scatter plot for continuous data, timepoint vs TEICHOICACID.PWY
+2025-05-20 14:28:59 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:59 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6876
+2025-05-20 14:28:59 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:59 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7199
+2025-05-20 14:28:59 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:28:59 INFO::Creating scatter plot for continuous data, timepoint vs P163.PWY
+2025-05-20 14:29:00 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:00 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5667
+2025-05-20 14:29:00 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:00 INFO::Creating scatter plot for continuous data, timepoint vs PWY0.1319
+2025-05-20 14:29:00 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:00 INFO::Creating scatter plot for continuous data, timepoint vs NAD.BIOSYNTHESIS.II
+2025-05-20 14:29:00 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:00 INFO::Creating scatter plot for continuous data, timepoint vs PWY.181
+2025-05-20 14:29:00 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:00 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5695
+2025-05-20 14:29:00 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:00 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6387
+2025-05-20 14:29:01 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:01 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7220
+2025-05-20 14:29:01 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:01 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7222
+2025-05-20 14:29:01 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:01 INFO::Creating scatter plot for continuous data, timepoint vs PWY.621
+2025-05-20 14:29:01 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:01 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7013
+2025-05-20 14:29:01 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:01 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6703
+2025-05-20 14:29:01 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:01 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6609
+2025-05-20 14:29:02 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:02 INFO::Creating scatter plot for continuous data, timepoint vs PEPTIDOGLYCANSYN.PWY
+2025-05-20 14:29:02 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:02 INFO::Creating scatter plot for continuous data, timepoint vs POLYISOPRENSYN.PWY
+2025-05-20 14:29:02 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:02 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7197
+2025-05-20 14:29:02 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:02 INFO::Creating scatter plot for continuous data, timepoint vs BIOTIN.BIOSYNTHESIS.PWY
+2025-05-20 14:29:02 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:02 INFO::Creating scatter plot for continuous data, timepoint vs PWY.841
+2025-05-20 14:29:02 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:02 INFO::Creating scatter plot for continuous data, timepoint vs TCA.GLYOX.BYPASS
+2025-05-20 14:29:03 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:03 INFO::Creating scatter plot for continuous data, timepoint vs GALACTUROCAT.PWY
+2025-05-20 14:29:03 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:03 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5920
+2025-05-20 14:29:03 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:03 INFO::Creating scatter plot for continuous data, timepoint vs THREOCAT.PWY
+2025-05-20 14:29:03 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:03 INFO::Creating scatter plot for continuous data, timepoint vs P381.PWY
+2025-05-20 14:29:03 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:03 INFO::Creating scatter plot for continuous data, timepoint vs P108.PWY
+2025-05-20 14:29:03 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:03 INFO::Creating scatter plot for continuous data, timepoint vs P42.PWY
+2025-05-20 14:29:04 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:04 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6608
+2025-05-20 14:29:04 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:04 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5484
+2025-05-20 14:29:04 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:04 INFO::Creating scatter plot for continuous data, timepoint vs FASYN.INITIAL.PWY
+2025-05-20 14:29:04 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:04 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7332
+2025-05-20 14:29:04 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:04 INFO::Creating scatter plot for continuous data, timepoint vs ANAEROFRUCAT.PWY
+2025-05-20 14:29:04 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:04 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6901
+2025-05-20 14:29:05 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:05 INFO::Creating scatter plot for continuous data, timepoint vs UDPNAGSYN.PWY
+2025-05-20 14:29:05 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:05 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6992
+2025-05-20 14:29:05 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:05 INFO::Creating scatter plot for continuous data, timepoint vs THISYN.PWY
+2025-05-20 14:29:05 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:05 INFO::Creating scatter plot for continuous data, timepoint vs PWY.1861
+2025-05-20 14:29:05 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:05 INFO::Creating scatter plot for continuous data, timepoint vs RUMP.PWY
+2025-05-20 14:29:05 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:05 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5384
+2025-05-20 14:29:06 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:06 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6737
+2025-05-20 14:29:06 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:06 INFO::Creating scatter plot for continuous data, timepoint vs GLYCOCAT.PWY
+2025-05-20 14:29:06 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:06 INFO::Creating scatter plot for continuous data, timepoint vs PWY0.42
+2025-05-20 14:29:06 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:06 INFO::Creating scatter plot for continuous data, timepoint vs PWY.4722
+2025-05-20 14:29:06 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:06 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7198
+2025-05-20 14:29:06 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:06 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7210
+2025-05-20 14:29:07 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:07 INFO::Creating scatter plot for continuous data, timepoint vs SO4ASSIM.PWY
+2025-05-20 14:29:07 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:07 INFO::Creating scatter plot for continuous data, timepoint vs COA.PWY
+2025-05-20 14:29:07 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:07 INFO::Creating scatter plot for continuous data, timepoint vs ARGORNPROST.PWY
+2025-05-20 14:29:07 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:07 INFO::Creating scatter plot for continuous data, timepoint vs COBALSYN.PWY
+2025-05-20 14:29:07 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:07 INFO::Creating scatter plot for continuous data, timepoint vs PHOSLIPSYN.PWY
+2025-05-20 14:29:07 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:07 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5505
+2025-05-20 14:29:08 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:08 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6892
+2025-05-20 14:29:08 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:08 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6148
+2025-05-20 14:29:08 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:08 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7431
+2025-05-20 14:29:08 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:08 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6165
+2025-05-20 14:29:08 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:08 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6654
+2025-05-20 14:29:08 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:08 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6353
+2025-05-20 14:29:09 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:09 INFO::Creating scatter plot for continuous data, timepoint vs PWY4FS.7
+2025-05-20 14:29:09 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:09 INFO::Creating scatter plot for continuous data, timepoint vs PWY4FS.8
+2025-05-20 14:29:09 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:09 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6349
+2025-05-20 14:29:09 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:09 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6350
+2025-05-20 14:29:09 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:09 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7196
+2025-05-20 14:29:10 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:10 INFO::Creating scatter plot for continuous data, timepoint vs RIBOSYN2.PWY
+2025-05-20 14:29:10 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:10 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7376
+2025-05-20 14:29:10 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:10 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6126
+2025-05-20 14:29:10 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:10 INFO::Creating scatter plot for continuous data, timepoint vs SULFATE.CYS.PWY
+2025-05-20 14:29:10 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:10 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5189
+2025-05-20 14:29:10 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:10 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5532
+2025-05-20 14:29:10 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:10 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7187
+2025-05-20 14:29:11 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:11 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7663
+2025-05-20 14:29:11 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:11 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6581
+2025-05-20 14:29:11 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:11 INFO::Creating scatter plot for continuous data, timepoint vs PWY.1541
+2025-05-20 14:29:11 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:11 INFO::Creating scatter plot for continuous data, timepoint vs LPSSYN.PWY
+2025-05-20 14:29:11 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:11 INFO::Creating scatter plot for continuous data, timepoint vs NAGLIPASYN.PWY
+2025-05-20 14:29:11 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:11 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5430
+2025-05-20 14:29:11 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:11 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6385
+2025-05-20 14:29:12 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:12 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6121
+2025-05-20 14:29:12 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:12 INFO::Creating scatter plot for continuous data, timepoint vs PWY0.1586
+2025-05-20 14:29:12 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:12 INFO::Creating scatter plot for continuous data, timepoint vs AST.PWY
+2025-05-20 14:29:12 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:12 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6123
+2025-05-20 14:29:12 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:12 INFO::Creating scatter plot for continuous data, timepoint vs COMPLETE.ARO.PWY
+2025-05-20 14:29:12 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:12 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7286
+2025-05-20 14:29:12 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:12 INFO::Creating scatter plot for continuous data, timepoint vs GOLPDLCAT.PWY
+2025-05-20 14:29:13 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:13 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6572
+2025-05-20 14:29:13 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:13 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6107
+2025-05-20 14:29:13 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:13 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5419
+2025-05-20 14:29:13 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:13 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7234
+2025-05-20 14:29:13 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:13 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7229
+2025-05-20 14:29:13 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:13 INFO::Creating scatter plot for continuous data, timepoint vs PWY.3801
+2025-05-20 14:29:13 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:13 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7046
+2025-05-20 14:29:14 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:14 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7219
+2025-05-20 14:29:14 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:14 INFO::Creating scatter plot for continuous data, timepoint vs LIPASYN.PWY
+2025-05-20 14:29:14 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:14 INFO::Creating scatter plot for continuous data, timepoint vs NONMEVIPP.PWY
+2025-05-20 14:29:14 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:14 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7560
+2025-05-20 14:29:14 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:14 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5840
+2025-05-20 14:29:14 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:14 INFO::Creating scatter plot for continuous data, timepoint vs PWY.4984
+2025-05-20 14:29:14 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:14 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6174
+2025-05-20 14:29:15 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:15 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5198
+2025-05-20 14:29:15 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:15 INFO::Creating scatter plot for continuous data, timepoint vs DENOVOPURINE2.PWY
+2025-05-20 14:29:15 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:15 INFO::Creating scatter plot for continuous data, timepoint vs P221.PWY
+2025-05-20 14:29:15 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:15 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6269
+2025-05-20 14:29:15 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:15 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6163
+2025-05-20 14:29:15 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:15 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5747
+2025-05-20 14:29:15 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:15 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5509
+2025-05-20 14:29:16 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:16 INFO::Creating scatter plot for continuous data, timepoint vs CALVIN.PWY
+2025-05-20 14:29:16 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:16 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5188
+2025-05-20 14:29:16 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:16 INFO::Creating scatter plot for continuous data, timepoint vs THRESYN.PWY
+2025-05-20 14:29:16 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:16 INFO::Creating scatter plot for continuous data, timepoint vs PYRIDNUCSAL.PWY
+2025-05-20 14:29:16 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:16 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5420
+2025-05-20 14:29:16 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:16 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6167
+2025-05-20 14:29:17 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:17 INFO::Creating scatter plot for continuous data, timepoint vs HISTSYN.PWY
+2025-05-20 14:29:17 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:17 INFO::Creating scatter plot for continuous data, timepoint vs METHANOGENESIS.PWY
+2025-05-20 14:29:17 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:17 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5499
+2025-05-20 14:29:17 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:17 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6071
+2025-05-20 14:29:17 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:17 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7644
+2025-05-20 14:29:17 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:17 INFO::Creating scatter plot for continuous data, timepoint vs VALDEG.PWY
+2025-05-20 14:29:18 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:18 INFO::Creating scatter plot for continuous data, timepoint vs PANTO.PWY
+2025-05-20 14:29:18 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:18 INFO::Creating scatter plot for continuous data, timepoint vs PWY.1622
+2025-05-20 14:29:18 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:18 INFO::Creating scatter plot for continuous data, timepoint vs PWY.3001
+2025-05-20 14:29:18 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:18 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5028
+2025-05-20 14:29:18 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:18 INFO::Creating scatter plot for continuous data, timepoint vs GLUCOSE1PMETAB.PWY
+2025-05-20 14:29:18 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:18 INFO::Creating scatter plot for continuous data, timepoint vs GLYCOGENSYNTH.PWY
+2025-05-20 14:29:19 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:19 INFO::Creating scatter plot for continuous data, timepoint vs PYRIDOXSYN.PWY
+2025-05-20 14:29:19 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:19 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6151
+2025-05-20 14:29:19 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:19 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5913
+2025-05-20 14:29:19 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:19 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6612
+2025-05-20 14:29:19 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:19 INFO::Creating scatter plot for continuous data, timepoint vs PROTOCATECHUATE.ORTHO.CLEAVAGE.PWY
+2025-05-20 14:29:19 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:19 INFO::Creating scatter plot for continuous data, timepoint vs ARO.PWY
+2025-05-20 14:29:19 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:19 INFO::Creating scatter plot for continuous data, timepoint vs KETOGLUCONMET.PWY
+2025-05-20 14:29:20 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:20 INFO::Creating scatter plot for continuous data, timepoint vs PWY.1269
+2025-05-20 14:29:20 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:20 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5088
+2025-05-20 14:29:20 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:20 INFO::Creating scatter plot for continuous data, timepoint vs HISDEG.PWY
+2025-05-20 14:29:20 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:20 INFO::Creating scatter plot for continuous data, timepoint vs PWY.2221
+2025-05-20 14:29:20 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:20 INFO::Creating scatter plot for continuous data, timepoint vs SER.GLYSYN.PWY
+2025-05-20 14:29:20 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:20 INFO::Creating scatter plot for continuous data, timepoint vs METH.ACETATE.PWY
+2025-05-20 14:29:21 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:21 INFO::Creating scatter plot for continuous data, timepoint vs ALL.CHORISMATE.PWY
+2025-05-20 14:29:21 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:21 INFO::Creating scatter plot for continuous data, timepoint vs CODH.PWY
+2025-05-20 14:29:21 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:21 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5100
+2025-05-20 14:29:21 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:21 INFO::Creating scatter plot for continuous data, timepoint vs ARGSYNBSUB.PWY
+2025-05-20 14:29:21 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:21 INFO::Creating scatter plot for continuous data, timepoint vs P241.PWY
+2025-05-20 14:29:21 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:21 INFO::Creating scatter plot for continuous data, timepoint vs P23.PWY
+2025-05-20 14:29:21 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:21 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5180
+2025-05-20 14:29:22 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:22 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5182
+2025-05-20 14:29:22 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:22 INFO::Creating scatter plot for continuous data, timepoint vs P562.PWY
+2025-05-20 14:29:22 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:22 INFO::Creating scatter plot for continuous data, timepoint vs GALACT.GLUCUROCAT.PWY
+2025-05-20 14:29:22 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:22 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6956
+2025-05-20 14:29:22 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:22 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5427
+2025-05-20 14:29:22 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:22 INFO::Creating scatter plot for continuous data, timepoint vs DENITRIFICATION.PWY
+2025-05-20 14:29:22 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:22 INFO::Creating scatter plot for continuous data, timepoint vs CHLOROPHYLL.SYN
+2025-05-20 14:29:23 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:23 INFO::Creating scatter plot for continuous data, timepoint vs ARGSYN.PWY
+2025-05-20 14:29:23 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:23 INFO::Creating scatter plot for continuous data, timepoint vs COLANSYN.PWY
+2025-05-20 14:29:23 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:23 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5529
+2025-05-20 14:29:23 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:23 INFO::Creating scatter plot for continuous data, timepoint vs PENTOSE.P.PWY
+2025-05-20 14:29:23 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:23 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5659
+2025-05-20 14:29:23 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:23 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6895
+2025-05-20 14:29:24 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:24 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6545
+2025-05-20 14:29:24 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:24 INFO::Creating scatter plot for continuous data, timepoint vs GLYOXYLATE.BYPASS
+2025-05-20 14:29:24 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:24 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6317
+2025-05-20 14:29:24 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:24 INFO::Creating scatter plot for continuous data, timepoint vs PWY0.1533
+2025-05-20 14:29:24 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:24 INFO::Creating scatter plot for continuous data, timepoint vs PRPP.PWY
+2025-05-20 14:29:24 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:24 INFO::Creating scatter plot for continuous data, timepoint vs PWY.2942
+2025-05-20 14:29:24 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:24 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7400
+2025-05-20 14:29:25 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:25 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6147
+2025-05-20 14:29:25 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:25 INFO::Creating scatter plot for continuous data, timepoint vs PWY0.162
+2025-05-20 14:29:25 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:25 INFO::Creating scatter plot for continuous data, timepoint vs P621.PWY
+2025-05-20 14:29:25 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:25 INFO::Creating scatter plot for continuous data, timepoint vs HEMESYN2.PWY
+2025-05-20 14:29:25 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:25 INFO::Creating scatter plot for continuous data, timepoint vs PWY.3661
+2025-05-20 14:29:25 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:25 INFO::Creating scatter plot for continuous data, timepoint vs P124.PWY
+2025-05-20 14:29:25 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:25 INFO::Creating scatter plot for continuous data, timepoint vs FAO.PWY
+2025-05-20 14:29:26 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:26 INFO::Creating scatter plot for continuous data, timepoint vs POLYAMINSYN3.PWY
+2025-05-20 14:29:26 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:26 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5097
+2025-05-20 14:29:26 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:26 INFO::Creating scatter plot for continuous data, timepoint vs TRNA.CHARGING.PWY
+2025-05-20 14:29:26 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:26 INFO::Creating scatter plot for continuous data, timepoint vs FOLSYN.PWY
+2025-05-20 14:29:26 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:26 INFO::Creating scatter plot for continuous data, timepoint vs P122.PWY
+2025-05-20 14:29:26 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:26 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7315
+2025-05-20 14:29:27 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:27 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6478
+2025-05-20 14:29:27 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:27 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5121
+2025-05-20 14:29:27 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:27 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5855
+2025-05-20 14:29:27 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:27 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5856
+2025-05-20 14:29:27 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:27 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5857
+2025-05-20 14:29:27 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:27 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6708
+2025-05-20 14:29:27 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:27 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7539
+2025-05-20 14:29:28 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:28 INFO::Creating scatter plot for continuous data, timepoint vs P161.PWY
+2025-05-20 14:29:28 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:28 INFO::Creating scatter plot for continuous data, timepoint vs PWY.6891
+2025-05-20 14:29:28 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:28 INFO::Creating scatter plot for continuous data, timepoint vs PWY.5104
+2025-05-20 14:29:28 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:28 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7328
+2025-05-20 14:29:28 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:28 INFO::Creating scatter plot for continuous data, timepoint vs SUCSYN.PWY
+2025-05-20 14:29:28 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:28 INFO::Creating scatter plot for continuous data, timepoint vs X3.HYDROXYPHENYLACETATE.DEGRADATION.PWY
+2025-05-20 14:29:29 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:29 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7528
+2025-05-20 14:29:29 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:29 INFO::Creating scatter plot for continuous data, timepoint vs PWY.7347
+2025-05-20 14:29:29 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:31 INFO::Plotting data for metadata number 2, leachate
+2025-05-20 14:29:31 INFO::Creating scatter plot for continuous data, leachate vs DENITRIFICATION.PWY
+2025-05-20 14:29:31 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:31 INFO::Creating scatter plot for continuous data, leachate vs PWY.6728
+2025-05-20 14:29:31 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:31 INFO::Creating scatter plot for continuous data, leachate vs PWY0.1533
+2025-05-20 14:29:31 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:31 INFO::Creating scatter plot for continuous data, leachate vs PWY.7373
+2025-05-20 14:29:31 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:31 INFO::Creating scatter plot for continuous data, leachate vs PWY.7371
+2025-05-20 14:29:31 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:31 INFO::Creating scatter plot for continuous data, leachate vs PWY.5741
+2025-05-20 14:29:32 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:32 INFO::Creating scatter plot for continuous data, leachate vs PWY.5415
+2025-05-20 14:29:32 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:32 INFO::Creating scatter plot for continuous data, leachate vs PWY.7392
+2025-05-20 14:29:32 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:32 INFO::Creating scatter plot for continuous data, leachate vs PWY.6338
+2025-05-20 14:29:32 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:32 INFO::Creating scatter plot for continuous data, leachate vs PWY.7097
+2025-05-20 14:29:32 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:32 INFO::Creating scatter plot for continuous data, leachate vs PWY.7098
+2025-05-20 14:29:33 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:33 INFO::Creating scatter plot for continuous data, leachate vs P184.PWY
+2025-05-20 14:29:33 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:33 INFO::Creating scatter plot for continuous data, leachate vs GALLATE.DEGRADATION.II.PWY
+2025-05-20 14:29:33 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:33 INFO::Creating scatter plot for continuous data, leachate vs METHYLGALLATE.DEGRADATION.PWY
+2025-05-20 14:29:33 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:33 INFO::Creating scatter plot for continuous data, leachate vs GALLATE.DEGRADATION.I.PWY
+2025-05-20 14:29:33 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:33 INFO::Creating scatter plot for continuous data, leachate vs PWY.6641
+2025-05-20 14:29:33 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:33 INFO::Creating scatter plot for continuous data, leachate vs PWY.922
+2025-05-20 14:29:34 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:34 INFO::Creating scatter plot for continuous data, leachate vs PWY.5910
+2025-05-20 14:29:34 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:34 INFO::Creating scatter plot for continuous data, leachate vs PWY.5419
+2025-05-20 14:29:34 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:34 INFO::Creating scatter plot for continuous data, leachate vs PWY.6545
+2025-05-20 14:29:34 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:34 INFO::Creating scatter plot for continuous data, leachate vs P281.PWY
+2025-05-20 14:29:34 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:34 INFO::Creating scatter plot for continuous data, leachate vs PWY.5920
+2025-05-20 14:29:34 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:34 INFO::Creating scatter plot for continuous data, leachate vs PWY.5420
+2025-05-20 14:29:35 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:35 INFO::Creating scatter plot for continuous data, leachate vs PWY.5417
+2025-05-20 14:29:35 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:35 INFO::Creating scatter plot for continuous data, leachate vs PWY.5431
+2025-05-20 14:29:35 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:35 INFO::Creating scatter plot for continuous data, leachate vs PWY.1541
+2025-05-20 14:29:35 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:35 INFO::Creating scatter plot for continuous data, leachate vs P108.PWY
+2025-05-20 14:29:35 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:35 INFO::Creating scatter plot for continuous data, leachate vs PWY.6182
+2025-05-20 14:29:36 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:36 INFO::Creating scatter plot for continuous data, leachate vs P122.PWY
+2025-05-20 14:29:36 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:36 INFO::Creating scatter plot for continuous data, leachate vs PWYG.321
+2025-05-20 14:29:36 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:36 INFO::Creating scatter plot for continuous data, leachate vs P124.PWY
+2025-05-20 14:29:36 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:36 INFO::Creating scatter plot for continuous data, leachate vs PWY.6263
+2025-05-20 14:29:36 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:36 INFO::Creating scatter plot for continuous data, leachate vs PWY.5430
+2025-05-20 14:29:36 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:36 INFO::Creating scatter plot for continuous data, leachate vs ENTBACSYN.PWY
+2025-05-20 14:29:37 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:37 INFO::Creating scatter plot for continuous data, leachate vs PWY.5104
+2025-05-20 14:29:37 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:37 INFO::Creating scatter plot for continuous data, leachate vs PWY.7315
+2025-05-20 14:29:37 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:37 INFO::Creating scatter plot for continuous data, leachate vs PWY.5705
+2025-05-20 14:29:37 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:37 INFO::Creating scatter plot for continuous data, leachate vs PWY.181
+2025-05-20 14:29:37 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:37 INFO::Creating scatter plot for continuous data, leachate vs PWY.7286
+2025-05-20 14:29:37 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:37 INFO::Creating scatter plot for continuous data, leachate vs GLUCOSE1PMETAB.PWY
+2025-05-20 14:29:38 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:38 INFO::Creating scatter plot for continuous data, leachate vs PWY.4984
+2025-05-20 14:29:38 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:38 INFO::Creating scatter plot for continuous data, leachate vs NONMEVIPP.PWY
+2025-05-20 14:29:38 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:38 INFO::Creating scatter plot for continuous data, leachate vs PWY.7560
+2025-05-20 14:29:38 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:38 INFO::Creating scatter plot for continuous data, leachate vs PWY.5180
+2025-05-20 14:29:38 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:38 INFO::Creating scatter plot for continuous data, leachate vs PWY.5182
+2025-05-20 14:29:38 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:38 INFO::Creating scatter plot for continuous data, leachate vs ALL.CHORISMATE.PWY
+2025-05-20 14:29:39 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:39 INFO::Creating scatter plot for continuous data, leachate vs PWY.6628
+2025-05-20 14:29:39 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:39 INFO::Creating scatter plot for continuous data, leachate vs CATECHOL.ORTHO.CLEAVAGE.PWY
+2025-05-20 14:29:39 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:39 INFO::Creating scatter plot for continuous data, leachate vs PWY.6478
+2025-05-20 14:29:39 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:39 INFO::Creating scatter plot for continuous data, leachate vs PWY.6749
+2025-05-20 14:29:40 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:40 INFO::Creating scatter plot for continuous data, leachate vs PWY.5860
+2025-05-20 14:29:40 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:40 INFO::Creating scatter plot for continuous data, leachate vs PWY.5862
+2025-05-20 14:29:40 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:40 INFO::Creating scatter plot for continuous data, leachate vs PWY.5845
+2025-05-20 14:29:40 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:40 INFO::Creating scatter plot for continuous data, leachate vs PWY.5850
+2025-05-20 14:29:40 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:40 INFO::Creating scatter plot for continuous data, leachate vs PWY.5896
+2025-05-20 14:29:41 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:41 INFO::Creating scatter plot for continuous data, leachate vs PWY.5971
+2025-05-20 14:29:41 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:41 INFO::Creating scatter plot for continuous data, leachate vs PWY.7323
+2025-05-20 14:29:41 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:41 INFO::Creating scatter plot for continuous data, leachate vs PWY.7376
+2025-05-20 14:29:41 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:41 INFO::Creating scatter plot for continuous data, leachate vs P23.PWY
+2025-05-20 14:29:41 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:41 INFO::Creating scatter plot for continuous data, leachate vs PWY.1622
+2025-05-20 14:29:42 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:42 INFO::Creating scatter plot for continuous data, leachate vs PWY.6151
+2025-05-20 14:29:42 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:42 INFO::Creating scatter plot for continuous data, leachate vs PWY1G.0
+2025-05-20 14:29:42 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:42 INFO::Creating scatter plot for continuous data, leachate vs KETOGLUCONMET.PWY
+2025-05-20 14:29:42 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:42 INFO::Creating scatter plot for continuous data, leachate vs PWY.6957
+2025-05-20 14:29:42 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:42 INFO::Creating scatter plot for continuous data, leachate vs PWY.6992
+2025-05-20 14:29:42 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:42 INFO::Creating scatter plot for continuous data, leachate vs PWY.5505
+2025-05-20 14:29:42 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:42 INFO::Creating scatter plot for continuous data, leachate vs GLUCUROCAT.PWY
+2025-05-20 14:29:43 DEBUG::`geom_smooth()` using formula = 'y ~ x'
+2025-05-20 14:29:43 INFO::Creating scatter plot for continuous data, leachate vs PWY.1501
+2025-05-20 14:29:43 DEBUG::`geom_smooth()` using formula = 'y ~ x'
