@@ -67,7 +67,7 @@ QIIME2 pipeline outputs and diversity analyses for the StonyCoral sequencing run
 
 ### 250520_picrust_Maaslin2/
 
-PICRUSt2 functional predictions analyzed with Maaslin2 for differential abundance (dated May 20, 2025 - likely a typo for 2024).
+PICRUSt2 functional predictions analyzed with Maaslin2 for differential abundance (dated May 20, 2025).
 
 **Subdirectories:**
 
