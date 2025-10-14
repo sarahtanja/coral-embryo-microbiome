@@ -1,42 +1,37 @@
 ---
-title: "ANCOM BC2"
-subtitle: "Differential abundance analysis with Analysis of Compositions of Microbiomes with Bias Correction 2 (ANCOM-BC2)"
-author: "Sarah Tanja"
-date: 10/14/2025
+title: "ANCOM BC2" 
+subtitle: "Differential abundance analysis with
+Analysis of Compositions of Microbiomes with Bias Correction 2
+(ANCOM-BC2)" 
+author: "Sarah Tanja" 
+date: 10/14/2025 
 date-modified: today
-format:
+format: 
   gfm: 
-    toc: true
-    number-sections: true
-  html:
-    theme: journal
-    highlight-style: github
-    page-layout: full
-    code-background: true
-    code-tools: 
-      source: true
-      toggle: true
-    toc: true
-    toc-depth: 2
-    toc-location: left
-    number-sections: true
-    df-print: kable
-    smooth-scroll: true
-    link-external-icon: true
-    link-external-newwindow: true
-    bibliography: "../../references.bib"
-    reference-location: margin
-    citation-location: margin
-    ---
-    
-    # Background
-    
-    [ANCOM-BC2](https://www.bioconductor.org/packages/release/bioc/vignettes/ANCOMBC/inst/doc/ANCOMBC2.html)
-    
-    ## Inputs
-    ## Outputs
-    # Setup
-    ## Install & load packages
+    toc: true 
+    number-sections: true 
+html: 
+  theme: journal
+  highlight-style: github 
+  page-layout: full 
+  code-background: true
+  code-tools: 
+    source: true 
+    toggle: true 
+  toc: true 
+  toc-depth: 2
+  toc-location: left 
+  number-sections: true 
+  df-print: kable 
+  smooth-scroll: true 
+  link-external-icon: true 
+  link-external-newwindow: true
+---
+
+# Setup
+
+## Install & load packages
+
 ```{r}
 # 1) Verify versions
 R.version.string
@@ -46,9 +41,11 @@ BiocManager::version()
 # 2) If the Bioc version shown is NOT 3.15/3.16, set it explicitly (R 4.2):
 #BiocManager::install(version = "3.15")  # or "3.16" also matches R 4.2
 
-# 3) Install ANCOMBC
+# 3) Install ANCOMBC & phyloseq
 BiocManager::install("ANCOMBC")
+BiocManager::install("phyloseq")
 ```
+
 ```{r}
 BiocManager::version()
 BiocManager::valid()
@@ -57,8 +54,18 @@ sessionInfo()
 ```
 
 ```{r}
+#install.packages("tidyverse")
+#install.packages("DT") 
+install.packages("devtools"); devtools::install_github("jbisanz/qiime2R")
+```
+
+The R package `DT` provides an interface to the JavaScript library DataTables to create HTML tables within R .. it is loaded in the `ANCOMBC` vignette...
+
+```{r}
 library(ANCOMBC)
 library(tidyverse)
+library(qiime2R)
+library(phyloseq)
 library(DT)
 options(DT.options = list(
   initComplete = JS("function(settings, json) {",
@@ -70,5 +77,39 @@ options(DT.options = list(
 # See this post: https://github.com/lme4/lme4/issues/743
 # remotes::install_github("joey711/phyloseq", force = TRUE)
 ```
-    
-    
+
+```{r}
+getwd()
+```
+
+# Background
+
+[ANCOM-BC2 vignette](https://www.bioconductor.org/packages/release/bioc/vignettes/ANCOMBC/inst/doc/ANCOMBC2.html)
+
+## Inputs
+
+-   Count table (raw integer counts) — one of:
+
+    -   BIOM file (feature-table.biom)
+
+    -   **TSV**/CSV count table (rows = features/ASVs/**OTUs** and **columns = samples**, or vice versa — see check below)
+
+    -   QIIME2 feature table artifact (.qza)
+
+```{r}
+otu_feature_table <- read_tsv("../salipante/241121_StonyCoral/270x200/1st_collapse/feature-table.tsv", skip = 1, show_col_types = FALSE)
+```
+
+-   Sample metadata (mapping file / metadata.tsv) — one row per sample; sample IDs must exactly match the sample IDs in the count table.
+
+```{r}
+metadata <- read_csv("../metadata/metadata.csv")
+```
+
+-   Taxonomy table (feature -\> taxonomy) rows = features, columns = taxonomic ranks. Useful for annotating results.
+
+    ```{r}
+
+    ```
+
+## Outputs
