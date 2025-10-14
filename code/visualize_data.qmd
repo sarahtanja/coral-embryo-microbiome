@@ -1,0 +1,154 @@
+---
+title: "Make visualizations of microbiome data"
+author: "Sarah Tanja"
+date: 2025-09-05
+date-modified: today
+format:
+  gfm: default 
+  html:
+    theme: journal
+    highlight-style: github
+    page-layout: full
+    code-background: true
+    code-tools: 
+      source: true
+      toggle: true
+    toc: true
+    toc-depth: 2
+    toc-location: left
+    df-print: kable
+    smooth-scroll: true
+    link-external-icon: true
+    link-external-newwindow: true
+    reference-location: margin
+    citation-location: margin
+---
+# Background
+
+## Inputs
+## Outputs
+
+# Setup
+## Install packages
+```{r}
+install.packages("devtools")
+install.packages("phyloseq")
+install.packages("tidyverse")
+```
+
+```{r}
+devtools::install_github("jbisanz/qiime2R")
+BiocManager::install("ANCOMBC")
+```
+
+## Load libraries
+```{r}
+library(qiime2R)
+library(phyloseq)
+library(ANCOMBC)
+library(tidyverse)
+library(DESeq2)
+library(vsn)
+
+```
+
+## Load Inputs
+```{r}
+tbl <- qiime2R::read_qza("/media/4TB_JPG_ext/stanja/gitprojects/coral-embryo-microbiome/salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza")$data  
+tax <- qiime2R::read_qza("../salipante/241121_StonyCoral/270x200/1st_collapse/collapsed-l7.qza")$data       # taxonomy table with "Taxon" strings
+meta <- qiime2R::read_q2metadata("../metadata/metadata.tsv")
+```
+
+
+# ANCOM-BC2
+See tutorial [here](https://www.bioconductor.org/packages/release/bioc/vignettes/ANCOMBC/inst/doc/ANCOMBC2.html)
+
+
+# DESeq2
+```{r}
+# Bioconductor
+if (!"BiocManager" %in% rownames(installed.packages())) {
+  install.packages("BiocManager")
+}
+BiocManager::install("DESeq2")
+
+```
+
+```{r}
+
+```
+
+Use `tax` as feature count matrix
+```{r}
+str(tax)
+```
+Metadata 
+```{r}
+metadata <- read_csv("../metadata/metadata.csv")
+```
+
+```{r}
+str(metadata)
+```
+## Check order
+```{r}
+all(metadata$sample_id == colnames(tax))
+```
+## Distribution
+```{r}
+ggplot(data = data.frame(rowMeans(tax)),
+  aes(x = rowMeans.tax.)) +
+  geom_histogram(fill = "grey", binwidth = 5) +
+  xlim(0,120) +
+  ylim(0,50) +
+  theme_classic() +
+  labs(title = "Distribution of amplicon reads") +
+  labs(y = "Density", x = "Raw read counts",
+  title = "Read count distribution: untransformed, unnormalized, unfiltered")
+```
+
+```{r}
+
+```
+
+```{r}
+ps <- qiime2R::qza_to_phyloseq(
+  features = "/media/4TB_JPG_ext/stanja/gitprojects/coral-embryo-microbiome/salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza",
+  taxonomy = "../salipante/241121_StonyCoral/270x200/1st_collapse/collapsed-l7.qza",
+  metadata = "../metadata/metadata.tsv"
+)
+```
+
+```{r}
+# Agglomerate to your target rank (e.g., Genus)
+tax_table(ps)[, "Genus"] <- str_extract(tax_table(ps)[, "Taxon"], "g__[^;]*") # quick parse
+ps_genus <- tax_glom(ps, taxrank = "Genus")
+```
+
+```{r}
+# Make long data and plot
+psm <- psmelt(ps_genus) %>%
+  group_by(Sample) %>%
+  mutate(RelAbund = Abundance / sum(Abundance)) %>%
+  ungroup()
+
+gg <- ggplot(psm, aes(x = Sample, y = RelAbund, fill = Genus)) +
+  geom_col() +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = NULL, y = "Relative abundance", fill = "Genus") +
+  theme_minimal(base_size = 11) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+gg
+
+```
+
+# Maaslin2 differentially abundant taxa
+```{r}
+all_results <- read_tsv("../salipante/Sarah_StonyCoral/Level7_filtered_organism_output/all_results.tsv")
+sig_results <- read_tsv("../salipante/Sarah_StonyCoral/Level7_filtered_organism_output/significant_results.tsv")
+```
+```{r}
+sig_leachate <- sig_results %>% 
+  filter(metadata == "leachate")
+```
+

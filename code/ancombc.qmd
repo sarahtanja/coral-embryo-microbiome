@@ -1,0 +1,74 @@
+---
+title: "ANCOM BC2"
+subtitle: "Differential abundance analysis with Analysis of Compositions of Microbiomes with Bias Correction 2 (ANCOM-BC2)"
+author: "Sarah Tanja"
+date: 10/14/2025
+date-modified: today
+format:
+  gfm: 
+    toc: true
+    number-sections: true
+  html:
+    theme: journal
+    highlight-style: github
+    page-layout: full
+    code-background: true
+    code-tools: 
+      source: true
+      toggle: true
+    toc: true
+    toc-depth: 2
+    toc-location: left
+    number-sections: true
+    df-print: kable
+    smooth-scroll: true
+    link-external-icon: true
+    link-external-newwindow: true
+    bibliography: "../../references.bib"
+    reference-location: margin
+    citation-location: margin
+    ---
+    
+    # Background
+    
+    [ANCOM-BC2](https://www.bioconductor.org/packages/release/bioc/vignettes/ANCOMBC/inst/doc/ANCOMBC2.html)
+    
+    ## Inputs
+    ## Outputs
+    # Setup
+    ## Install & load packages
+```{r}
+# 1) Verify versions
+R.version.string
+if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
+BiocManager::version()
+
+# 2) If the Bioc version shown is NOT 3.15/3.16, set it explicitly (R 4.2):
+#BiocManager::install(version = "3.15")  # or "3.16" also matches R 4.2
+
+# 3) Install ANCOMBC
+BiocManager::install("ANCOMBC")
+```
+```{r}
+BiocManager::version()
+BiocManager::valid()
+packageVersion("ANCOMBC")
+sessionInfo()
+```
+
+```{r}
+library(ANCOMBC)
+library(tidyverse)
+library(DT)
+options(DT.options = list(
+  initComplete = JS("function(settings, json) {",
+  "$(this.api().table().header()).css({'background-color': 
+  '#000', 'color': '#fff'});","}")))
+
+# It appears to be a package compatibility issue between the release version of 
+# phyloseq and lme4, a fresh installation of phyloseq might be needed
+# See this post: https://github.com/lme4/lme4/issues/743
+# remotes::install_github("joey711/phyloseq", force = TRUE)
+```
+    
+    
