@@ -88,6 +88,8 @@ getwd()
 
 ## Inputs
 
+### OTU feature table
+
 -   Count table (raw integer counts) — one of:
 
     -   BIOM file (feature-table.biom)
@@ -97,8 +99,15 @@ getwd()
     -   QIIME2 feature table artifact (.qza)
 
 ```{r}
-otu_feature_table <- read_tsv("../salipante/241121_StonyCoral/270x200/1st_collapse/feature-table.tsv", skip = 1, show_col_types = FALSE)
+otu_table <- read_tsv("../salipante/241121_StonyCoral/270x200/1st_collapse/feature-table.tsv", skip = 1, show_col_types = FALSE)
+
+otu_table <- otu_table %>% 
+  rename(OTU_ID = "#OTU ID")
+
+head(otu_table)
 ```
+
+### Metadata
 
 -   Sample metadata (mapping file / metadata.tsv) — one row per sample; sample IDs must exactly match the sample IDs in the count table.
 
@@ -106,10 +115,77 @@ otu_feature_table <- read_tsv("../salipante/241121_StonyCoral/270x200/1st_collap
 metadata <- read_csv("../metadata/metadata.csv")
 ```
 
+### Taxonomy table
+
 -   Taxonomy table (feature -\> taxonomy) rows = features, columns = taxonomic ranks. Useful for annotating results.
 
     ```{r}
-
+    tax_path <- "../salipante/241121_StonyCoral/270x200/250414_270x200_representative-sequences_taxonomy.qza" 
+    tax <- read_tsv(tax_path, show_col_types = FALSE)
+    colnames(tax)
     ```
 
 ## Outputs
+
+# Convert feature table to matrix
+
+```{r}
+# convert to matrix with features as rows
+otu_mat <- otu_table %>% 
+  select(!OTU_ID) %>% 
+  as.matrix(.)
+
+# make rownames from otu_table OTU_ID column 
+rownames(otu_mat) <- otu_table$OTU_ID
+
+```
+
+OTUs should be positive integers! Check to make sure there are no NA or negative values
+
+```{r}
+# quick sanity checks
+if (any(is.na(otu_mat))) stop("NA values found in the OTU matrix")
+if (any(otu_mat < 0)) stop("Negative counts found in the OTU matrix")
+```
+
+Check to see if there are any differences between OTU sample id and metadata sample id character strings. This should return a '0'.
+
+```{r}
+setdiff(colnames(otu_mat), metadata$sample_id)
+```
+
+# Create phyloseq object
+
+```{r}
+ps <- phyloseq(otu_table(otu_mat, taxa_are_rows = TRUE),
+               sample_data(as.data.frame(metadata)))
+```
+
+# Run ANCOM-BC2
+
+```{r}
+# 4) Run ANCOM-BC
+# Replace "Treatment" with the metadata column you want as predictor.
+# If you have covariates, include them in the formula like "Treatment + Age"
+res_ancombc <- ancombc(phyloseq = ps,
+                       formula = "~stage + leachate + stage:leachate",
+                       p_adj_method = "BH",
+                       zero_cut = 0.90,    # drop taxa with >90% zeros; tune as needed
+                       lib_cut = 1000,     # min library size; adjust for your data
+                       group = "Treatment",
+                       struc_zero = TRUE,
+                       neg_lb = TRUE)
+```
+
+```{r}
+# Results
+res_ancombc$beta        # coefficients
+res_ancombc$res          # full result table
+res_ancombc$diff_abn    # logical matrix: TRUE if differential
+```
+
+```{r}
+# Example: get significant taxa
+sig_taxa <- rownames(res_ancombc$res)[res_ancombc$res$q_val < 0.05]
+sig_taxa
+```
