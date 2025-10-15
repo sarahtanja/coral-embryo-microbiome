@@ -14,15 +14,121 @@ reference-location: margin
 citation-location: margin
 ---
 
+# Background
 
+Maaslin2 (Microbiome Multivariable Associations with Linear Models) is a comprehensive R package for efficiently determining multivariable association between clinical metadata and microbial meta'omics features. This analysis identifies which bacterial taxa show differential abundance across experimental conditions.
 
+**For detailed interpretation of model design and results, see [maaslin2_interpretation.qmd](maaslin2_interpretation.qmd)**
 
+# Load Libraries
+
+```{r}
 library(Maaslin2)
+```
 
-#now using the filtered data that removed chloroplast and mitochondria
+# Load Data
 
-df_Level7_filtered_data = read.table(file= '250425_level7_x100_flipped_filtered_maalin2_input.txt', header= TRUE, sep= "\t", row.names= 1, stringsAsFactors = FALSE)
+```{r}
+# Using filtered data that removed chloroplast and mitochondria
+df_Level7_filtered_data = read.table(
+  file = '250425_level7_x100_flipped_filtered_maalin2_input.txt', 
+  header = TRUE, 
+  sep = "\t", 
+  row.names = 1, 
+  stringsAsFactors = FALSE
+)
 
-df_Level7_filtered_metadata = read.table(file= '250425_metadata_only_maaslin2.txt', header= TRUE, sep= "\t", row.names= 1, stringsAsFactors = FALSE)
+df_Level7_filtered_metadata = read.table(
+  file = '250425_metadata_only_maaslin2.txt', 
+  header = TRUE, 
+  sep = "\t", 
+  row.names = 1, 
+  stringsAsFactors = FALSE
+)
+```
 
-fit_Level7_filtered_data = Maaslin2(input_data= df_Level7_filtered_data, input_metadata = df_Level7_filtered_metadata, min_prevalence = 0.05, min_abundance = 0.001,normalization  = "NONE", output= "Level7_filtered_organism_output", fixed_effects  = c("leachate","timepoint"), random_effects = c("cross"))
+# Model 1: Additive Effects (Original)
+
+This model tests for main effects of leachate and timepoint separately, without testing for interaction between them.
+
+**Model formula:** `Abundance ~ leachate + timepoint + (1|cross)`
+
+This tests:
+- Does leachate affect bacterial abundance (averaged across all timepoints)?
+- Does timepoint affect bacterial abundance (averaged across all leachate levels)?
+
+```{r}
+fit_Level7_filtered_data = Maaslin2(
+  input_data = df_Level7_filtered_data, 
+  input_metadata = df_Level7_filtered_metadata, 
+  min_prevalence = 0.05, 
+  min_abundance = 0.001,
+  normalization = "NONE", 
+  output = "Level7_filtered_organism_output", 
+  fixed_effects = c("leachate", "timepoint"), 
+  random_effects = c("cross")
+)
+```
+
+# Model 2: With Interaction Term (Optional)
+
+To test whether the effect of leachate depends on timepoint (or vice versa), add an interaction term:
+
+**Model formula:** `Abundance ~ leachate + timepoint + leachate:timepoint + (1|cross)`
+
+```{r eval=FALSE}
+# This model tests for interaction effects
+fit_Level7_interaction = Maaslin2(
+  input_data = df_Level7_filtered_data, 
+  input_metadata = df_Level7_filtered_metadata, 
+  min_prevalence = 0.05, 
+  min_abundance = 0.001,
+  normalization = "NONE", 
+  output = "Level7_filtered_organism_output_interaction", 
+  fixed_effects = c("leachate", "timepoint", "leachate:timepoint"), 
+  random_effects = c("cross")
+)
+```
+
+# Model 3: Categorical Variables (Optional)
+
+To compare specific leachate concentrations and timepoints, treat them as categorical factors:
+
+```{r eval=FALSE}
+# Convert to factors
+df_Level7_filtered_metadata$leachate <- as.factor(df_Level7_filtered_metadata$leachate)
+df_Level7_filtered_metadata$timepoint <- as.factor(df_Level7_filtered_metadata$timepoint)
+
+# Run with categorical variables
+fit_Level7_categorical = Maaslin2(
+  input_data = df_Level7_filtered_data, 
+  input_metadata = df_Level7_filtered_metadata, 
+  min_prevalence = 0.05, 
+  min_abundance = 0.001,
+  normalization = "NONE", 
+  output = "Level7_filtered_organism_output_categorical", 
+  fixed_effects = c("leachate", "timepoint"), 
+  random_effects = c("cross"),
+  reference = c("leachate,0", "timepoint,4")  # Set reference levels
+)
+```
+
+This will provide comparisons like:
+- Leachate 0.01 vs 0, Leachate 0.1 vs 0, Leachate 1 vs 0
+- Timepoint 9 vs 4, Timepoint 14 vs 4
+
+# Model Comparison Guide
+
+| Model | Tests | Advantages | Limitations |
+|-------|-------|------------|-------------|
+| **Additive** | Main effects only | Simple interpretation, detects overall trends | Cannot detect condition-specific effects, averages across other variable |
+| **Interaction** | Main + interaction effects | Identifies whether effects depend on other variables | More complex interpretation, requires more samples |
+| **Categorical** | Pairwise comparisons | Shows which specific levels differ | Many comparisons (multiple testing), doesn't test for linear trends |
+
+# Results Interpretation
+
+See [maaslin2_interpretation.qmd](maaslin2_interpretation.qmd) for detailed guidance on:
+- Understanding coefficient values
+- What "averaging across" means
+- Why we lose granularity about specific conditions
+- How to extract specific condition comparisons

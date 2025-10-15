@@ -40,7 +40,22 @@ sig_leach <- significant %>%
 
 125 bacteria were significantly different in leachate treatments. It seems there are many duplicates.. how do we consolidate? What are these bacteria, and what are their functions?
 
-Also... it seems we've lost all granularity on when the shifts happen and at which concentrations. I'll need to circle back to Adam to clarify.
+::: {.callout-note}
+## Understanding the Model Results
+
+The Maaslin2 model uses an **additive design** (`leachate + timepoint`) without interaction terms. This means:
+
+- **Leachate effects** are averaged across all timepoints (4, 9, and 14 hpf)
+- **Timepoint effects** are averaged across all leachate concentrations (0, 0.01, 0.1, and 1)
+- We cannot determine from these results which specific leachate concentrations or timepoints drive the differences
+
+For a detailed explanation of the model design and how to interpret these results, see [maaslin2_interpretation.qmd](maaslin2_interpretation.qmd).
+
+To gain more granularity:
+1. Treat variables as categorical factors (e.g., compare 0.01 vs 0, 0.1 vs 0, etc.)
+2. Add an interaction term (`leachate:timepoint`) to test if effects differ across conditions
+3. Conduct post-hoc pairwise comparisons for specific bacteria of interest
+:::
 
 # Collapse duplicates
 
