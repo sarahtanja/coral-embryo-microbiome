@@ -1,0 +1,627 @@
+---
+title: "Core Metrics Visualization"
+author: "Sarah Tanja"
+date: 2025-10-15
+date-modified: today
+format:
+  gfm: default 
+  html:
+    theme: journal
+    highlight-style: github
+    page-layout: full
+    code-background: true
+    code-tools: 
+      source: true
+      toggle: true
+    toc: true
+    toc-depth: 2
+    toc-location: left
+    df-print: kable
+    smooth-scroll: true
+    link-external-icon: true
+    link-external-newwindow: true
+    reference-location: margin
+    citation-location: margin
+---
+
+# Background
+
+This document visualizes core diversity metrics from the filtered QIIME2 analysis (`core-metrics-results-filtered/`). The filtered dataset excludes chloroplast, mitochondria, and unassigned sequences.
+
+Core metrics include:
+- **Alpha Diversity**: Shannon diversity, Faith's Phylogenetic Diversity, Evenness, Observed Features
+- **Beta Diversity**: Bray-Curtis, Jaccard, Weighted UniFrac, Unweighted UniFrac
+
+# Setup
+
+## Load Libraries
+
+```{r}
+#| message: false
+#| warning: false
+library(qiime2R)
+library(ggplot2)
+library(tidyverse)
+library(patchwork)
+```
+
+## Set Paths
+
+```{r}
+# Base path to core metrics results
+core_metrics_path <- "../salipante/241121_StonyCoral/core-metrics-results-filtered"
+metadata_path <- "../metadata/metadata.tsv"
+```
+
+## Load Metadata
+
+```{r}
+metadata <- read_q2metadata(metadata_path)
+head(metadata)
+```
+
+# Alpha Diversity
+
+Alpha diversity measures the diversity within individual samples.
+
+## Shannon Diversity Index
+
+Shannon diversity accounts for both abundance and evenness of species present.
+
+```{r}
+#| fig-width: 10
+#| fig-height: 6
+
+# Load Shannon diversity vector
+shannon <- read_qza(file.path(core_metrics_path, "shannon_vector.qza"))
+
+# Create data frame
+shannon_df <- shannon$data %>%
+  rownames_to_column("SampleID") %>%
+  rename(Shannon = shannon_entropy) %>%
+  left_join(metadata, by = c("SampleID" = "sample_id"))
+
+# Box plot by leachate treatment
+p1 <- ggplot(shannon_df, aes(x = factor(leachate), y = Shannon, fill = factor(leachate))) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA) +
+  geom_jitter(width = 0.2, size = 2, alpha = 0.6) +
+  scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Shannon Diversity by Leachate Treatment",
+    x = "Leachate Level",
+    y = "Shannon Diversity Index",
+    fill = "Leachate"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    axis.title = element_text(size = 12),
+    legend.position = "none"
+  )
+
+# Box plot by timepoint
+p2 <- ggplot(shannon_df, aes(x = factor(timepoint), y = Shannon, fill = factor(timepoint))) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA) +
+  geom_jitter(width = 0.2, size = 2, alpha = 0.6) +
+  scale_fill_viridis_d(option = "mako", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Shannon Diversity by Developmental Timepoint",
+    x = "Hours Post Fertilization",
+    y = "Shannon Diversity Index",
+    fill = "Timepoint"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    axis.title = element_text(size = 12),
+    legend.position = "none"
+  )
+
+# Combine plots
+p1 + p2
+```
+
+## Faith's Phylogenetic Diversity
+
+Faith's PD measures the phylogenetic diversity of species in a sample.
+
+```{r}
+#| fig-width: 10
+#| fig-height: 6
+
+# Load Faith's PD vector
+faith <- read_qza(file.path(core_metrics_path, "faith_pd_vector.qza"))
+
+# Create data frame
+faith_df <- faith$data %>%
+  rownames_to_column("SampleID") %>%
+  rename(FaithPD = faith_pd) %>%
+  left_join(metadata, by = c("SampleID" = "sample_id"))
+
+# Box plot by leachate treatment
+p1 <- ggplot(faith_df, aes(x = factor(leachate), y = FaithPD, fill = factor(leachate))) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA) +
+  geom_jitter(width = 0.2, size = 2, alpha = 0.6) +
+  scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Faith's Phylogenetic Diversity by Leachate Treatment",
+    x = "Leachate Level",
+    y = "Faith's PD",
+    fill = "Leachate"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    axis.title = element_text(size = 12),
+    legend.position = "none"
+  )
+
+# Box plot by timepoint
+p2 <- ggplot(faith_df, aes(x = factor(timepoint), y = FaithPD, fill = factor(timepoint))) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA) +
+  geom_jitter(width = 0.2, size = 2, alpha = 0.6) +
+  scale_fill_viridis_d(option = "mako", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Faith's Phylogenetic Diversity by Developmental Timepoint",
+    x = "Hours Post Fertilization",
+    y = "Faith's PD",
+    fill = "Timepoint"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    axis.title = element_text(size = 12),
+    legend.position = "none"
+  )
+
+# Combine plots
+p1 + p2
+```
+
+## Pielou's Evenness
+
+Evenness measures how equal species abundances are within a sample.
+
+```{r}
+#| fig-width: 10
+#| fig-height: 6
+
+# Load evenness vector
+evenness <- read_qza(file.path(core_metrics_path, "evenness_vector.qza"))
+
+# Create data frame
+evenness_df <- evenness$data %>%
+  rownames_to_column("SampleID") %>%
+  rename(Evenness = pielou_evenness) %>%
+  left_join(metadata, by = c("SampleID" = "sample_id"))
+
+# Box plot by leachate treatment
+p1 <- ggplot(evenness_df, aes(x = factor(leachate), y = Evenness, fill = factor(leachate))) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA) +
+  geom_jitter(width = 0.2, size = 2, alpha = 0.6) +
+  scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Pielou's Evenness by Leachate Treatment",
+    x = "Leachate Level",
+    y = "Pielou's Evenness",
+    fill = "Leachate"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    axis.title = element_text(size = 12),
+    legend.position = "none"
+  )
+
+# Box plot by timepoint
+p2 <- ggplot(evenness_df, aes(x = factor(timepoint), y = Evenness, fill = factor(timepoint))) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA) +
+  geom_jitter(width = 0.2, size = 2, alpha = 0.6) +
+  scale_fill_viridis_d(option = "mako", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Pielou's Evenness by Developmental Timepoint",
+    x = "Hours Post Fertilization",
+    y = "Pielou's Evenness",
+    fill = "Timepoint"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    axis.title = element_text(size = 12),
+    legend.position = "none"
+  )
+
+# Combine plots
+p1 + p2
+```
+
+## Observed Features (ASV Richness)
+
+The number of unique amplicon sequence variants (ASVs) observed in each sample.
+
+```{r}
+#| fig-width: 10
+#| fig-height: 6
+
+# Load observed features vector
+observed <- read_qza(file.path(core_metrics_path, "observed_features_vector.qza"))
+
+# Create data frame
+observed_df <- observed$data %>%
+  rownames_to_column("SampleID") %>%
+  rename(ObservedFeatures = observed_features) %>%
+  left_join(metadata, by = c("SampleID" = "sample_id"))
+
+# Box plot by leachate treatment
+p1 <- ggplot(observed_df, aes(x = factor(leachate), y = ObservedFeatures, fill = factor(leachate))) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA) +
+  geom_jitter(width = 0.2, size = 2, alpha = 0.6) +
+  scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Observed ASV Richness by Leachate Treatment",
+    x = "Leachate Level",
+    y = "Number of Observed Features",
+    fill = "Leachate"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    axis.title = element_text(size = 12),
+    legend.position = "none"
+  )
+
+# Box plot by timepoint
+p2 <- ggplot(observed_df, aes(x = factor(timepoint), y = ObservedFeatures, fill = factor(timepoint))) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA) +
+  geom_jitter(width = 0.2, size = 2, alpha = 0.6) +
+  scale_fill_viridis_d(option = "mako", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Observed ASV Richness by Developmental Timepoint",
+    x = "Hours Post Fertilization",
+    y = "Number of Observed Features",
+    fill = "Timepoint"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    axis.title = element_text(size = 12),
+    legend.position = "none"
+  )
+
+# Combine plots
+p1 + p2
+```
+
+## Alpha Diversity Summary Panel
+
+```{r}
+#| fig-width: 12
+#| fig-height: 10
+
+# Combine all alpha diversity metrics
+alpha_combined <- shannon_df %>%
+  select(SampleID, leachate, timepoint, Shannon) %>%
+  left_join(faith_df %>% select(SampleID, FaithPD), by = "SampleID") %>%
+  left_join(evenness_df %>% select(SampleID, Evenness), by = "SampleID") %>%
+  left_join(observed_df %>% select(SampleID, ObservedFeatures), by = "SampleID") %>%
+  pivot_longer(cols = c(Shannon, FaithPD, Evenness, ObservedFeatures),
+               names_to = "Metric",
+               values_to = "Value")
+
+# Panel by leachate
+p1 <- ggplot(alpha_combined, aes(x = factor(leachate), y = Value, fill = factor(leachate))) +
+  geom_boxplot(alpha = 0.7) +
+  facet_wrap(~Metric, scales = "free_y", ncol = 2) +
+  scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Alpha Diversity Metrics by Leachate Treatment",
+    x = "Leachate Level",
+    y = "Diversity Value",
+    fill = "Leachate"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    axis.title = element_text(size = 12),
+    strip.background = element_rect(fill = "grey90"),
+    strip.text = element_text(face = "bold", size = 11),
+    legend.position = "none"
+  )
+
+# Panel by timepoint
+p2 <- ggplot(alpha_combined, aes(x = factor(timepoint), y = Value, fill = factor(timepoint))) +
+  geom_boxplot(alpha = 0.7) +
+  facet_wrap(~Metric, scales = "free_y", ncol = 2) +
+  scale_fill_viridis_d(option = "mako", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Alpha Diversity Metrics by Developmental Timepoint",
+    x = "Hours Post Fertilization",
+    y = "Diversity Value",
+    fill = "Timepoint"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    axis.title = element_text(size = 12),
+    strip.background = element_rect(fill = "grey90"),
+    strip.text = element_text(face = "bold", size = 11),
+    legend.position = "none"
+  )
+
+p1
+p2
+```
+
+# Beta Diversity
+
+Beta diversity measures the dissimilarity in community composition between samples.
+
+## Bray-Curtis Dissimilarity
+
+Bray-Curtis dissimilarity is based on abundance differences and does not account for phylogeny.
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+
+# Load Bray-Curtis PCoA results
+bc_pcoa <- read_qza(file.path(core_metrics_path, "bray_curtis_pcoa_results.qza"))
+
+# Extract coordinates and variance explained
+bc_coords <- bc_pcoa$data$Vectors %>%
+  as.data.frame() %>%
+  rownames_to_column("SampleID") %>%
+  left_join(metadata, by = c("SampleID" = "sample_id"))
+
+bc_variance <- bc_pcoa$data$ProportionExplained
+
+# PCoA plot colored by leachate
+p1 <- ggplot(bc_coords, aes(x = PC1, y = PC2, color = factor(leachate), shape = factor(timepoint))) +
+  geom_point(size = 4, alpha = 0.8) +
+  scale_color_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Bray-Curtis PCoA",
+    subtitle = "Community composition dissimilarity",
+    x = paste0("PC1 (", round(bc_variance[1] * 100, 2), "%)"),
+    y = paste0("PC2 (", round(bc_variance[2] * 100, 2), "%)"),
+    color = "Leachate",
+    shape = "Timepoint"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 11, color = "grey40"),
+    axis.title = element_text(size = 12),
+    legend.position = "right"
+  )
+
+# PCoA plot colored by timepoint
+p2 <- ggplot(bc_coords, aes(x = PC1, y = PC2, color = factor(timepoint), shape = factor(leachate))) +
+  geom_point(size = 4, alpha = 0.8) +
+  scale_color_viridis_d(option = "mako", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Bray-Curtis PCoA",
+    subtitle = "Community composition dissimilarity",
+    x = paste0("PC1 (", round(bc_variance[1] * 100, 2), "%)"),
+    y = paste0("PC2 (", round(bc_variance[2] * 100, 2), "%)"),
+    color = "Timepoint (hpf)",
+    shape = "Leachate"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 11, color = "grey40"),
+    axis.title = element_text(size = 12),
+    legend.position = "right"
+  )
+
+p1
+p2
+```
+
+## Jaccard Distance
+
+Jaccard distance is based on presence/absence and does not account for phylogeny.
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+
+# Load Jaccard PCoA results
+jac_pcoa <- read_qza(file.path(core_metrics_path, "jaccard_pcoa_results.qza"))
+
+# Extract coordinates and variance explained
+jac_coords <- jac_pcoa$data$Vectors %>%
+  as.data.frame() %>%
+  rownames_to_column("SampleID") %>%
+  left_join(metadata, by = c("SampleID" = "sample_id"))
+
+jac_variance <- jac_pcoa$data$ProportionExplained
+
+# PCoA plot colored by leachate
+p1 <- ggplot(jac_coords, aes(x = PC1, y = PC2, color = factor(leachate), shape = factor(timepoint))) +
+  geom_point(size = 4, alpha = 0.8) +
+  scale_color_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Jaccard PCoA",
+    subtitle = "Presence/absence dissimilarity",
+    x = paste0("PC1 (", round(jac_variance[1] * 100, 2), "%)"),
+    y = paste0("PC2 (", round(jac_variance[2] * 100, 2), "%)"),
+    color = "Leachate",
+    shape = "Timepoint"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 11, color = "grey40"),
+    axis.title = element_text(size = 12),
+    legend.position = "right"
+  )
+
+# PCoA plot colored by timepoint
+p2 <- ggplot(jac_coords, aes(x = PC1, y = PC2, color = factor(timepoint), shape = factor(leachate))) +
+  geom_point(size = 4, alpha = 0.8) +
+  scale_color_viridis_d(option = "mako", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Jaccard PCoA",
+    subtitle = "Presence/absence dissimilarity",
+    x = paste0("PC1 (", round(jac_variance[1] * 100, 2), "%)"),
+    y = paste0("PC2 (", round(jac_variance[2] * 100, 2), "%)"),
+    color = "Timepoint (hpf)",
+    shape = "Leachate"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 11, color = "grey40"),
+    axis.title = element_text(size = 12),
+    legend.position = "right"
+  )
+
+p1
+p2
+```
+
+## Weighted UniFrac Distance
+
+Weighted UniFrac considers phylogenetic distances and abundance differences.
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+
+# Load Weighted UniFrac PCoA results
+wuf_pcoa <- read_qza(file.path(core_metrics_path, "weighted_unifrac_pcoa_results.qza"))
+
+# Extract coordinates and variance explained
+wuf_coords <- wuf_pcoa$data$Vectors %>%
+  as.data.frame() %>%
+  rownames_to_column("SampleID") %>%
+  left_join(metadata, by = c("SampleID" = "sample_id"))
+
+wuf_variance <- wuf_pcoa$data$ProportionExplained
+
+# PCoA plot colored by leachate
+p1 <- ggplot(wuf_coords, aes(x = PC1, y = PC2, color = factor(leachate), shape = factor(timepoint))) +
+  geom_point(size = 4, alpha = 0.8) +
+  scale_color_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Weighted UniFrac PCoA",
+    subtitle = "Phylogenetic dissimilarity (abundance-weighted)",
+    x = paste0("PC1 (", round(wuf_variance[1] * 100, 2), "%)"),
+    y = paste0("PC2 (", round(wuf_variance[2] * 100, 2), "%)"),
+    color = "Leachate",
+    shape = "Timepoint"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 11, color = "grey40"),
+    axis.title = element_text(size = 12),
+    legend.position = "right"
+  )
+
+# PCoA plot colored by timepoint
+p2 <- ggplot(wuf_coords, aes(x = PC1, y = PC2, color = factor(timepoint), shape = factor(leachate))) +
+  geom_point(size = 4, alpha = 0.8) +
+  scale_color_viridis_d(option = "mako", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Weighted UniFrac PCoA",
+    subtitle = "Phylogenetic dissimilarity (abundance-weighted)",
+    x = paste0("PC1 (", round(wuf_variance[1] * 100, 2), "%)"),
+    y = paste0("PC2 (", round(wuf_variance[2] * 100, 2), "%)"),
+    color = "Timepoint (hpf)",
+    shape = "Leachate"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 11, color = "grey40"),
+    axis.title = element_text(size = 12),
+    legend.position = "right"
+  )
+
+p1
+p2
+```
+
+## Unweighted UniFrac Distance
+
+Unweighted UniFrac considers phylogenetic distances but not abundance (presence/absence only).
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+
+# Load Unweighted UniFrac PCoA results
+uwuf_pcoa <- read_qza(file.path(core_metrics_path, "unweighted_unifrac_pcoa_results.qza"))
+
+# Extract coordinates and variance explained
+uwuf_coords <- uwuf_pcoa$data$Vectors %>%
+  as.data.frame() %>%
+  rownames_to_column("SampleID") %>%
+  left_join(metadata, by = c("SampleID" = "sample_id"))
+
+uwuf_variance <- uwuf_pcoa$data$ProportionExplained
+
+# PCoA plot colored by leachate
+p1 <- ggplot(uwuf_coords, aes(x = PC1, y = PC2, color = factor(leachate), shape = factor(timepoint))) +
+  geom_point(size = 4, alpha = 0.8) +
+  scale_color_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Unweighted UniFrac PCoA",
+    subtitle = "Phylogenetic dissimilarity (presence/absence)",
+    x = paste0("PC1 (", round(uwuf_variance[1] * 100, 2), "%)"),
+    y = paste0("PC2 (", round(uwuf_variance[2] * 100, 2), "%)"),
+    color = "Leachate",
+    shape = "Timepoint"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 11, color = "grey40"),
+    axis.title = element_text(size = 12),
+    legend.position = "right"
+  )
+
+# PCoA plot colored by timepoint
+p2 <- ggplot(uwuf_coords, aes(x = PC1, y = PC2, color = factor(timepoint), shape = factor(leachate))) +
+  geom_point(size = 4, alpha = 0.8) +
+  scale_color_viridis_d(option = "mako", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Unweighted UniFrac PCoA",
+    subtitle = "Phylogenetic dissimilarity (presence/absence)",
+    x = paste0("PC1 (", round(uwuf_variance[1] * 100, 2), "%)"),
+    y = paste0("PC2 (", round(uwuf_variance[2] * 100, 2), "%)"),
+    color = "Timepoint (hpf)",
+    shape = "Leachate"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 11, color = "grey40"),
+    axis.title = element_text(size = 12),
+    legend.position = "right"
+  )
+
+p1
+p2
+```
+
+# Summary
+
+This document provides manuscript-ready visualizations of all core diversity metrics from the filtered dataset:
+
+**Alpha Diversity Metrics:**
+- Shannon Diversity Index
+- Faith's Phylogenetic Diversity
+- Pielou's Evenness
+- Observed ASV Richness
+
+**Beta Diversity Metrics:**
+- Bray-Curtis dissimilarity (abundance-based)
+- Jaccard distance (presence/absence)
+- Weighted UniFrac distance (phylogenetic + abundance)
+- Unweighted UniFrac distance (phylogenetic presence/absence)
+
+Each metric is visualized by both leachate treatment level and developmental timepoint (hours post fertilization), allowing for comprehensive assessment of how microbiome diversity changes with PVC leachate exposure and coral development.
