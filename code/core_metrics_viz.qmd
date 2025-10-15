@@ -51,6 +51,14 @@ library(patchwork)
 # Base path to core metrics results
 core_metrics_path <- "../salipante/241121_StonyCoral/core-metrics-results-filtered"
 metadata_path <- "../metadata/metadata.tsv"
+
+# Output directory for figures
+figures_dir <- "../output/figures"
+
+# Create figures directory if it doesn't exist
+if (!dir.exists(figures_dir)) {
+  dir.create(figures_dir, recursive = TRUE)
+}
 ```
 
 ## Load Metadata
@@ -122,7 +130,14 @@ shan2 <- ggplot(shannon_df, aes(x = factor(timepoint), y = Shannon, fill = facto
   )
 
 # Combine plots
-shan1 + shan2
+shannon_combined <- shan1 + shan2
+
+# Save plots
+ggsave(filename = file.path(figures_dir, "shannon_by_leachate.png"), plot = shan1, width = 10, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "shannon_by_timepoint.png"), plot = shan2, width = 10, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "shannon_combined.png"), plot = shannon_combined, width = 13, height = 6, dpi = 300)
+
+shannon_combined
 ```
 
 ## Faith's Phylogenetic Diversity
@@ -190,7 +205,14 @@ fait2 <- ggplot(faith_df, aes(x = factor(timepoint), y = Faith, fill = factor(ti
   )
 
 # Combine plots
-fait1 + fait2
+faith_combined <- fait1 + fait2
+
+# Save plots
+ggsave(filename = file.path(figures_dir, "faith_by_leachate.png"), plot = fait1, width = 10, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "faith_by_timepoint.png"), plot = fait2, width = 10, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "faith_combined.png"), plot = faith_combined, width = 13, height = 6, dpi = 300)
+
+faith_combined
 ```
 
 ## Pielou's Evenness
@@ -258,7 +280,14 @@ piel2 <- ggplot(evenness_df, aes(x = factor(timepoint), y = Evenness, fill = fac
   )
 
 # Combine plots
-piel1 + piel2
+pielou_combined <- piel1 + piel2
+
+# Save plots
+ggsave(filename = file.path(figures_dir, "pielou_by_leachate.png"), plot = piel1, width = 10, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "pielou_by_timepoint.png"), plot = piel2, width = 10, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "pielou_combined.png"), plot = pielou_combined, width = 13, height = 6, dpi = 300)
+
+pielou_combined
 ```
 
 ## Observed Features (ASV Richness)
@@ -324,7 +353,14 @@ asv2 <- ggplot(observed_df, aes(x = factor(timepoint), y = ObservedFeatures, fil
   )
 
 # Combine plots
-asv1 + asv2
+asv_combined <- asv1 + asv2
+
+# Save plots
+ggsave(filename = file.path(figures_dir, "observed_features_by_leachate.png"), plot = asv1, width = 10, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "observed_features_by_timepoint.png"), plot = asv2, width = 10, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "observed_features_combined.png"), plot = asv_combined, width = 13, height = 6, dpi = 300)
+
+asv_combined
 ```
 
 ## Alpha Diversity Summary Panel
@@ -385,6 +421,10 @@ alph2 <- ggplot(alpha_combined, aes(x = factor(timepoint), y = Value, fill = fac
     strip.text = element_text(face = "bold", size = 11),
     legend.position = "none"
   )
+
+# Save plots
+ggsave(filename = file.path(figures_dir, "alpha_diversity_panel_by_leachate.png"), plot = alph1, width = 12, height = 10, dpi = 300)
+ggsave(filename = file.path(figures_dir, "alpha_diversity_panel_by_timepoint.png"), plot = alph2, width = 12, height = 10, dpi = 300)
 
 alph1
 alph2
@@ -462,6 +502,10 @@ bray2 <- ggplot(bc_coords, aes(x = PC1, y = PC2, color = factor(timepoint), shap
     axis.title = element_text(size = 12),
     legend.position = "right"
   )
+
+# Save plots
+ggsave(filename = file.path(figures_dir, "bray_curtis_by_leachate.png"), plot = bray1, width = 10, height = 8, dpi = 300)
+ggsave(filename = file.path(figures_dir, "bray_curtis_by_timepoint.png"), plot = bray2, width = 10, height = 8, dpi = 300)
 
 bray1
 bray2
@@ -541,6 +585,10 @@ jacc2 <- ggplot(jac_coords, aes(x = PC1, y = PC2, color = factor(timepoint), sha
     legend.position = "right"
   )
 
+# Save plots
+ggsave(filename = file.path(figures_dir, "jaccard_by_leachate.png"), plot = jacc1, width = 10, height = 8, dpi = 300)
+ggsave(filename = file.path(figures_dir, "jaccard_by_timepoint.png"), plot = jacc2, width = 10, height = 8, dpi = 300)
+
 jacc1
 jacc2
 ```
@@ -611,6 +659,10 @@ wufr2 <- ggplot(wuf_coords, aes(x = PC1, y = PC2, color = factor(timepoint), sha
     legend.position = "right"
   )
 
+# Save plots
+ggsave(filename = file.path(figures_dir, "weighted_unifrac_by_leachate.png"), plot = wufr1, width = 10, height = 8, dpi = 300)
+ggsave(filename = file.path(figures_dir, "weighted_unifrac_by_timepoint.png"), plot = wufr2, width = 10, height = 8, dpi = 300)
+
 wufr1
 wufr2
 ```
@@ -674,8 +726,40 @@ uwuf2 <- ggplot(uwuf_coords, aes(x = PC1, y = PC2, color = factor(timepoint), sh
     legend.position = "right"
   )
 
+# Save plots
+ggsave(filename = file.path(figures_dir, "unweighted_unifrac_by_leachate.png"), plot = uwuf1, width = 10, height = 8, dpi = 300)
+ggsave(filename = file.path(figures_dir, "unweighted_unifrac_by_timepoint.png"), plot = uwuf2, width = 10, height = 8, dpi = 300)
+
 uwuf1
 uwuf2
+```
+
+## Beta Diversity Summary Panel
+
+```{r}
+#| fig-width: 14
+#| fig-height: 12
+
+# Combine all beta diversity PCoA plots by leachate
+beta_leachate <- (bray1 + jacc1) / (wufr1 + uwuf1) +
+  plot_annotation(
+    title = "Beta Diversity PCoA Plots - Colored by Leachate Treatment",
+    theme = theme(plot.title = element_text(face = "bold", size = 16, hjust = 0.5))
+  )
+
+# Combine all beta diversity PCoA plots by timepoint
+beta_timepoint <- (bray2 + jacc2) / (wufr2 + uwuf2) +
+  plot_annotation(
+    title = "Beta Diversity PCoA Plots - Colored by Developmental Timepoint",
+    theme = theme(plot.title = element_text(face = "bold", size = 16, hjust = 0.5))
+  )
+
+# Save plots
+ggsave(filename = file.path(figures_dir, "beta_diversity_panel_by_leachate.png"), plot = beta_leachate, width = 14, height = 12, dpi = 300)
+ggsave(filename = file.path(figures_dir, "beta_diversity_panel_by_timepoint.png"), plot = beta_timepoint, width = 14, height = 12, dpi = 300)
+
+beta_leachate
+beta_timepoint
 ```
 
 # Summary
@@ -687,11 +771,15 @@ This document provides manuscript-ready visualizations of all core diversity met
 - Faith's Phylogenetic Diversity
 - Pielou's Evenness
 - Observed ASV Richness
+- Alpha Diversity Summary Panel (all metrics combined)
 
 **Beta Diversity Metrics:**
 - Bray-Curtis dissimilarity (abundance-based)
 - Jaccard distance (presence/absence)
 - Weighted UniFrac distance (phylogenetic + abundance)
 - Unweighted UniFrac distance (phylogenetic presence/absence)
+- Beta Diversity Summary Panel (all PCoA plots combined)
 
 Each metric is visualized by both leachate treatment level and developmental timepoint (hours post fertilization), allowing for comprehensive assessment of how microbiome diversity changes with PVC leachate exposure and coral development.
+
+**All plots are automatically saved to the `output/figures/` directory** for easy access and manuscript preparation.
