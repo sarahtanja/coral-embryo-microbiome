@@ -62,16 +62,13 @@ head(metadata)
 
 # Alpha Diversity
 
-Alpha diversity measures the diversity within individual samples.
+**Alpha diversity measures the diversity within individual samples.**
 
 ## Shannon Diversity Index
 
 Shannon diversity accounts for both abundance and evenness of species present.
 
-```{r}
-#| fig-width: 10
-#| fig-height: 6
-
+```{r, shannon-data}
 # Load Shannon diversity vector
 shannon <- read_qza(file.path(core_metrics_path, "shannon_vector.qza"))
 
@@ -79,10 +76,17 @@ shannon <- read_qza(file.path(core_metrics_path, "shannon_vector.qza"))
 shannon_df <- shannon$data %>%
   rownames_to_column("SampleID") %>%
   rename(Shannon = shannon_entropy) %>%
-  left_join(metadata, by = c("SampleID" = "sample_id"))
+  left_join(metadata, by = "SampleID")
+
+head(shannon_df)
+```
+
+```{r, shannon-boxplots}
+#| fig-width: 13
+#| fig-height: 6
 
 # Box plot by leachate treatment
-p1 <- ggplot(shannon_df, aes(x = factor(leachate), y = Shannon, fill = factor(leachate))) +
+shan1 <- ggplot(shannon_df, aes(x = factor(leachate), y = Shannon, fill = factor(leachate))) +
   geom_boxplot(alpha = 0.7, outlier.shape = NA) +
   geom_jitter(width = 0.2, size = 2, alpha = 0.6) +
   scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
@@ -100,7 +104,7 @@ p1 <- ggplot(shannon_df, aes(x = factor(leachate), y = Shannon, fill = factor(le
   )
 
 # Box plot by timepoint
-p2 <- ggplot(shannon_df, aes(x = factor(timepoint), y = Shannon, fill = factor(timepoint))) +
+shan2 <- ggplot(shannon_df, aes(x = factor(timepoint), y = Shannon, fill = factor(timepoint))) +
   geom_boxplot(alpha = 0.7, outlier.shape = NA) +
   geom_jitter(width = 0.2, size = 2, alpha = 0.6) +
   scale_fill_viridis_d(option = "mako", begin = 0.2, end = 0.9) +
@@ -118,35 +122,46 @@ p2 <- ggplot(shannon_df, aes(x = factor(timepoint), y = Shannon, fill = factor(t
   )
 
 # Combine plots
-p1 + p2
+shan1 + shan2
 ```
 
 ## Faith's Phylogenetic Diversity
 
 Faith's PD measures the phylogenetic diversity of species in a sample.
 
-```{r}
-#| fig-width: 10
-#| fig-height: 6
-
+```{r, faith-data}
 # Load Faith's PD vector
 faith <- read_qza(file.path(core_metrics_path, "faith_pd_vector.qza"))
 
 # Create data frame
-faith_df <- faith$data %>%
-  rownames_to_column("SampleID") %>%
-  rename(FaithPD = faith_pd) %>%
-  left_join(metadata, by = c("SampleID" = "sample_id"))
+faith_df <- faith$data 
+
+# View it
+head(faith_df)
+```
+
+```{r, faith-metadata}
+# Join to metadata
+faith_df <- faith_df %>%
+  rename("SampleID"=V1) %>%
+  rename(Faith=V2) %>%
+  left_join(metadata, by ="SampleID")
+```
+
+
+```{r, faith-boxplots}
+#| fig-width: 13
+#| fig-height: 6
 
 # Box plot by leachate treatment
-p1 <- ggplot(faith_df, aes(x = factor(leachate), y = FaithPD, fill = factor(leachate))) +
+fait1 <- ggplot(faith_df, aes(x = factor(leachate), y = Faith, fill = factor(leachate))) +
   geom_boxplot(alpha = 0.7, outlier.shape = NA) +
   geom_jitter(width = 0.2, size = 2, alpha = 0.6) +
   scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
   labs(
     title = "Faith's Phylogenetic Diversity by Leachate Treatment",
     x = "Leachate Level",
-    y = "Faith's PD",
+    y = "Faith's Phylogenetic Diversity Metric",
     fill = "Leachate"
   ) +
   theme_classic() +
@@ -157,14 +172,14 @@ p1 <- ggplot(faith_df, aes(x = factor(leachate), y = FaithPD, fill = factor(leac
   )
 
 # Box plot by timepoint
-p2 <- ggplot(faith_df, aes(x = factor(timepoint), y = FaithPD, fill = factor(timepoint))) +
+fait2 <- ggplot(faith_df, aes(x = factor(timepoint), y = Faith, fill = factor(timepoint))) +
   geom_boxplot(alpha = 0.7, outlier.shape = NA) +
   geom_jitter(width = 0.2, size = 2, alpha = 0.6) +
   scale_fill_viridis_d(option = "mako", begin = 0.2, end = 0.9) +
   labs(
     title = "Faith's Phylogenetic Diversity by Developmental Timepoint",
     x = "Hours Post Fertilization",
-    y = "Faith's PD",
+    y = "Faith's Phlyogenetic Diversity Metric",
     fill = "Timepoint"
   ) +
   theme_classic() +
@@ -175,28 +190,39 @@ p2 <- ggplot(faith_df, aes(x = factor(timepoint), y = FaithPD, fill = factor(tim
   )
 
 # Combine plots
-p1 + p2
+fait1 + fait2
 ```
 
 ## Pielou's Evenness
 
 Evenness measures how equal species abundances are within a sample.
 
-```{r}
-#| fig-width: 10
-#| fig-height: 6
-
+```{r, pielou-data}
 # Load evenness vector
 evenness <- read_qza(file.path(core_metrics_path, "evenness_vector.qza"))
 
 # Create data frame
-evenness_df <- evenness$data %>%
+evenness_df <- evenness$data 
+
+# View it
+head(evenness_df)
+```
+
+```{r}
+evenness_df <- evenness_df %>% 
   rownames_to_column("SampleID") %>%
   rename(Evenness = pielou_evenness) %>%
-  left_join(metadata, by = c("SampleID" = "sample_id"))
+  left_join(metadata, by = "SampleID")
+
+head(evenness_df)
+```
+
+```{r, pielou-plots}
+#| fig-width: 13
+#| fig-height: 6
 
 # Box plot by leachate treatment
-p1 <- ggplot(evenness_df, aes(x = factor(leachate), y = Evenness, fill = factor(leachate))) +
+piel1 <- ggplot(evenness_df, aes(x = factor(leachate), y = Evenness, fill = factor(leachate))) +
   geom_boxplot(alpha = 0.7, outlier.shape = NA) +
   geom_jitter(width = 0.2, size = 2, alpha = 0.6) +
   scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
@@ -214,7 +240,7 @@ p1 <- ggplot(evenness_df, aes(x = factor(leachate), y = Evenness, fill = factor(
   )
 
 # Box plot by timepoint
-p2 <- ggplot(evenness_df, aes(x = factor(timepoint), y = Evenness, fill = factor(timepoint))) +
+piel2 <- ggplot(evenness_df, aes(x = factor(timepoint), y = Evenness, fill = factor(timepoint))) +
   geom_boxplot(alpha = 0.7, outlier.shape = NA) +
   geom_jitter(width = 0.2, size = 2, alpha = 0.6) +
   scale_fill_viridis_d(option = "mako", begin = 0.2, end = 0.9) +
@@ -232,28 +258,37 @@ p2 <- ggplot(evenness_df, aes(x = factor(timepoint), y = Evenness, fill = factor
   )
 
 # Combine plots
-p1 + p2
+piel1 + piel2
 ```
 
 ## Observed Features (ASV Richness)
 
 The number of unique amplicon sequence variants (ASVs) observed in each sample.
 
-```{r}
-#| fig-width: 10
-#| fig-height: 6
-
+```{r, asv-rich-data}
 # Load observed features vector
 observed <- read_qza(file.path(core_metrics_path, "observed_features_vector.qza"))
 
 # Create data frame
-observed_df <- observed$data %>%
+observed_df <- observed$data 
+
+# View it
+head(observed_df)
+```
+```{r, asv-rich-metadata}
+observed_df <- observed_df %>%
   rownames_to_column("SampleID") %>%
   rename(ObservedFeatures = observed_features) %>%
-  left_join(metadata, by = c("SampleID" = "sample_id"))
+  left_join(metadata, by = "SampleID")
+```
+
+
+```{r, asv-rich-boxplots}
+#| fig-width: 13
+#| fig-height: 6
 
 # Box plot by leachate treatment
-p1 <- ggplot(observed_df, aes(x = factor(leachate), y = ObservedFeatures, fill = factor(leachate))) +
+asv1 <- ggplot(observed_df, aes(x = factor(leachate), y = ObservedFeatures, fill = factor(leachate))) +
   geom_boxplot(alpha = 0.7, outlier.shape = NA) +
   geom_jitter(width = 0.2, size = 2, alpha = 0.6) +
   scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
@@ -271,7 +306,7 @@ p1 <- ggplot(observed_df, aes(x = factor(leachate), y = ObservedFeatures, fill =
   )
 
 # Box plot by timepoint
-p2 <- ggplot(observed_df, aes(x = factor(timepoint), y = ObservedFeatures, fill = factor(timepoint))) +
+asv2 <- ggplot(observed_df, aes(x = factor(timepoint), y = ObservedFeatures, fill = factor(timepoint))) +
   geom_boxplot(alpha = 0.7, outlier.shape = NA) +
   geom_jitter(width = 0.2, size = 2, alpha = 0.6) +
   scale_fill_viridis_d(option = "mako", begin = 0.2, end = 0.9) +
@@ -289,7 +324,7 @@ p2 <- ggplot(observed_df, aes(x = factor(timepoint), y = ObservedFeatures, fill 
   )
 
 # Combine plots
-p1 + p2
+asv1 + asv2
 ```
 
 ## Alpha Diversity Summary Panel
@@ -301,16 +336,17 @@ p1 + p2
 # Combine all alpha diversity metrics
 alpha_combined <- shannon_df %>%
   select(SampleID, leachate, timepoint, Shannon) %>%
-  left_join(faith_df %>% select(SampleID, FaithPD), by = "SampleID") %>%
+  left_join(faith_df %>% select(SampleID, Faith), by = "SampleID") %>%
   left_join(evenness_df %>% select(SampleID, Evenness), by = "SampleID") %>%
   left_join(observed_df %>% select(SampleID, ObservedFeatures), by = "SampleID") %>%
-  pivot_longer(cols = c(Shannon, FaithPD, Evenness, ObservedFeatures),
+  pivot_longer(cols = c(Shannon, Faith, Evenness, ObservedFeatures),
                names_to = "Metric",
                values_to = "Value")
 
 # Panel by leachate
-p1 <- ggplot(alpha_combined, aes(x = factor(leachate), y = Value, fill = factor(leachate))) +
+alph1 <- ggplot(alpha_combined, aes(x = factor(leachate), y = Value, fill = factor(leachate), color = factor(leachate))) +
   geom_boxplot(alpha = 0.7) +
+  geom_jitter()+
   facet_wrap(~Metric, scales = "free_y", ncol = 2) +
   scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
   labs(
@@ -329,10 +365,12 @@ p1 <- ggplot(alpha_combined, aes(x = factor(leachate), y = Value, fill = factor(
   )
 
 # Panel by timepoint
-p2 <- ggplot(alpha_combined, aes(x = factor(timepoint), y = Value, fill = factor(timepoint))) +
+alph2 <- ggplot(alpha_combined, aes(x = factor(timepoint), y = Value, fill = factor(timepoint),  color = factor(timepoint))) +
   geom_boxplot(alpha = 0.7) +
+  geom_jitter(width=0.1, alpha = 0.9)+
   facet_wrap(~Metric, scales = "free_y", ncol = 2) +
-  scale_fill_viridis_d(option = "mako", begin = 0.2, end = 0.9) +
+  scale_fill_viridis_d(option = "mako", begin = 0.2, end = 0.9) + # palette for boxplot fill
+  scale_color_viridis_d(option = "mako", begin = 0.2, end = 0.9) +  # <- same palette for points
   labs(
     title = "Alpha Diversity Metrics by Developmental Timepoint",
     x = "Hours Post Fertilization",
@@ -348,35 +386,45 @@ p2 <- ggplot(alpha_combined, aes(x = factor(timepoint), y = Value, fill = factor
     legend.position = "none"
   )
 
-p1
-p2
+alph1
+alph2
 ```
 
 # Beta Diversity
 
-Beta diversity measures the dissimilarity in community composition between samples.
+**Beta diversity measures the dissimilarity in community composition between samples.**
 
 ## Bray-Curtis Dissimilarity
 
 Bray-Curtis dissimilarity is based on abundance differences and does not account for phylogeny.
 
-```{r}
-#| fig-width: 10
-#| fig-height: 8
-
+```{r, braycurtis-data}
 # Load Bray-Curtis PCoA results
 bc_pcoa <- read_qza(file.path(core_metrics_path, "bray_curtis_pcoa_results.qza"))
 
-# Extract coordinates and variance explained
-bc_coords <- bc_pcoa$data$Vectors %>%
-  as.data.frame() %>%
-  rownames_to_column("SampleID") %>%
-  left_join(metadata, by = c("SampleID" = "sample_id"))
+# Extract principle component coordinates
+bc_coords <- bc_pcoa$data$Vectors
+
+str(bc_coords)
+```
+
+```{r, braycurtis-metadata}
+bc_coords <- bc_coords %>% 
+  left_join(metadata, by = "SampleID")
+
+head(bc_coords)
 
 bc_variance <- bc_pcoa$data$ProportionExplained
+head(bc_variance)
+```
+
+
+```{r, braycurtis-PCoAplot}
+#| fig-width: 10
+#| fig-height: 8
 
 # PCoA plot colored by leachate
-p1 <- ggplot(bc_coords, aes(x = PC1, y = PC2, color = factor(leachate), shape = factor(timepoint))) +
+bray1 <- ggplot(bc_coords, aes(x = PC1, y = PC2, color = factor(leachate), shape = factor(timepoint))) +
   geom_point(size = 4, alpha = 0.8) +
   scale_color_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
   labs(
@@ -396,7 +444,7 @@ p1 <- ggplot(bc_coords, aes(x = PC1, y = PC2, color = factor(leachate), shape = 
   )
 
 # PCoA plot colored by timepoint
-p2 <- ggplot(bc_coords, aes(x = PC1, y = PC2, color = factor(timepoint), shape = factor(leachate))) +
+bray2 <- ggplot(bc_coords, aes(x = PC1, y = PC2, color = factor(timepoint), shape = factor(leachate)), fill = factor(cross)) +
   geom_point(size = 4, alpha = 0.8) +
   scale_color_viridis_d(option = "mako", begin = 0.2, end = 0.9) +
   labs(
@@ -415,31 +463,46 @@ p2 <- ggplot(bc_coords, aes(x = PC1, y = PC2, color = factor(timepoint), shape =
     legend.position = "right"
   )
 
-p1
-p2
+bray1
+bray2
 ```
+::: callout-note
+44.35% of variation explained by... parental cross? How do we add that info into the figure?
+:::
+
 
 ## Jaccard Distance
 
 Jaccard distance is based on presence/absence and does not account for phylogeny.
 
 ```{r}
-#| fig-width: 10
-#| fig-height: 8
-
 # Load Jaccard PCoA results
 jac_pcoa <- read_qza(file.path(core_metrics_path, "jaccard_pcoa_results.qza"))
 
 # Extract coordinates and variance explained
-jac_coords <- jac_pcoa$data$Vectors %>%
-  as.data.frame() %>%
-  rownames_to_column("SampleID") %>%
-  left_join(metadata, by = c("SampleID" = "sample_id"))
+jac_coords <- jac_pcoa$data$Vectors 
+
+# View 
+head(jac_coords)
+```
+
+```{r}
+jac_coords <- jac_coords %>%
+  left_join(metadata, by = "SampleID")
+
+head(jac_coords)
 
 jac_variance <- jac_pcoa$data$ProportionExplained
 
+head(jac_variance)
+```
+
+```{r}
+#| fig-width: 13
+#| fig-height: 8
+
 # PCoA plot colored by leachate
-p1 <- ggplot(jac_coords, aes(x = PC1, y = PC2, color = factor(leachate), shape = factor(timepoint))) +
+jacc1 <- ggplot(jac_coords, aes(x = PC1, y = PC2, color = factor(leachate), shape = factor(timepoint))) +
   geom_point(size = 4, alpha = 0.8) +
   scale_color_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
   labs(
@@ -459,7 +522,7 @@ p1 <- ggplot(jac_coords, aes(x = PC1, y = PC2, color = factor(leachate), shape =
   )
 
 # PCoA plot colored by timepoint
-p2 <- ggplot(jac_coords, aes(x = PC1, y = PC2, color = factor(timepoint), shape = factor(leachate))) +
+jacc2 <- ggplot(jac_coords, aes(x = PC1, y = PC2, color = factor(timepoint), shape = factor(leachate))) +
   geom_point(size = 4, alpha = 0.8) +
   scale_color_viridis_d(option = "mako", begin = 0.2, end = 0.9) +
   labs(
@@ -478,8 +541,8 @@ p2 <- ggplot(jac_coords, aes(x = PC1, y = PC2, color = factor(timepoint), shape 
     legend.position = "right"
   )
 
-p1
-p2
+jacc1
+jacc2
 ```
 
 ## Weighted UniFrac Distance
@@ -487,22 +550,29 @@ p2
 Weighted UniFrac considers phylogenetic distances and abundance differences.
 
 ```{r}
-#| fig-width: 10
-#| fig-height: 8
-
 # Load Weighted UniFrac PCoA results
 wuf_pcoa <- read_qza(file.path(core_metrics_path, "weighted_unifrac_pcoa_results.qza"))
 
 # Extract coordinates and variance explained
-wuf_coords <- wuf_pcoa$data$Vectors %>%
-  as.data.frame() %>%
-  rownames_to_column("SampleID") %>%
-  left_join(metadata, by = c("SampleID" = "sample_id"))
+wuf_coords <- wuf_pcoa$data$Vectors 
+
+head(wuf_coords)
+```
+
+```{r}
+wuf_coords <- wuf_coords %>%
+  left_join(metadata, by = "SampleID")
 
 wuf_variance <- wuf_pcoa$data$ProportionExplained
+```
+
+
+```{r}
+#| fig-width: 13
+#| fig-height: 8
 
 # PCoA plot colored by leachate
-p1 <- ggplot(wuf_coords, aes(x = PC1, y = PC2, color = factor(leachate), shape = factor(timepoint))) +
+wufr1 <- ggplot(wuf_coords, aes(x = PC1, y = PC2, color = factor(leachate), shape = factor(timepoint))) +
   geom_point(size = 4, alpha = 0.8) +
   scale_color_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
   labs(
@@ -522,7 +592,7 @@ p1 <- ggplot(wuf_coords, aes(x = PC1, y = PC2, color = factor(leachate), shape =
   )
 
 # PCoA plot colored by timepoint
-p2 <- ggplot(wuf_coords, aes(x = PC1, y = PC2, color = factor(timepoint), shape = factor(leachate))) +
+wufr2 <- ggplot(wuf_coords, aes(x = PC1, y = PC2, color = factor(timepoint), shape = factor(leachate))) +
   geom_point(size = 4, alpha = 0.8) +
   scale_color_viridis_d(option = "mako", begin = 0.2, end = 0.9) +
   labs(
@@ -541,8 +611,8 @@ p2 <- ggplot(wuf_coords, aes(x = PC1, y = PC2, color = factor(timepoint), shape 
     legend.position = "right"
   )
 
-p1
-p2
+wufr1
+wufr2
 ```
 
 ## Unweighted UniFrac Distance
@@ -550,22 +620,22 @@ p2
 Unweighted UniFrac considers phylogenetic distances but not abundance (presence/absence only).
 
 ```{r}
-#| fig-width: 10
-#| fig-height: 8
-
 # Load Unweighted UniFrac PCoA results
 uwuf_pcoa <- read_qza(file.path(core_metrics_path, "unweighted_unifrac_pcoa_results.qza"))
 
 # Extract coordinates and variance explained
 uwuf_coords <- uwuf_pcoa$data$Vectors %>%
-  as.data.frame() %>%
-  rownames_to_column("SampleID") %>%
-  left_join(metadata, by = c("SampleID" = "sample_id"))
+  left_join(metadata, by = "SampleID")
 
 uwuf_variance <- uwuf_pcoa$data$ProportionExplained
+```
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
 
 # PCoA plot colored by leachate
-p1 <- ggplot(uwuf_coords, aes(x = PC1, y = PC2, color = factor(leachate), shape = factor(timepoint))) +
+uwuf1 <- ggplot(uwuf_coords, aes(x = PC1, y = PC2, color = factor(leachate), shape = factor(timepoint))) +
   geom_point(size = 4, alpha = 0.8) +
   scale_color_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
   labs(
@@ -585,7 +655,7 @@ p1 <- ggplot(uwuf_coords, aes(x = PC1, y = PC2, color = factor(leachate), shape 
   )
 
 # PCoA plot colored by timepoint
-p2 <- ggplot(uwuf_coords, aes(x = PC1, y = PC2, color = factor(timepoint), shape = factor(leachate))) +
+uwuf2 <- ggplot(uwuf_coords, aes(x = PC1, y = PC2, color = factor(timepoint), shape = factor(leachate))) +
   geom_point(size = 4, alpha = 0.8) +
   scale_color_viridis_d(option = "mako", begin = 0.2, end = 0.9) +
   labs(
@@ -604,8 +674,8 @@ p2 <- ggplot(uwuf_coords, aes(x = PC1, y = PC2, color = factor(timepoint), shape
     legend.position = "right"
   )
 
-p1
-p2
+uwuf1
+uwuf2
 ```
 
 # Summary
