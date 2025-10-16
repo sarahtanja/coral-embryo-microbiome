@@ -22,19 +22,25 @@ format:
     link-external-newwindow: true
     reference-location: margin
     citation-location: margin
+editor: 
+  markdown: 
+    wrap: 72
 ---
 
 # Background
 
-This document visualizes core diversity metrics from the filtered QIIME2 analysis (`core-metrics-results-filtered/`). The filtered dataset excludes chloroplast, mitochondria, and unassigned sequences.
+This document visualizes core diversity metrics from the filtered QIIME2
+analysis (`core-metrics-results-filtered/`). The filtered dataset
+excludes chloroplast, mitochondria, and unassigned sequences.
 
-Core metrics include:
-- **Alpha Diversity**: Shannon diversity, Faith's Phylogenetic Diversity, Evenness, Observed Features
-- **Beta Diversity**: Bray-Curtis, Jaccard, Weighted UniFrac, Unweighted UniFrac
+Core metrics include: - **Alpha Diversity**: Shannon diversity, Faith's
+Phylogenetic Diversity, Evenness, Observed Features - **Beta
+Diversity**: Bray-Curtis, Jaccard, Weighted UniFrac, Unweighted UniFrac
 
 # Setup
 
 ## Install Packages & Load Libraries
+
 ```{r}
 # restart R session first (Session > Restart R), then run:
 
@@ -57,7 +63,6 @@ pak::pak("tidyverse")   # pak will fetch the right binaries and retry on transie
 
 ```
 
-
 ```{r}
 install.packages("devtools")
 devtools::install_github("jbisanz/qiime2R")
@@ -67,7 +72,6 @@ install.packages("ggplot2")
 install.packages("patchwork")
 ```
 
-
 ```{r}
 #| message: false
 #| warning: false
@@ -75,6 +79,7 @@ library(qiime2R)
 library(ggplot2)
 library(tidyverse)
 library(patchwork)
+library(stringr)
 ```
 
 ## Set Paths
@@ -97,7 +102,24 @@ if (!dir.exists(figures_dir)) {
 
 ```{r}
 metadata <- read_q2metadata(metadata_path)
-head(metadata)
+
+# set factors
+metadata <- metadata %>% 
+  rename(stage = `development-stage`)
+
+metadata <- metadata %>% 
+  mutate(
+    stage = stage %>%
+      trimws() %>%
+      gsub("\\s+", "", .) %>% # remove spaces
+      factor(levels = c("cleavage", "prawnchip", "earlygastrula"),
+             ordered = TRUE)
+  )
+
+metadata <- metadata %>% 
+  mutate(leachate=factor(leachate, levels = c("0", "0.01", "0.1", "1")) )
+
+str(metadata)
 ```
 
 # Alpha Diversity
@@ -106,7 +128,8 @@ head(metadata)
 
 ## Shannon Diversity Index
 
-Shannon diversity accounts for both abundance and evenness of species present.
+Shannon diversity accounts for both abundance and evenness of species
+present.
 
 ```{r, shannon-data}
 # Load Shannon diversity vector
@@ -172,6 +195,35 @@ ggsave(filename = file.path(figures_dir, "shannon_combined.png"), plot = shannon
 shannon_combined
 ```
 
+## Statistical tests
+
+### Normality
+
+```{r}
+hist(shannon_df$Shannon)
+shapiro.test(shannon_df$Shannon) # normality
+
+```
+
+::: callout-note
+**The Shannon diversity values appear approximately normal** and the
+**Shapiro–Wilk test p = 0.68** ( we fail to reject normality), so we can
+safely use **parametric tests**
+:::
+
+```{r}
+LeveneTest(shannon_df$Shannon ~ group, data = metadata) # homogeneity of variance
+```
+
+### two-way ANOVA
+
+Tests main effects and interaction
+
+```{r}
+aov_shannon2 <- aov(Shannon ~ leachate * stage, data = shannon_df)
+summary(aov_shannon2)
+```
+
 ## Faith's Phylogenetic Diversity
 
 Faith's PD measures the phylogenetic diversity of species in a sample.
@@ -194,7 +246,6 @@ faith_df <- faith_df %>%
   rename(Faith=V2) %>%
   left_join(metadata, by ="SampleID")
 ```
-
 
 ```{r, faith-boxplots}
 #| fig-width: 13
@@ -324,7 +375,8 @@ pielou_combined
 
 ## Observed Features (ASV Richness)
 
-The number of unique amplicon sequence variants (ASVs) observed in each sample.
+The number of unique amplicon sequence variants (ASVs) observed in each
+sample.
 
 ```{r, asv-rich-data}
 # Load observed features vector
@@ -336,13 +388,13 @@ observed_df <- observed$data
 # View it
 head(observed_df)
 ```
+
 ```{r, asv-rich-metadata}
 observed_df <- observed_df %>%
   rownames_to_column("SampleID") %>%
   rename(ObservedFeatures = observed_features) %>%
   left_join(metadata, by = "SampleID")
 ```
-
 
 ```{r, asv-rich-boxplots}
 #| fig-width: 13
@@ -464,11 +516,13 @@ alph2
 
 # Beta Diversity
 
-**Beta diversity measures the dissimilarity in community composition between samples.**
+**Beta diversity measures the dissimilarity in community composition
+between samples.**
 
 ## Bray-Curtis Dissimilarity
 
-Bray-Curtis dissimilarity is based on abundance differences and does not account for phylogeny.
+Bray-Curtis dissimilarity is based on abundance differences and does not
+account for phylogeny.
 
 ```{r, braycurtis-data}
 # Load Bray-Curtis PCoA results
@@ -489,7 +543,6 @@ head(bc_coords)
 bc_variance <- bc_pcoa$data$ProportionExplained
 head(bc_variance)
 ```
-
 
 ```{r, braycurtis-PCoAplot}
 #| fig-width: 10
@@ -542,14 +595,16 @@ ggsave(filename = file.path(figures_dir, "bray_curtis_by_timepoint.png"), plot =
 bray1
 bray2
 ```
-::: callout-note
-44.35% of variation explained by... parental cross? How do we add that info into the figure?
-:::
 
+::: callout-note
+44.35% of variation explained by... parental cross? How do we add that
+info into the figure?
+:::
 
 ## Jaccard Distance
 
-Jaccard distance is based on presence/absence and does not account for phylogeny.
+Jaccard distance is based on presence/absence and does not account for
+phylogeny.
 
 ```{r}
 # Load Jaccard PCoA results
@@ -627,7 +682,8 @@ jacc2
 
 ## Weighted UniFrac Distance
 
-Weighted UniFrac considers phylogenetic distances and abundance differences.
+Weighted UniFrac considers phylogenetic distances and abundance
+differences.
 
 ```{r}
 # Load Weighted UniFrac PCoA results
@@ -645,7 +701,6 @@ wuf_coords <- wuf_coords %>%
 
 wuf_variance <- wuf_pcoa$data$ProportionExplained
 ```
-
 
 ```{r}
 #| fig-width: 13
@@ -701,7 +756,8 @@ wufr2
 
 ## Unweighted UniFrac Distance
 
-Unweighted UniFrac considers phylogenetic distances but not abundance (presence/absence only).
+Unweighted UniFrac considers phylogenetic distances but not abundance
+(presence/absence only).
 
 ```{r}
 # Load Unweighted UniFrac PCoA results
@@ -796,22 +852,23 @@ beta_timepoint
 
 # Summary
 
-This document provides manuscript-ready visualizations of all core diversity metrics from the filtered dataset:
+This document provides manuscript-ready visualizations of all core
+diversity metrics from the filtered dataset:
 
-**Alpha Diversity Metrics:**
-- Shannon Diversity Index
-- Faith's Phylogenetic Diversity
-- Pielou's Evenness
-- Observed ASV Richness
-- Alpha Diversity Summary Panel (all metrics combined)
+**Alpha Diversity Metrics:** - Shannon Diversity Index - Faith's
+Phylogenetic Diversity - Pielou's Evenness - Observed ASV Richness -
+Alpha Diversity Summary Panel (all metrics combined)
 
-**Beta Diversity Metrics:**
-- Bray-Curtis dissimilarity (abundance-based)
-- Jaccard distance (presence/absence)
-- Weighted UniFrac distance (phylogenetic + abundance)
-- Unweighted UniFrac distance (phylogenetic presence/absence)
-- Beta Diversity Summary Panel (all PCoA plots combined)
+**Beta Diversity Metrics:** - Bray-Curtis dissimilarity
+(abundance-based) - Jaccard distance (presence/absence) - Weighted
+UniFrac distance (phylogenetic + abundance) - Unweighted UniFrac
+distance (phylogenetic presence/absence) - Beta Diversity Summary Panel
+(all PCoA plots combined)
 
-Each metric is visualized by both leachate treatment level and developmental timepoint (hours post fertilization), allowing for comprehensive assessment of how microbiome diversity changes with PVC leachate exposure and coral development.
+Each metric is visualized by both leachate treatment level and
+developmental timepoint (hours post fertilization), allowing for
+comprehensive assessment of how microbiome diversity changes with PVC
+leachate exposure and coral development.
 
-**All plots are automatically saved to the `output/figures/` directory** for easy access and manuscript preparation.
+**All plots are automatically saved to the `output/figures/` directory**
+for easy access and manuscript preparation.
