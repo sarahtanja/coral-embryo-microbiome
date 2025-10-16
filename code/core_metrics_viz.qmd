@@ -146,7 +146,7 @@ head(shannon_df)
 
 ```{r, shannon-boxplots}
 #| fig-width: 13
-#| fig-height: 6
+#| fig-height: 12
 
 # Box plot by leachate treatment
 shan1 <- ggplot(shannon_df, aes(x = factor(leachate), y = Shannon, fill = factor(leachate))) +
@@ -184,13 +184,33 @@ shan2 <- ggplot(shannon_df, aes(x = factor(timepoint), y = Shannon, fill = facto
     legend.position = "none"
   )
 
-# Combine plots
-shannon_combined <- shan1 + shan2
+# Box plot by leachate x timepoint interaction
+shan3 <- ggplot(shannon_df, aes(x = factor(timepoint), y = Shannon, fill = factor(leachate))) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA, position = position_dodge(width = 0.8)) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.8), 
+             size = 1.5, alpha = 0.6) +
+  scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Shannon Diversity by Leachate Treatment x Timepoint",
+    x = "Hours Post Fertilization",
+    y = "Shannon Diversity Index",
+    fill = "Leachate"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    axis.title = element_text(size = 12),
+    legend.position = "right"
+  )
+
+# Combine plots using patchwork
+shannon_combined <- shan1 + shan2 / shan3
 
 # Save plots
 ggsave(filename = file.path(figures_dir, "shannon_by_leachate.png"), plot = shan1, width = 10, height = 6, dpi = 300)
 ggsave(filename = file.path(figures_dir, "shannon_by_timepoint.png"), plot = shan2, width = 10, height = 6, dpi = 300)
-ggsave(filename = file.path(figures_dir, "shannon_combined.png"), plot = shannon_combined, width = 13, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "shannon_leachate_x_timepoint.png"), plot = shan3, width = 10, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "shannon_combined.png"), plot = shannon_combined, width = 13, height = 12, dpi = 300)
 
 shannon_combined
 ```
@@ -249,7 +269,7 @@ faith_df <- faith_df %>%
 
 ```{r, faith-boxplots}
 #| fig-width: 13
-#| fig-height: 6
+#| fig-height: 12
 
 # Box plot by leachate treatment
 fait1 <- ggplot(faith_df, aes(x = factor(leachate), y = Faith, fill = factor(leachate))) +
@@ -287,13 +307,33 @@ fait2 <- ggplot(faith_df, aes(x = factor(timepoint), y = Faith, fill = factor(ti
     legend.position = "none"
   )
 
-# Combine plots
-faith_combined <- fait1 + fait2
+# Box plot by leachate x timepoint interaction
+fait3 <- ggplot(faith_df, aes(x = factor(timepoint), y = Faith, fill = factor(leachate))) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA, position = position_dodge(width = 0.8)) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.8), 
+             size = 1.5, alpha = 0.6) +
+  scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Faith's Phylogenetic Diversity by Leachate Treatment x Timepoint",
+    x = "Hours Post Fertilization",
+    y = "Faith's Phylogenetic Diversity Metric",
+    fill = "Leachate"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    axis.title = element_text(size = 12),
+    legend.position = "right"
+  )
+
+# Combine plots using patchwork
+faith_combined <- fait1 + fait2 / fait3
 
 # Save plots
 ggsave(filename = file.path(figures_dir, "faith_by_leachate.png"), plot = fait1, width = 10, height = 6, dpi = 300)
 ggsave(filename = file.path(figures_dir, "faith_by_timepoint.png"), plot = fait2, width = 10, height = 6, dpi = 300)
-ggsave(filename = file.path(figures_dir, "faith_combined.png"), plot = faith_combined, width = 13, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "faith_leachate_x_timepoint.png"), plot = fait3, width = 10, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "faith_combined.png"), plot = faith_combined, width = 13, height = 12, dpi = 300)
 
 faith_combined
 ```
@@ -324,7 +364,7 @@ head(evenness_df)
 
 ```{r, pielou-plots}
 #| fig-width: 13
-#| fig-height: 6
+#| fig-height: 12
 
 # Box plot by leachate treatment
 piel1 <- ggplot(evenness_df, aes(x = factor(leachate), y = Evenness, fill = factor(leachate))) +
@@ -362,13 +402,33 @@ piel2 <- ggplot(evenness_df, aes(x = factor(timepoint), y = Evenness, fill = fac
     legend.position = "none"
   )
 
-# Combine plots
-pielou_combined <- piel1 + piel2
+# Box plot by leachate x timepoint interaction
+piel3 <- ggplot(evenness_df, aes(x = factor(timepoint), y = Evenness, fill = factor(leachate))) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA, position = position_dodge(width = 0.8)) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.8), 
+             size = 1.5, alpha = 0.6) +
+  scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Pielou's Evenness by Leachate Treatment x Timepoint",
+    x = "Hours Post Fertilization",
+    y = "Pielou's Evenness",
+    fill = "Leachate"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    axis.title = element_text(size = 12),
+    legend.position = "right"
+  )
+
+# Combine plots using patchwork
+pielou_combined <- piel1 + piel2 / piel3
 
 # Save plots
 ggsave(filename = file.path(figures_dir, "pielou_by_leachate.png"), plot = piel1, width = 10, height = 6, dpi = 300)
 ggsave(filename = file.path(figures_dir, "pielou_by_timepoint.png"), plot = piel2, width = 10, height = 6, dpi = 300)
-ggsave(filename = file.path(figures_dir, "pielou_combined.png"), plot = pielou_combined, width = 13, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "pielou_leachate_x_timepoint.png"), plot = piel3, width = 10, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "pielou_combined.png"), plot = pielou_combined, width = 13, height = 12, dpi = 300)
 
 pielou_combined
 ```
@@ -398,7 +458,7 @@ observed_df <- observed_df %>%
 
 ```{r, asv-rich-boxplots}
 #| fig-width: 13
-#| fig-height: 6
+#| fig-height: 12
 
 # Box plot by leachate treatment
 asv1 <- ggplot(observed_df, aes(x = factor(leachate), y = ObservedFeatures, fill = factor(leachate))) +
@@ -436,13 +496,33 @@ asv2 <- ggplot(observed_df, aes(x = factor(timepoint), y = ObservedFeatures, fil
     legend.position = "none"
   )
 
-# Combine plots
-asv_combined <- asv1 + asv2
+# Box plot by leachate x timepoint interaction
+asv3 <- ggplot(observed_df, aes(x = factor(timepoint), y = ObservedFeatures, fill = factor(leachate))) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA, position = position_dodge(width = 0.8)) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.8), 
+             size = 1.5, alpha = 0.6) +
+  scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Observed ASV Richness by Leachate Treatment x Timepoint",
+    x = "Hours Post Fertilization",
+    y = "Number of Observed Features",
+    fill = "Leachate"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    axis.title = element_text(size = 12),
+    legend.position = "right"
+  )
+
+# Combine plots using patchwork
+asv_combined <- asv1 + asv2 / asv3
 
 # Save plots
 ggsave(filename = file.path(figures_dir, "observed_features_by_leachate.png"), plot = asv1, width = 10, height = 6, dpi = 300)
 ggsave(filename = file.path(figures_dir, "observed_features_by_timepoint.png"), plot = asv2, width = 10, height = 6, dpi = 300)
-ggsave(filename = file.path(figures_dir, "observed_features_combined.png"), plot = asv_combined, width = 13, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "observed_features_leachate_x_timepoint.png"), plot = asv3, width = 10, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "observed_features_combined.png"), plot = asv_combined, width = 13, height = 12, dpi = 300)
 
 asv_combined
 ```
