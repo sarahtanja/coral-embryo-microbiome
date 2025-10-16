@@ -27,6 +27,9 @@ html:
   link-external-icon: true 
   link-external-newwindow: true
 ---
+# Background
+
+[ANCOM-BC2 vignette](https://www.bioconductor.org/packages/release/bioc/vignettes/ANCOMBC/inst/doc/ANCOMBC2.html)
 
 # Setup
 
@@ -81,10 +84,6 @@ options(DT.options = list(
 ```{r}
 getwd()
 ```
-
-# Background
-
-[ANCOM-BC2 vignette](https://www.bioconductor.org/packages/release/bioc/vignettes/ANCOMBC/inst/doc/ANCOMBC2.html)
 
 ## Inputs
 
