@@ -204,7 +204,7 @@ shan3 <- ggplot(shannon_df, aes(x = factor(timepoint), y = Shannon, fill = facto
   )
 
 # Combine plots using patchwork
-shannon_combined <- shan1 + shan2 / shan3
+shannon_combined <- (shan1 + shan2) / shan3
 
 # Save plots
 ggsave(filename = file.path(figures_dir, "shannon_by_leachate.png"), plot = shan1, width = 10, height = 6, dpi = 300)
@@ -327,7 +327,7 @@ fait3 <- ggplot(faith_df, aes(x = factor(timepoint), y = Faith, fill = factor(le
   )
 
 # Combine plots using patchwork
-faith_combined <- fait1 + fait2 / fait3
+faith_combined <- (fait1 + fait2) / fait3
 
 # Save plots
 ggsave(filename = file.path(figures_dir, "faith_by_leachate.png"), plot = fait1, width = 10, height = 6, dpi = 300)
@@ -422,7 +422,7 @@ piel3 <- ggplot(evenness_df, aes(x = factor(timepoint), y = Evenness, fill = fac
   )
 
 # Combine plots using patchwork
-pielou_combined <- piel1 + piel2 / piel3
+pielou_combined <- (piel1 + piel2) / piel3
 
 # Save plots
 ggsave(filename = file.path(figures_dir, "pielou_by_leachate.png"), plot = piel1, width = 10, height = 6, dpi = 300)
@@ -516,7 +516,7 @@ asv3 <- ggplot(observed_df, aes(x = factor(timepoint), y = ObservedFeatures, fil
   )
 
 # Combine plots using patchwork
-asv_combined <- asv1 + asv2 / asv3
+asv_combined <- (asv1 + asv2) / asv3
 
 # Save plots
 ggsave(filename = file.path(figures_dir, "observed_features_by_leachate.png"), plot = asv1, width = 10, height = 6, dpi = 300)
@@ -610,18 +610,13 @@ bc_pcoa <- read_qza(file.path(core_metrics_path, "bray_curtis_pcoa_results.qza")
 
 # Extract principle component coordinates
 bc_coords <- bc_pcoa$data$Vectors
-
-str(bc_coords)
 ```
 
 ```{r, braycurtis-metadata}
 bc_coords <- bc_coords %>% 
   left_join(metadata, by = "SampleID")
 
-head(bc_coords)
-
 bc_variance <- bc_pcoa$data$ProportionExplained
-head(bc_variance)
 ```
 
 ```{r, braycurtis-PCoAplot}
