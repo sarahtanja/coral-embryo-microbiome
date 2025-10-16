@@ -86,9 +86,9 @@ options(DT.options = list(
 getwd()
 ```
 
-## Inputs
+# Load Inputs
 
-### OTU feature table
+## OTU feature table
 
 -   Count table (raw integer counts) — one of:
 
@@ -107,7 +107,7 @@ otu_table <- otu_table %>%
 head(otu_table)
 ```
 
-### Metadata
+## Metadata
 
 -   Sample metadata (mapping file / metadata.tsv) — one row per sample; sample IDs must exactly match the sample IDs in the count table.
 
@@ -115,15 +115,15 @@ head(otu_table)
 metadata <- read_csv("../metadata/metadata.csv")
 ```
 
-### Taxonomy table
+## Taxonomy table
 
 -   Taxonomy table (feature -\> taxonomy) rows = features, columns = taxonomic ranks. Useful for annotating results.
 
-    ```{r}
-    tax_path <- "../salipante/241121_StonyCoral/270x200/250414_270x200_representative-sequences_taxonomy.qza" 
-    tax <- read_tsv(tax_path, show_col_types = FALSE)
-    colnames(tax)
-    ```
+```{r}
+tax_path <- "../salipante/241121_StonyCoral/270x200/250414_270x200_representative-sequences_taxonomy.qza" 
+tax <- read_tsv(tax_path, show_col_types = FALSE)
+colnames(tax)
+```
 
 ## Outputs
 
