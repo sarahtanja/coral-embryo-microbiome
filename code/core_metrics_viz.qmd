@@ -34,7 +34,39 @@ Core metrics include:
 
 # Setup
 
-## Load Libraries
+## Install Packages & Load Libraries
+```{r}
+# restart R session first (Session > Restart R), then run:
+
+options(timeout = 600)                         # give downloads 10 minutes
+options(download.file.method = "libcurl")      # reliable on Windows
+chooseCRANmirror(ind = 1)                      # or set a mirror explicitly:
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+
+# remove any half-installed packages from a previous failed attempt
+unlink(file.path(.libPaths()[1], "bslib"), recursive = TRUE, force = TRUE)
+unlink(file.path(.libPaths()[1], "stringi"), recursive = TRUE, force = TRUE)
+unlink(file.path(tempdir(), "downloaded_packages"), recursive = TRUE, force = TRUE)
+
+install.packages(c("stringi","bslib"), type = "binary", Ncpus = max(1, parallel::detectCores() - 1))
+install.packages("tidyverse", type = "binary", Ncpus = max(1, parallel::detectCores() - 1))
+
+
+install.packages("pak")
+pak::pak("tidyverse")   # pak will fetch the right binaries and retry on transient errors
+
+```
+
+
+```{r}
+install.packages("devtools")
+devtools::install_github("jbisanz/qiime2R")
+
+install.packages("tidyverse")
+install.packages("ggplot2")
+install.packages("patchwork")
+```
+
 
 ```{r}
 #| message: false
