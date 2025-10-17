@@ -117,7 +117,7 @@ metadata <- metadata %>%
   )
 
 metadata <- metadata %>% 
-  mutate(leachate=factor(leachate, levels = c("0", "0.01", "0.1", "1")) )
+  mutate(pvc_level=factor(leachate, levels = c(0,0.01,0.1,1)) )
 
 str(metadata)
 ```
@@ -143,6 +143,112 @@ shannon_df <- shannon$data %>%
 
 head(shannon_df)
 ```
+
+
+
+## Statistical tests
+
+### Check for normality
+
+```{r}
+hist(shannon_df$Shannon)
+shapiro.test(shannon_df$Shannon) # normality
+
+```
+
+::: callout-note
+**The Shannon diversity values appear approximately normal** and the
+**Shapiro–Wilk test p = 0.68** ( we fail to reject normality), so we can
+safely use **parametric tests**
+:::
+
+```{r}
+LeveneTest(shannon_df$Shannon ~ group, data = metadata) # homogeneity of variance
+```
+
+### Run a two-way ANOVA
+
+Tests main effects and interaction
+
+::: callout-note
+A note on categorical vs numeric factors
+
+Use factors for discrete groups; use numeric when you want to test a
+continuous trend (e.g., dose–response).
+:::
+
+| Variable | Nature | Should be coded as | Why |
+|:-------------|:-------------|:-------------|:-----------------------------|
+| **`stage` (4 hpf, 9 hpf, 14 hpf)** | Distinct developmental stages | **Categorical (factor)** | The stages are not on a linear scale — differences are categorical, not continuous. |
+| **`leachate` (0, 0.01, 0.1, 1 mg/L)** | Nominally continuous, used as treatment bins | **Categorical (factor)** for ANOVA **or** **numeric** to test a dose–response trend | If you care about *group differences*, treat as a factor; if you want to test whether Shannon changes *linearly/non-linearly* with concentration, treat it as numeric. |
+
+: How to encode variables for alpha-diversity modeling.
+
+::: callout-note
+Since we are looking for non-monotonic (non dose-dependent responses) we
+choose to code our factors as categorical.
+:::
+
+```{r}
+levels(shannon_df$pvc_level)
+levels(shannon_df$stage)
+```
+
+```{r}
+aov_shannon2 <- aov(Shannon ~ pvc_level * stage, data = shannon_df)
+summary(aov_shannon2)
+```
+
+::: callout-note
+A two-way analysis of variance (ANOVA) revealed no significant effects
+of PVC leachate concentration, developmental stage, or their interaction
+on Shannon diversity (Table X). Differences in Shannon diversity among
+leachate treatments were not statistically significant (*F*₃,₄₈ = 1.25,
+*p* = 0.302), nor were differences among developmental stages (*F*₂,₄₈ =
+1.11, *p* = 0.339). Similarly, the leachate × stage interaction was not
+significant (*F*₆,₄₈ = 0.33, *p* = 0.919), indicating that the effect of
+leachate on microbial alpha diversity did not differ among stages.
+
+----
+
+Two-way ANOVA indicated no significant effects of leachate
+concentration, developmental stage, or their interaction on Shannon
+diversity (*p* \> 0.3 for all factors).
+
+---
+
+A two-way analysis of variance (ANOVA) was conducted to test the effects
+of categorical factors — **PVC leachate concentration** (control, low,
+mid, high) and **developmental stage** (cleavage, prawnchip,
+earlygastrula) — on Shannon diversity. Both factors were modeled as
+fixed, categorical factors.
+:::
+
+... but what if they were linear?
+
+```{r}
+class(shannon_df$leachate)
+class(shannon_df$timepoint)
+```
+
+```{r}
+aov_shannon2.num <- aov(Shannon ~ leachate * timepoint, data = shannon_df)
+summary(aov_shannon2.num)
+```
+
+::: callout-note
+Treating leachate concentration and developmental stage as categorical
+factors yielded no significant main or interaction effects on Shannon
+diversity (Table X). When the same variables were treated as continuous,
+results were qualitatively similar: no significant effects of leachate
+(*F*₁,₅₆ = 1.10, *p* = 0.300), timepoint (*F*₁,₅₆ = 1.55, *p* = 0.218),
+or their interaction (*F*₁,₅₆ = 0.04, *p* = 0.841). Thus, alpha
+diversity remained stable across both categorical treatments and
+continuous gradients, indicating limited sensitivity of microbial
+diversity to leachate exposure or developmental progression.
+:::
+
+## Boxplots
 
 ```{r, shannon-boxplots}
 #| fig-width: 13
@@ -215,34 +321,6 @@ ggsave(filename = file.path(figures_dir, "shannon_combined.png"), plot = shannon
 shannon_combined
 ```
 
-## Statistical tests
-
-### Normality
-
-```{r}
-hist(shannon_df$Shannon)
-shapiro.test(shannon_df$Shannon) # normality
-
-```
-
-::: callout-note
-**The Shannon diversity values appear approximately normal** and the
-**Shapiro–Wilk test p = 0.68** ( we fail to reject normality), so we can
-safely use **parametric tests**
-:::
-
-```{r}
-LeveneTest(shannon_df$Shannon ~ group, data = metadata) # homogeneity of variance
-```
-
-### two-way ANOVA
-
-Tests main effects and interaction
-
-```{r}
-aov_shannon2 <- aov(Shannon ~ leachate * stage, data = shannon_df)
-summary(aov_shannon2)
-```
 
 ## Faith's Phylogenetic Diversity
 
