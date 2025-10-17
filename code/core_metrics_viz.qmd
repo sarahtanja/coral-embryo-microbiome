@@ -258,6 +258,19 @@ diversity to leachate exposure or developmental progression.
 #| fig-width: 13
 #| fig-height: 12
 
+# Extract p-values from ANOVA for annotations
+shannon_pvals <- summary(aov_shannon2)[[1]]
+pval_leachate <- shannon_pvals["pvc_level", "Pr(>F)"]
+pval_stage <- shannon_pvals["stage", "Pr(>F)"]
+pval_interaction <- shannon_pvals["pvc_level:stage", "Pr(>F)"]
+
+# Format p-values
+format_pval <- function(p) {
+  if (p < 0.001) return("p < 0.001")
+  if (p < 0.01) return(sprintf("p = %.3f", p))
+  return(sprintf("p = %.2f", p))
+}
+
 # Box plot by leachate treatment
 shan1 <- ggplot(shannon_df, aes(x = factor(leachate), y = Shannon, fill = factor(leachate))) +
   geom_boxplot(alpha = 0.7, outlier.shape = NA) +
@@ -267,11 +280,13 @@ shan1 <- ggplot(shannon_df, aes(x = factor(leachate), y = Shannon, fill = factor
     title = "Shannon Diversity by Leachate Treatment",
     x = "Leachate Level",
     y = "Shannon Diversity Index",
-    fill = "Leachate"
+    fill = "Leachate",
+    subtitle = paste0("Two-way ANOVA: ", format_pval(pval_leachate))
   ) +
   theme_classic() +
   theme(
     plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10, color = "grey40"),
     axis.title = element_text(size = 12),
     legend.position = "none"
   )
@@ -285,11 +300,13 @@ shan2 <- ggplot(shannon_df, aes(x = factor(timepoint), y = Shannon, fill = facto
     title = "Shannon Diversity by Developmental Timepoint",
     x = "Hours Post Fertilization",
     y = "Shannon Diversity Index",
-    fill = "Timepoint"
+    fill = "Timepoint",
+    subtitle = paste0("Two-way ANOVA: ", format_pval(pval_stage))
   ) +
   theme_classic() +
   theme(
     plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10, color = "grey40"),
     axis.title = element_text(size = 12),
     legend.position = "right"
   )
@@ -307,11 +324,13 @@ shan3 <- ggplot(shannon_df, aes(x = factor(timepoint), y = Shannon, fill = facto
     title = "Shannon Diversity by Leachate Treatment x Timepoint",
     x = "Hours Post Fertilization",
     y = "Shannon Diversity Index",
-    fill = "Leachate"
+    fill = "Leachate",
+    subtitle = paste0("Interaction: ", format_pval(pval_interaction))
   ) +
   theme_classic() +
   theme(
     plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10, color = "grey40"),
     axis.title = element_text(size = 12),
     legend.position = "right",
     axis.text.x = ggtext::element_markdown(size = 11)
@@ -358,9 +377,54 @@ faith_df <- faith_df %>%
   left_join(metadata, by ="SampleID")
 ```
 
+## Statistical tests
+
+### Check for normality
+
+```{r}
+hist(faith_df$Faith)
+shapiro.test(faith_df$Faith) # normality
+```
+
+::: callout-note
+Check normality of Faith's Phylogenetic Diversity values using Shapiro-Wilk test.
+:::
+
+### Run a two-way ANOVA
+
+#### Using categorical variables
+
+```{r}
+aov_faith2 <- aov(Faith ~ pvc_level * stage, data = faith_df)
+summary(aov_faith2)
+```
+
+::: callout-note
+Two-way ANOVA with Faith's Phylogenetic Diversity as the response variable and categorical factors (PVC leachate level and developmental stage).
+:::
+
+#### Using numerical variables
+
+```{r}
+aov_faith2.num <- aov(Faith ~ leachate * timepoint, data = faith_df)
+summary(aov_faith2.num)
+```
+
+::: callout-note
+Two-way ANOVA with Faith's Phylogenetic Diversity treating leachate concentration and timepoint as continuous variables.
+:::
+
+## Boxplots
+
 ```{r, faith-boxplots}
 #| fig-width: 13
 #| fig-height: 12
+
+# Extract p-values from ANOVA for annotations
+faith_pvals <- summary(aov_faith2)[[1]]
+pval_leachate_faith <- faith_pvals["pvc_level", "Pr(>F)"]
+pval_stage_faith <- faith_pvals["stage", "Pr(>F)"]
+pval_interaction_faith <- faith_pvals["pvc_level:stage", "Pr(>F)"]
 
 # Box plot by leachate treatment
 fait1 <- ggplot(faith_df, aes(x = factor(leachate), y = Faith, fill = factor(leachate))) +
@@ -371,11 +435,13 @@ fait1 <- ggplot(faith_df, aes(x = factor(leachate), y = Faith, fill = factor(lea
     title = "Faith's Phylogenetic Diversity by Leachate Treatment",
     x = "Leachate Level",
     y = "Faith's Phylogenetic Diversity Metric",
-    fill = "Leachate"
+    fill = "Leachate",
+    subtitle = paste0("Two-way ANOVA: ", format_pval(pval_leachate_faith))
   ) +
   theme_classic() +
   theme(
     plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10, color = "grey40"),
     axis.title = element_text(size = 12),
     legend.position = "none"
   )
@@ -389,11 +455,13 @@ fait2 <- ggplot(faith_df, aes(x = factor(timepoint), y = Faith, fill = factor(ti
     title = "Faith's Phylogenetic Diversity by Developmental Timepoint",
     x = "Hours Post Fertilization",
     y = "Faith's Phlyogenetic Diversity Metric",
-    fill = "Timepoint"
+    fill = "Timepoint",
+    subtitle = paste0("Two-way ANOVA: ", format_pval(pval_stage_faith))
   ) +
   theme_classic() +
   theme(
     plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10, color = "grey40"),
     axis.title = element_text(size = 12),
     legend.position = "right"
   )
@@ -408,11 +476,13 @@ fait3 <- ggplot(faith_df, aes(x = factor(timepoint), y = Faith, fill = factor(le
     title = "Faith's Phylogenetic Diversity by Leachate Treatment x Timepoint",
     x = "Hours Post Fertilization",
     y = "Faith's Phylogenetic Diversity Metric",
-    fill = "Leachate"
+    fill = "Leachate",
+    subtitle = paste0("Interaction: ", format_pval(pval_interaction_faith))
   ) +
   theme_classic() +
   theme(
     plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10, color = "grey40"),
     axis.title = element_text(size = 12),
     legend.position = "right",
     axis.text.x = ggtext::element_markdown(size = 11)
@@ -459,9 +529,54 @@ evenness_df <- evenness_df %>%
 head(evenness_df)
 ```
 
+## Statistical tests
+
+### Check for normality
+
+```{r}
+hist(evenness_df$Evenness)
+shapiro.test(evenness_df$Evenness) # normality
+```
+
+::: callout-note
+Check normality of Pielou's Evenness values using Shapiro-Wilk test.
+:::
+
+### Run a two-way ANOVA
+
+#### Using categorical variables
+
+```{r}
+aov_evenness2 <- aov(Evenness ~ pvc_level * stage, data = evenness_df)
+summary(aov_evenness2)
+```
+
+::: callout-note
+Two-way ANOVA with Pielou's Evenness as the response variable and categorical factors (PVC leachate level and developmental stage).
+:::
+
+#### Using numerical variables
+
+```{r}
+aov_evenness2.num <- aov(Evenness ~ leachate * timepoint, data = evenness_df)
+summary(aov_evenness2.num)
+```
+
+::: callout-note
+Two-way ANOVA with Pielou's Evenness treating leachate concentration and timepoint as continuous variables.
+:::
+
+## Boxplots
+
 ```{r, pielou-plots}
 #| fig-width: 13
 #| fig-height: 12
+
+# Extract p-values from ANOVA for annotations
+evenness_pvals <- summary(aov_evenness2)[[1]]
+pval_leachate_evenness <- evenness_pvals["pvc_level", "Pr(>F)"]
+pval_stage_evenness <- evenness_pvals["stage", "Pr(>F)"]
+pval_interaction_evenness <- evenness_pvals["pvc_level:stage", "Pr(>F)"]
 
 # Box plot by leachate treatment
 piel1 <- ggplot(evenness_df, aes(x = factor(leachate), y = Evenness, fill = factor(leachate))) +
@@ -472,11 +587,13 @@ piel1 <- ggplot(evenness_df, aes(x = factor(leachate), y = Evenness, fill = fact
     title = "Pielou's Evenness by Leachate Treatment",
     x = "Leachate Level",
     y = "Pielou's Evenness",
-    fill = "Leachate"
+    fill = "Leachate",
+    subtitle = paste0("Two-way ANOVA: ", format_pval(pval_leachate_evenness))
   ) +
   theme_classic() +
   theme(
     plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10, color = "grey40"),
     axis.title = element_text(size = 12),
     legend.position = "none"
   )
@@ -490,11 +607,13 @@ piel2 <- ggplot(evenness_df, aes(x = factor(timepoint), y = Evenness, fill = fac
     title = "Pielou's Evenness by Developmental Timepoint",
     x = "Hours Post Fertilization",
     y = "Pielou's Evenness",
-    fill = "Timepoint"
+    fill = "Timepoint",
+    subtitle = paste0("Two-way ANOVA: ", format_pval(pval_stage_evenness))
   ) +
   theme_classic() +
   theme(
     plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10, color = "grey40"),
     axis.title = element_text(size = 12),
     legend.position = "right"
   )
@@ -509,11 +628,13 @@ piel3 <- ggplot(evenness_df, aes(x = factor(timepoint), y = Evenness, fill = fac
     title = "Pielou's Evenness by Leachate Treatment x Timepoint",
     x = "Hours Post Fertilization",
     y = "Pielou's Evenness",
-    fill = "Leachate"
+    fill = "Leachate",
+    subtitle = paste0("Interaction: ", format_pval(pval_interaction_evenness))
   ) +
   theme_classic() +
   theme(
     plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10, color = "grey40"),
     axis.title = element_text(size = 12),
     legend.position = "right",
     axis.text.x = ggtext::element_markdown(size = 11)
@@ -559,9 +680,54 @@ observed_df <- observed_df %>%
   left_join(metadata, by = "SampleID")
 ```
 
+## Statistical tests
+
+### Check for normality
+
+```{r}
+hist(observed_df$ObservedFeatures)
+shapiro.test(observed_df$ObservedFeatures) # normality
+```
+
+::: callout-note
+Check normality of Observed Features values using Shapiro-Wilk test.
+:::
+
+### Run a two-way ANOVA
+
+#### Using categorical variables
+
+```{r}
+aov_observed2 <- aov(ObservedFeatures ~ pvc_level * stage, data = observed_df)
+summary(aov_observed2)
+```
+
+::: callout-note
+Two-way ANOVA with Observed Features as the response variable and categorical factors (PVC leachate level and developmental stage).
+:::
+
+#### Using numerical variables
+
+```{r}
+aov_observed2.num <- aov(ObservedFeatures ~ leachate * timepoint, data = observed_df)
+summary(aov_observed2.num)
+```
+
+::: callout-note
+Two-way ANOVA with Observed Features treating leachate concentration and timepoint as continuous variables.
+:::
+
+## Boxplots
+
 ```{r, asv-rich-boxplots}
 #| fig-width: 13
 #| fig-height: 12
+
+# Extract p-values from ANOVA for annotations
+observed_pvals <- summary(aov_observed2)[[1]]
+pval_leachate_observed <- observed_pvals["pvc_level", "Pr(>F)"]
+pval_stage_observed <- observed_pvals["stage", "Pr(>F)"]
+pval_interaction_observed <- observed_pvals["pvc_level:stage", "Pr(>F)"]
 
 # Box plot by leachate treatment
 asv1 <- ggplot(observed_df, aes(x = factor(leachate), y = ObservedFeatures, fill = factor(leachate))) +
@@ -572,11 +738,13 @@ asv1 <- ggplot(observed_df, aes(x = factor(leachate), y = ObservedFeatures, fill
     title = "Observed ASV Richness by Leachate Treatment",
     x = "Leachate Level",
     y = "Number of Observed Features",
-    fill = "Leachate"
+    fill = "Leachate",
+    subtitle = paste0("Two-way ANOVA: ", format_pval(pval_leachate_observed))
   ) +
   theme_classic() +
   theme(
     plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10, color = "grey40"),
     axis.title = element_text(size = 12),
     legend.position = "none"
   )
@@ -590,11 +758,13 @@ asv2 <- ggplot(observed_df, aes(x = factor(timepoint), y = ObservedFeatures, fil
     title = "Observed ASV Richness by Developmental Timepoint",
     x = "Hours Post Fertilization",
     y = "Number of Observed Features",
-    fill = "Timepoint"
+    fill = "Timepoint",
+    subtitle = paste0("Two-way ANOVA: ", format_pval(pval_stage_observed))
   ) +
   theme_classic() +
   theme(
     plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10, color = "grey40"),
     axis.title = element_text(size = 12),
     legend.position = "right"
   )
@@ -609,11 +779,13 @@ asv3 <- ggplot(observed_df, aes(x = factor(timepoint), y = ObservedFeatures, fil
     title = "Observed ASV Richness by Leachate Treatment x Timepoint",
     x = "Hours Post Fertilization",
     y = "Number of Observed Features",
-    fill = "Leachate"
+    fill = "Leachate",
+    subtitle = paste0("Interaction: ", format_pval(pval_interaction_observed))
   ) +
   theme_classic() +
   theme(
     plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10, color = "grey40"),
     axis.title = element_text(size = 12),
     legend.position = "right",
     axis.text.x = ggtext::element_markdown(size = 11)
