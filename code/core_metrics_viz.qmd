@@ -70,7 +70,7 @@ library(broom)
 ```{r}
 # Base path to core metrics results
 core_metrics_path <- "../salipante/241121_StonyCoral/core-metrics-results-filtered"
-metadata_path <- "../metadata/metadata.tsv"
+metadata_path <- "../metadata/metadata.csv"
 
 # Output directory for figures
 figures_dir <- "../output/figures"
@@ -84,12 +84,9 @@ if (!dir.exists(figures_dir)) {
 ## Load Metadata
 
 ```{r}
-metadata <- read_q2metadata(metadata_path)
+metadata <- read_csv(metadata_path)
 
 # set factors
-metadata <- metadata %>% 
-  rename(stage = `development-stage`)
-
 metadata <- metadata %>% 
   mutate(
     stage = stage %>%

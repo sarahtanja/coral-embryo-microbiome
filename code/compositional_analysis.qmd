@@ -106,16 +106,33 @@ getwd()
 feature_table_path <- "../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza"
 metadata_path <- "../metadata/metadata.csv"
 taxonomy_path <- "../salipante/241121_StonyCoral/270x200/250414_270x200_representative-sequences_taxonomy.qza"
+```
 
+```{r}
 # Load feature table from QIIME2 artifact
 feature_table <- read_qza(feature_table_path)$data
+```
 
+```{r}
 # Load metadata
 metadata <- read_csv(metadata_path)
+# set factors
+metadata <- metadata %>% 
+  mutate(
+    stage = stage %>%
+      trimws() %>%
+      gsub("\\s+", "", .) %>% # remove spaces
+      factor(levels = c("cleavage", "prawnchip", "earlygastrula"),
+             ordered = TRUE),
+    leachate = factor(leachate, levels = c("control", "low", "mid", "high")) )
+```
 
+```{r}
 # Load taxonomy (optional, for annotation)
 taxonomy <- read_qza(taxonomy_path)$data
+```
 
+```{r}
 # Display data dimensions
 cat("Feature table dimensions:", dim(feature_table), "\n")
 cat("Number of samples in metadata:", nrow(metadata), "\n")
@@ -192,10 +209,50 @@ pca_df <- data.frame(
 # Merge with metadata
 pca_df <- pca_df %>%
   left_join(metadata_filtered, by = "sample_id")
+```
 
+```{r, fig.height=6}
+pca_plot_hpf <- ggplot(
+  pca_df,
+  aes(
+    x = PC1, y = PC2,
+    fill = stage,                   # inside color
+    colour = factor(parents),       # outline color
+    shape = leachate                # shape must be 21–25
+  )
+) +
+  geom_point(size = 3.5, stroke = 1.5, alpha = 0.8) +   # stroke controls outline width
+  scale_shape_manual(values = c(21, 22, 23, 24, 25)[seq_along(levels(pca_df$leachate))]) +
+  # light grey -> dark grey for discrete stages (shows in legend)
+  scale_fill_grey(name = "Stage", start = 0.1, end = 1) +
+  labs(
+    title = "PCA Biplot by Stage, Leachate, and Parental cross",
+    x = paste0("PC1 (", round(variance_explained[1], 2), "% variance)"),
+    y = paste0("PC2 (", round(variance_explained[2], 2), "% variance)"),
+    shape = "Leachate",
+    color = "Parental cross"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    plot.title = element_text(hjust = 0.5)
+  )+
+  # 3) make the fill legend draw a filled shape with an outline
+  guides(
+    shape  = guide_legend(order = 1),
+    fill   = guide_legend(override.aes = list(shape = 21, stroke = 1.1, colour = "black"), 
+                          order = 2),
+    colour = guide_legend(order = 3)
+    
+  ) 
+
+pca_plot_hpf
+```
+
+```{r}
 # Create PCA biplot
 pca_plot <- ggplot(pca_df, aes(x = PC1, y = PC2, color = leachate, shape = stage)) +
-  geom_point(size = 3, alpha = 0.7) +
+  geom_point(size = 3, alpha = 0.9) +
   labs(
     title = "PCA Biplot of CLR-Transformed Microbiome Data",
     subtitle = "Following Gloor et al. 2017 recommendations",
@@ -216,18 +273,19 @@ ggsave("../output/compositional_pca_biplot.png", pca_plot,
        width = 10, height = 7, dpi = 300)
 ```
 
-```{r}
+```{r, fig.height = 6}
 # Create additional PCA plot colored by hours post fertilization
-pca_plot_hpf <- ggplot(pca_df, aes(x = PC1, y = PC2, color = factor(hpf), shape = leachate)) +
-  geom_point(size = 3, alpha = 0.7) +
+pca_plot_hpf <- ggplot(pca_df, aes(x = PC1, y = PC2, color = stage, shape = leachate)) +
+  geom_point(size = 3, alpha = 0.9) +
   labs(
-    title = "PCA Biplot by Hours Post Fertilization",
+    title = "PCA Biplot by Stage, Leachate, and Parental cross",
     x = paste0("PC1 (", round(variance_explained[1], 2), "% variance)"),
     y = paste0("PC2 (", round(variance_explained[2], 2), "% variance)"),
-    color = "Hours Post Fertilization",
-    shape = "Leachate"
+    color = "Parental cross",
+    shape = "Leachate",
+    fill = "Stage"
   ) +
-  theme_bw() +
+  theme_minimal() +
   theme(
     legend.position = "right",
     plot.title = element_text(hjust = 0.5)
@@ -262,7 +320,7 @@ write.csv(as.data.frame(permanova_result),
 ```
 
 ```{r}
-# Additional PERMANOVA testing time effects
+# Additional PERMANOVA testing time as a continuous effect
 permanova_hpf <- adonis2(
   aitchison_dist ~ leachate * hpf + parents,
   data = metadata_filtered,
@@ -310,7 +368,7 @@ pairwise_permanova <- function(dist_matrix, metadata, group_var) {
 }
 
 # Run pairwise comparisons
-pairwise_results <- pairwise_permanova(aitchison_dist, metadata_filtered, "leachate")
+pairwise_results <- pairwise_permanova(aitchison_dist, metadata_filtered, leachate)
 
 # Print results
 for (comparison in names(pairwise_results)) {
