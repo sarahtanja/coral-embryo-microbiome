@@ -302,6 +302,20 @@ ggsave("../output/compositional_pca_biplot_hpf.png", pca_plot_hpf,
 
 PERMANOVA (Permutational Multivariate Analysis of Variance) on the Aitchison distance matrix to test for differences in microbial composition across experimental factors.
 
+::: {.callout-tip}
+## Learn More About PERMANOVA
+
+For a comprehensive explanation of PERMANOVA, including:
+- How PERMANOVA works and its underlying principles
+- What inputs are required and what outputs mean
+- How to interpret results in microbiome context
+- Complete working examples with all distance metrics
+
+See the dedicated documentation files:
+- **[`PERMANOVA_README.md`](PERMANOVA_README.md)** - Comprehensive theoretical guide
+- **[`permanova_analysis.qmd`](permanova_analysis.qmd)** - Working code examples and demonstrations
+:::
+
 ```{r}
 # Perform PERMANOVA on Aitchison distance
 # Test effects of leachate, stage, and their interaction

@@ -863,6 +863,18 @@ alph2
 **Beta diversity measures the dissimilarity in community composition
 between samples.**
 
+::: {.callout-note}
+## Statistical Testing of Beta Diversity
+
+The PCoA plots below visualize beta diversity patterns. To **statistically test** whether groups differ in community composition, use **PERMANOVA** (Permutational Multivariate Analysis of Variance).
+
+**See comprehensive PERMANOVA documentation:**
+- **[`PERMANOVA_README.md`](PERMANOVA_README.md)** - Theory, interpretation, and best practices
+- **[`permanova_analysis.qmd`](permanova_analysis.qmd)** - Working code examples with all distance metrics
+
+**Key point**: PERMANOVA tests the distance matrices themselves, NOT the PCoA coordinates!
+:::
+
 ## Bray-Curtis Dissimilarity
 
 Bray-Curtis dissimilarity is based on abundance differences and does not
