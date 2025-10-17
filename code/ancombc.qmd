@@ -119,11 +119,11 @@ metadata <- read_csv("../metadata/metadata.csv")
 
 -   Taxonomy table (feature -\> taxonomy) rows = features, columns = taxonomic ranks. Useful for annotating results.
 
-    ```{r}
-    tax_path <- "../salipante/241121_StonyCoral/270x200/250414_270x200_representative-sequences_taxonomy.qza" 
-    tax <- read_tsv(tax_path, show_col_types = FALSE)
-    colnames(tax)
-    ```
+```{r}
+tax_path <- "../salipante/241121_StonyCoral/270x200/250414_270x200_representative-sequences_taxonomy.qza" 
+tax <- read_tsv(tax_path, show_col_types = FALSE)
+colnames(tax)
+```
 
 ## Outputs
 
@@ -158,7 +158,8 @@ setdiff(colnames(otu_mat), metadata$sample_id)
 
 ```{r}
 ps <- phyloseq(otu_table(otu_mat, taxa_are_rows = TRUE),
-               sample_data(as.data.frame(metadata)))
+               sample_data(metadata),
+               tax_table())
 ```
 
 # Run ANCOM-BC2
@@ -167,14 +168,16 @@ ps <- phyloseq(otu_table(otu_mat, taxa_are_rows = TRUE),
 # 4) Run ANCOM-BC
 # Replace "Treatment" with the metadata column you want as predictor.
 # If you have covariates, include them in the formula like "Treatment + Age"
-res_ancombc <- ancombc(phyloseq = ps,
-                       formula = "~stage + leachate + stage:leachate",
-                       p_adj_method = "BH",
-                       zero_cut = 0.90,    # drop taxa with >90% zeros; tune as needed
-                       lib_cut = 1000,     # min library size; adjust for your data
-                       group = "Treatment",
-                       struc_zero = TRUE,
-                       neg_lb = TRUE)
+res_ancombc <- ancombc2(data = ps,
+                        tax_level = "Family",
+                        fix_formula = "stage * leachate",
+                        rand_formula = "cross",
+                        p_adj_method = "BH",
+                        alpha = 0.05, 
+                        lib_cut = 1000,     # min library size; adjust for your data
+                        group = "leachate",
+                        struc_zero = TRUE,
+                        neg_lb = TRUE)
 ```
 
 ```{r}
