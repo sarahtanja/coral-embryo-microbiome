@@ -70,6 +70,8 @@ devtools::install_github("jbisanz/qiime2R")
 install.packages("tidyverse")
 install.packages("ggplot2")
 install.packages("patchwork")
+install.packages("ggtext")
+install.packages("viridis")
 ```
 
 ```{r}
@@ -80,6 +82,8 @@ library(ggplot2)
 library(tidyverse)
 library(patchwork)
 library(stringr)
+library(ggtext)
+library(viridis)
 ```
 
 ## Set Paths
@@ -287,10 +291,13 @@ shan2 <- ggplot(shannon_df, aes(x = factor(timepoint), y = Shannon, fill = facto
   theme(
     plot.title = element_text(face = "bold", size = 14),
     axis.title = element_text(size = 12),
-    legend.position = "none"
+    legend.position = "right"
   )
 
 # Box plot by leachate x timepoint interaction
+# Get mako colors for timepoints 4, 9, 14
+mako_colors <- viridis::viridis(n = 3, option = "mako", begin = 0.2, end = 0.9)
+
 shan3 <- ggplot(shannon_df, aes(x = factor(timepoint), y = Shannon, fill = factor(leachate))) +
   geom_boxplot(alpha = 0.7, outlier.shape = NA, position = position_dodge(width = 0.8)) +
   geom_point(position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.8), 
@@ -306,8 +313,14 @@ shan3 <- ggplot(shannon_df, aes(x = factor(timepoint), y = Shannon, fill = facto
   theme(
     plot.title = element_text(face = "bold", size = 14),
     axis.title = element_text(size = 12),
-    legend.position = "right"
-  )
+    legend.position = "right",
+    axis.text.x = ggtext::element_markdown(size = 11)
+  ) +
+  scale_x_discrete(labels = c(
+    "4" = paste0("<span style='background-color:", mako_colors[1], ";padding:2px 8px;border-radius:3px;'>4</span>"),
+    "9" = paste0("<span style='background-color:", mako_colors[2], ";padding:2px 8px;border-radius:3px;'>9</span>"),
+    "14" = paste0("<span style='background-color:", mako_colors[3], ";padding:2px 8px;border-radius:3px;'>14</span>")
+  ))
 
 # Combine plots using patchwork
 shannon_combined <- (shan1 + shan2) / shan3
@@ -382,7 +395,7 @@ fait2 <- ggplot(faith_df, aes(x = factor(timepoint), y = Faith, fill = factor(ti
   theme(
     plot.title = element_text(face = "bold", size = 14),
     axis.title = element_text(size = 12),
-    legend.position = "none"
+    legend.position = "right"
   )
 
 # Box plot by leachate x timepoint interaction
@@ -401,8 +414,14 @@ fait3 <- ggplot(faith_df, aes(x = factor(timepoint), y = Faith, fill = factor(le
   theme(
     plot.title = element_text(face = "bold", size = 14),
     axis.title = element_text(size = 12),
-    legend.position = "right"
-  )
+    legend.position = "right",
+    axis.text.x = ggtext::element_markdown(size = 11)
+  ) +
+  scale_x_discrete(labels = c(
+    "4" = paste0("<span style='background-color:", mako_colors[1], ";padding:2px 8px;border-radius:3px;'>4</span>"),
+    "9" = paste0("<span style='background-color:", mako_colors[2], ";padding:2px 8px;border-radius:3px;'>9</span>"),
+    "14" = paste0("<span style='background-color:", mako_colors[3], ";padding:2px 8px;border-radius:3px;'>14</span>")
+  ))
 
 # Combine plots using patchwork
 faith_combined <- (fait1 + fait2) / fait3
@@ -477,7 +496,7 @@ piel2 <- ggplot(evenness_df, aes(x = factor(timepoint), y = Evenness, fill = fac
   theme(
     plot.title = element_text(face = "bold", size = 14),
     axis.title = element_text(size = 12),
-    legend.position = "none"
+    legend.position = "right"
   )
 
 # Box plot by leachate x timepoint interaction
@@ -496,8 +515,14 @@ piel3 <- ggplot(evenness_df, aes(x = factor(timepoint), y = Evenness, fill = fac
   theme(
     plot.title = element_text(face = "bold", size = 14),
     axis.title = element_text(size = 12),
-    legend.position = "right"
-  )
+    legend.position = "right",
+    axis.text.x = ggtext::element_markdown(size = 11)
+  ) +
+  scale_x_discrete(labels = c(
+    "4" = paste0("<span style='background-color:", mako_colors[1], ";padding:2px 8px;border-radius:3px;'>4</span>"),
+    "9" = paste0("<span style='background-color:", mako_colors[2], ";padding:2px 8px;border-radius:3px;'>9</span>"),
+    "14" = paste0("<span style='background-color:", mako_colors[3], ";padding:2px 8px;border-radius:3px;'>14</span>")
+  ))
 
 # Combine plots using patchwork
 pielou_combined <- (piel1 + piel2) / piel3
@@ -571,7 +596,7 @@ asv2 <- ggplot(observed_df, aes(x = factor(timepoint), y = ObservedFeatures, fil
   theme(
     plot.title = element_text(face = "bold", size = 14),
     axis.title = element_text(size = 12),
-    legend.position = "none"
+    legend.position = "right"
   )
 
 # Box plot by leachate x timepoint interaction
@@ -590,8 +615,14 @@ asv3 <- ggplot(observed_df, aes(x = factor(timepoint), y = ObservedFeatures, fil
   theme(
     plot.title = element_text(face = "bold", size = 14),
     axis.title = element_text(size = 12),
-    legend.position = "right"
-  )
+    legend.position = "right",
+    axis.text.x = ggtext::element_markdown(size = 11)
+  ) +
+  scale_x_discrete(labels = c(
+    "4" = paste0("<span style='background-color:", mako_colors[1], ";padding:2px 8px;border-radius:3px;'>4</span>"),
+    "9" = paste0("<span style='background-color:", mako_colors[2], ";padding:2px 8px;border-radius:3px;'>9</span>"),
+    "14" = paste0("<span style='background-color:", mako_colors[3], ";padding:2px 8px;border-radius:3px;'>14</span>")
+  ))
 
 # Combine plots using patchwork
 asv_combined <- (asv1 + asv2) / asv3
@@ -653,7 +684,8 @@ alph2 <- ggplot(alpha_combined, aes(x = factor(timepoint), y = Value, fill = fac
     title = "Alpha Diversity Metrics by Developmental Timepoint",
     x = "Hours Post Fertilization",
     y = "Diversity Value",
-    fill = "Timepoint"
+    fill = "Timepoint",
+    color = "Timepoint"
   ) +
   theme_classic() +
   theme(
@@ -661,7 +693,7 @@ alph2 <- ggplot(alpha_combined, aes(x = factor(timepoint), y = Value, fill = fac
     axis.title = element_text(size = 12),
     strip.background = element_rect(fill = "grey90"),
     strip.text = element_text(face = "bold", size = 11),
-    legend.position = "none"
+    legend.position = "right"
   )
 
 # Save plots
