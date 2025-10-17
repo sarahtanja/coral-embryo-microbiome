@@ -323,6 +323,8 @@ shan3 <- ggplot(shannon_df, aes(x = factor(timepoint), y = Shannon, fill = facto
     "14" = paste0("<span style='background-color:", mako_colors[3], ";padding:2px 8px;border-radius:3px;'>14</span>")
   ))
 
+shan3
+
 # Combine plots using patchwork
 shannon_combined <- (shan1 + shan2) / shan3
 
@@ -397,8 +399,6 @@ Two-way ANOVA with Faith's Phylogenetic Diversity treating leachate concentratio
 :::
 
 ## Boxplots
-
-
 
 
 ```{r, faith-boxplots}
