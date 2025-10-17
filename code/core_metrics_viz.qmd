@@ -49,6 +49,7 @@ install.packages("patchwork")
 install.packages("ggtext")
 install.packages("viridis")
 install.packages("stringr")
+install.packages("broom")
 ```
 
 ```{r}
@@ -61,6 +62,7 @@ library(patchwork)
 library(stringr)
 library(ggtext)
 library(viridis)
+library(broom)
 ```
 
 ## Set Paths
@@ -134,7 +136,6 @@ head(shannon_df)
 ```{r}
 hist(shannon_df$Shannon)
 shapiro.test(shannon_df$Shannon) # normality
-
 ```
 
 ::: callout-note
@@ -142,10 +143,6 @@ shapiro.test(shannon_df$Shannon) # normality
 **Shapiro–Wilk test p = 0.68** ( we fail to reject normality), so we can
 safely use **parametric tests**
 :::
-
-```{r}
-LeveneTest(shannon_df$Shannon ~ group, data = metadata) # homogeneity of variance
-```
 
 ### Run a two-way ANOVA
 
@@ -231,23 +228,31 @@ diversity to leachate exposure or developmental progression.
 
 ## Boxplots
 
-```{r, shannon-boxplots}
-#| fig-width: 13
-#| fig-height: 12
+```{r}
+shan_aov <- broom::tidy(aov_shannon2)   # columns: term, df, statistic, p.value, ...
+shan_aov
+```
 
-# Extract p-values from ANOVA for annotations
-shannon_pvals <- summary(aov_shannon2)[[1]]
-pval_leachate <- shannon_pvals["pvc_level", "Pr(>F)"]
-pval_stage <- shannon_pvals["stage", "Pr(>F)"]
-pval_interaction <- shannon_pvals["pvc_level:stage", "Pr(>F)"]
+```{r}
+# Extract p-values from ANOVA for figure annotations
+pval_shan_pvcl <- shan_aov %>% filter(term == "pvc_level") %>% pull(p.value)
+pval_shan_stage <- shan_aov %>% filter(term == "stage") %>% pull(p.value)
+pval_shan_intr <- shan_aov %>% filter(term == "pvc_level:stage") %>% pull(p.value)
+```
 
-# Format p-values
+```{r}
+# Function to Format p-value labels for figure
 format_pval <- function(p) {
   if (p < 0.001) return("p < 0.001")
   if (p < 0.01) return(sprintf("p = %.3f", p))
   return(sprintf("p = %.2f", p))
 }
+```
 
+```{r, shannon-boxplots}
+#| fig-width: 13
+#| fig-height: 12
+#| 
 # Box plot by leachate treatment
 shan1 <- ggplot(shannon_df, aes(x = factor(leachate), y = Shannon, fill = factor(leachate))) +
   geom_boxplot(alpha = 0.7, outlier.shape = NA) +
@@ -258,7 +263,7 @@ shan1 <- ggplot(shannon_df, aes(x = factor(leachate), y = Shannon, fill = factor
     x = "Leachate Level",
     y = "Shannon Diversity Index",
     fill = "Leachate",
-    subtitle = paste0("Two-way ANOVA: ", format_pval(pval_leachate))
+    subtitle = paste0("Two-way ANOVA: ", format_pval(pval_shan_pvcl))
   ) +
   theme_classic() +
   theme(
@@ -278,7 +283,7 @@ shan2 <- ggplot(shannon_df, aes(x = factor(timepoint), y = Shannon, fill = facto
     x = "Hours Post Fertilization",
     y = "Shannon Diversity Index",
     fill = "Timepoint",
-    subtitle = paste0("Two-way ANOVA: ", format_pval(pval_stage))
+    subtitle = paste0("Two-way ANOVA: ", format_pval(pval_shan_stage))
   ) +
   theme_classic() +
   theme(
@@ -302,7 +307,7 @@ shan3 <- ggplot(shannon_df, aes(x = factor(timepoint), y = Shannon, fill = facto
     x = "Hours Post Fertilization",
     y = "Shannon Diversity Index",
     fill = "Leachate",
-    subtitle = paste0("Interaction: ", format_pval(pval_interaction))
+    subtitle = paste0("Interaction: ", format_pval(pval_shan_intr))
   ) +
   theme_classic() +
   theme(
@@ -392,6 +397,9 @@ Two-way ANOVA with Faith's Phylogenetic Diversity treating leachate concentratio
 :::
 
 ## Boxplots
+
+
+
 
 ```{r, faith-boxplots}
 #| fig-width: 13
