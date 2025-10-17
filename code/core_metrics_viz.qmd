@@ -22,19 +22,35 @@ format:
     link-external-newwindow: true
     reference-location: margin
     citation-location: margin
+editor: 
+  markdown: 
+    wrap: 72
 ---
 
 # Background
 
-This document visualizes core diversity metrics from the filtered QIIME2 analysis (`core-metrics-results-filtered/`). The filtered dataset excludes chloroplast, mitochondria, and unassigned sequences.
+This document visualizes core diversity metrics from the filtered QIIME2
+analysis (`core-metrics-results-filtered/`). The filtered dataset
+excludes chloroplast, mitochondria, and unassigned sequences.
 
-Core metrics include:
-- **Alpha Diversity**: Shannon diversity, Faith's Phylogenetic Diversity, Evenness, Observed Features
-- **Beta Diversity**: Bray-Curtis, Jaccard, Weighted UniFrac, Unweighted UniFrac
+Core metrics include: - **Alpha Diversity**: Shannon diversity, Faith's
+Phylogenetic Diversity, Evenness, Observed Features - **Beta
+Diversity**: Bray-Curtis, Jaccard, Weighted UniFrac, Unweighted UniFrac
 
 # Setup
 
-## Load Libraries
+## Install Packages & Load Libraries
+```{r}
+install.packages("devtools")
+devtools::install_github("jbisanz/qiime2R")
+install.packages("tidyverse")
+install.packages("ggplot2")
+install.packages("patchwork")
+install.packages("ggtext")
+install.packages("viridis")
+install.packages("stringr")
+install.packages("broom")
+```
 
 ```{r}
 #| message: false
@@ -43,6 +59,10 @@ library(qiime2R)
 library(ggplot2)
 library(tidyverse)
 library(patchwork)
+library(stringr)
+library(ggtext)
+library(viridis)
+library(broom)
 ```
 
 ## Set Paths
@@ -51,13 +71,38 @@ library(patchwork)
 # Base path to core metrics results
 core_metrics_path <- "../salipante/241121_StonyCoral/core-metrics-results-filtered"
 metadata_path <- "../metadata/metadata.tsv"
+
+# Output directory for figures
+figures_dir <- "../output/figures"
+
+# Create figures directory if it doesn't exist
+if (!dir.exists(figures_dir)) {
+  dir.create(figures_dir, recursive = TRUE)
+}
 ```
 
 ## Load Metadata
 
 ```{r}
 metadata <- read_q2metadata(metadata_path)
-head(metadata)
+
+# set factors
+metadata <- metadata %>% 
+  rename(stage = `development-stage`)
+
+metadata <- metadata %>% 
+  mutate(
+    stage = stage %>%
+      trimws() %>%
+      gsub("\\s+", "", .) %>% # remove spaces
+      factor(levels = c("cleavage", "prawnchip", "earlygastrula"),
+             ordered = TRUE)
+  )
+
+metadata <- metadata %>% 
+  mutate(pvc_level=factor(leachate, levels = c(0,0.01,0.1,1)) )
+
+str(metadata)
 ```
 
 # Alpha Diversity
@@ -66,7 +111,8 @@ head(metadata)
 
 ## Shannon Diversity Index
 
-Shannon diversity accounts for both abundance and evenness of species present.
+Shannon diversity accounts for both abundance and evenness of species
+present.
 
 ```{r, shannon-data}
 # Load Shannon diversity vector
@@ -81,10 +127,132 @@ shannon_df <- shannon$data %>%
 head(shannon_df)
 ```
 
+
+
+## Statistical tests
+
+### Check for normality
+
+```{r}
+hist(shannon_df$Shannon)
+shapiro.test(shannon_df$Shannon) # normality
+```
+
+::: callout-note
+**The Shannon diversity values appear approximately normal** and the
+**Shapiro–Wilk test p = 0.68** ( we fail to reject normality), so we can
+safely use **parametric tests**
+:::
+
+### Run a two-way ANOVA
+
+Tests main effects and interaction
+
+::: callout-note
+A note on categorical vs numeric factors
+
+Use factors for discrete groups; use numeric when you want to test a
+continuous trend (e.g., dose–response).
+:::
+
+| Variable | Nature | Should be coded as | Why |
+|:-------------|:-------------|:-------------|:-----------------------------|
+| **`stage` (4 hpf, 9 hpf, 14 hpf)** | Distinct developmental stages | **Categorical (factor)** | The stages are not on a linear scale — differences are categorical, not continuous. |
+| **`leachate` (0, 0.01, 0.1, 1 mg/L)** | Nominally continuous, used as treatment bins | **Categorical (factor)** for ANOVA **or** **numeric** to test a dose–response trend | If you care about *group differences*, treat as a factor; if you want to test whether Shannon changes *linearly/non-linearly* with concentration, treat it as numeric. |
+
+: How to encode variables for alpha-diversity modeling.
+
+::: callout-note
+Since we are looking for non-monotonic (non dose-dependent responses) we
+choose to code our factors as categorical.
+:::
+
+```{r}
+levels(shannon_df$pvc_level)
+levels(shannon_df$stage)
+```
+
+```{r}
+aov_shannon2 <- aov(Shannon ~ pvc_level * stage, data = shannon_df)
+summary(aov_shannon2)
+```
+
+::: callout-note
+A two-way analysis of variance (ANOVA) revealed no significant effects
+of PVC leachate concentration, developmental stage, or their interaction
+on Shannon diversity (Table X). Differences in Shannon diversity among
+leachate treatments were not statistically significant (*F*₃,₄₈ = 1.25,
+*p* = 0.302), nor were differences among developmental stages (*F*₂,₄₈ =
+1.11, *p* = 0.339). Similarly, the leachate × stage interaction was not
+significant (*F*₆,₄₈ = 0.33, *p* = 0.919), indicating that the effect of
+leachate on microbial alpha diversity did not differ among stages.
+
+----
+
+Two-way ANOVA indicated no significant effects of leachate
+concentration, developmental stage, or their interaction on Shannon
+diversity (*p* \> 0.3 for all factors).
+
+---
+
+A two-way analysis of variance (ANOVA) was conducted to test the effects
+of categorical factors — **PVC leachate concentration** (control, low,
+mid, high) and **developmental stage** (cleavage, prawnchip,
+earlygastrula) — on Shannon diversity. Both factors were modeled as
+fixed, categorical factors.
+:::
+
+... but what if they were linear?
+
+```{r}
+class(shannon_df$leachate)
+class(shannon_df$timepoint)
+```
+
+```{r}
+aov_shannon2.num <- aov(Shannon ~ leachate * timepoint, data = shannon_df)
+summary(aov_shannon2.num)
+```
+
+::: callout-note
+Treating leachate concentration and developmental stage as categorical
+factors yielded no significant main or interaction effects on Shannon
+diversity (Table X). When the same variables were treated as continuous,
+results were qualitatively similar: no significant effects of leachate
+(*F*₁,₅₆ = 1.10, *p* = 0.300), timepoint (*F*₁,₅₆ = 1.55, *p* = 0.218),
+or their interaction (*F*₁,₅₆ = 0.04, *p* = 0.841). Thus, alpha
+diversity remained stable across both categorical treatments and
+continuous gradients, indicating limited sensitivity of microbial
+diversity to leachate exposure or developmental progression.
+:::
+
+## Boxplots
+
+```{r}
+shan_aov <- broom::tidy(aov_shannon2)   # columns: term, df, statistic, p.value, ...
+shan_aov
+```
+
+```{r}
+# Extract p-values from ANOVA for figure annotations
+pval_shan_pvcl <- shan_aov %>% filter(term == "pvc_level") %>% pull(p.value)
+pval_shan_stage <- shan_aov %>% filter(term == "stage") %>% pull(p.value)
+pval_shan_intr <- shan_aov %>% filter(term == "pvc_level:stage") %>% pull(p.value)
+```
+
+```{r}
+# Function to Format p-value labels for figure
+format_pval <- function(p) {
+  if (p < 0.001) return("p < 0.001")
+  if (p < 0.01) return(sprintf("p = %.3f", p))
+  return(sprintf("p = %.2f", p))
+}
+```
+
 ```{r, shannon-boxplots}
 #| fig-width: 13
-#| fig-height: 6
-
+#| fig-height: 12
+#| 
 # Box plot by leachate treatment
 shan1 <- ggplot(shannon_df, aes(x = factor(leachate), y = Shannon, fill = factor(leachate))) +
   geom_boxplot(alpha = 0.7, outlier.shape = NA) +
@@ -94,11 +262,13 @@ shan1 <- ggplot(shannon_df, aes(x = factor(leachate), y = Shannon, fill = factor
     title = "Shannon Diversity by Leachate Treatment",
     x = "Leachate Level",
     y = "Shannon Diversity Index",
-    fill = "Leachate"
+    fill = "Leachate",
+    subtitle = paste0("Two-way ANOVA: ", format_pval(pval_shan_pvcl))
   ) +
   theme_classic() +
   theme(
     plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10, color = "grey40"),
     axis.title = element_text(size = 12),
     legend.position = "none"
   )
@@ -112,18 +282,61 @@ shan2 <- ggplot(shannon_df, aes(x = factor(timepoint), y = Shannon, fill = facto
     title = "Shannon Diversity by Developmental Timepoint",
     x = "Hours Post Fertilization",
     y = "Shannon Diversity Index",
-    fill = "Timepoint"
+    fill = "Timepoint",
+    subtitle = paste0("Two-way ANOVA: ", format_pval(pval_shan_stage))
   ) +
   theme_classic() +
   theme(
     plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10, color = "grey40"),
     axis.title = element_text(size = 12),
-    legend.position = "none"
+    legend.position = "right"
   )
 
-# Combine plots
-shan1 + shan2
+# Box plot by leachate x timepoint interaction
+# Get mako colors for timepoints 4, 9, 14
+mako_colors <- viridis::viridis(n = 3, option = "mako", begin = 0.2, end = 0.9)
+
+shan3 <- ggplot(shannon_df, aes(x = factor(timepoint), y = Shannon, fill = factor(leachate))) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA, position = position_dodge(width = 0.8)) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.8), 
+             size = 1.5, alpha = 0.6) +
+  scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Shannon Diversity by Leachate Treatment x Timepoint",
+    x = "Hours Post Fertilization",
+    y = "Shannon Diversity Index",
+    fill = "Leachate",
+    subtitle = paste0("Interaction: ", format_pval(pval_shan_intr))
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10, color = "grey40"),
+    axis.title = element_text(size = 12),
+    legend.position = "right",
+    axis.text.x = ggtext::element_markdown(size = 11)
+  ) +
+  scale_x_discrete(labels = c(
+    "4" = paste0("<span style='background-color:", mako_colors[1], ";padding:2px 8px;border-radius:3px;'>4</span>"),
+    "9" = paste0("<span style='background-color:", mako_colors[2], ";padding:2px 8px;border-radius:3px;'>9</span>"),
+    "14" = paste0("<span style='background-color:", mako_colors[3], ";padding:2px 8px;border-radius:3px;'>14</span>")
+  ))
+
+shan3
+
+# Combine plots using patchwork
+shannon_combined <- (shan1 + shan2) / shan3
+
+# Save plots
+ggsave(filename = file.path(figures_dir, "shannon_by_leachate.png"), plot = shan1, width = 10, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "shannon_by_timepoint.png"), plot = shan2, width = 10, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "shannon_leachate_x_timepoint.png"), plot = shan3, width = 10, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "shannon_combined.png"), plot = shannon_combined, width = 13, height = 12, dpi = 300)
+
+shannon_combined
 ```
+
 
 ## Faith's Phylogenetic Diversity
 
@@ -148,10 +361,55 @@ faith_df <- faith_df %>%
   left_join(metadata, by ="SampleID")
 ```
 
+## Statistical tests
+
+### Check for normality
+
+```{r}
+hist(faith_df$Faith)
+shapiro.test(faith_df$Faith) # normality
+```
+
+::: callout-note
+Check normality of Faith's Phylogenetic Diversity values using Shapiro-Wilk test.
+:::
+
+### Run a two-way ANOVA
+
+#### Using categorical variables
+
+```{r}
+aov_faith2 <- aov(Faith ~ pvc_level * stage, data = faith_df)
+summary(aov_faith2)
+```
+
+::: callout-note
+Two-way ANOVA with Faith's Phylogenetic Diversity as the response variable and categorical factors (PVC leachate level and developmental stage).
+:::
+
+#### Using numerical variables
+
+```{r}
+aov_faith2.num <- aov(Faith ~ leachate * timepoint, data = faith_df)
+summary(aov_faith2.num)
+```
+
+::: callout-note
+Two-way ANOVA with Faith's Phylogenetic Diversity treating leachate concentration and timepoint as continuous variables.
+:::
+
+## Boxplots
+
 
 ```{r, faith-boxplots}
 #| fig-width: 13
-#| fig-height: 6
+#| fig-height: 12
+
+# Extract p-values from ANOVA for annotations
+faith_pvals <- summary(aov_faith2)[[1]]
+pval_leachate_faith <- faith_pvals["pvc_level", "Pr(>F)"]
+pval_stage_faith <- faith_pvals["stage", "Pr(>F)"]
+pval_interaction_faith <- faith_pvals["pvc_level:stage", "Pr(>F)"]
 
 # Box plot by leachate treatment
 fait1 <- ggplot(faith_df, aes(x = factor(leachate), y = Faith, fill = factor(leachate))) +
@@ -162,11 +420,13 @@ fait1 <- ggplot(faith_df, aes(x = factor(leachate), y = Faith, fill = factor(lea
     title = "Faith's Phylogenetic Diversity by Leachate Treatment",
     x = "Leachate Level",
     y = "Faith's Phylogenetic Diversity Metric",
-    fill = "Leachate"
+    fill = "Leachate",
+    subtitle = paste0("Two-way ANOVA: ", format_pval(pval_leachate_faith))
   ) +
   theme_classic() +
   theme(
     plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10, color = "grey40"),
     axis.title = element_text(size = 12),
     legend.position = "none"
   )
@@ -180,17 +440,54 @@ fait2 <- ggplot(faith_df, aes(x = factor(timepoint), y = Faith, fill = factor(ti
     title = "Faith's Phylogenetic Diversity by Developmental Timepoint",
     x = "Hours Post Fertilization",
     y = "Faith's Phlyogenetic Diversity Metric",
-    fill = "Timepoint"
+    fill = "Timepoint",
+    subtitle = paste0("Two-way ANOVA: ", format_pval(pval_stage_faith))
   ) +
   theme_classic() +
   theme(
     plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10, color = "grey40"),
     axis.title = element_text(size = 12),
-    legend.position = "none"
+    legend.position = "right"
   )
 
-# Combine plots
-fait1 + fait2
+# Box plot by leachate x timepoint interaction
+fait3 <- ggplot(faith_df, aes(x = factor(timepoint), y = Faith, fill = factor(leachate))) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA, position = position_dodge(width = 0.8)) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.8), 
+             size = 1.5, alpha = 0.6) +
+  scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Faith's Phylogenetic Diversity by Leachate Treatment x Timepoint",
+    x = "Hours Post Fertilization",
+    y = "Faith's Phylogenetic Diversity Metric",
+    fill = "Leachate",
+    subtitle = paste0("Interaction: ", format_pval(pval_interaction_faith))
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10, color = "grey40"),
+    axis.title = element_text(size = 12),
+    legend.position = "right",
+    axis.text.x = ggtext::element_markdown(size = 11)
+  ) +
+  scale_x_discrete(labels = c(
+    "4" = paste0("<span style='background-color:", mako_colors[1], ";padding:2px 8px;border-radius:3px;'>4</span>"),
+    "9" = paste0("<span style='background-color:", mako_colors[2], ";padding:2px 8px;border-radius:3px;'>9</span>"),
+    "14" = paste0("<span style='background-color:", mako_colors[3], ";padding:2px 8px;border-radius:3px;'>14</span>")
+  ))
+
+# Combine plots using patchwork
+faith_combined <- (fait1 + fait2) / fait3
+
+# Save plots
+ggsave(filename = file.path(figures_dir, "faith_by_leachate.png"), plot = fait1, width = 10, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "faith_by_timepoint.png"), plot = fait2, width = 10, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "faith_leachate_x_timepoint.png"), plot = fait3, width = 10, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "faith_combined.png"), plot = faith_combined, width = 13, height = 12, dpi = 300)
+
+faith_combined
 ```
 
 ## Pielou's Evenness
@@ -217,9 +514,54 @@ evenness_df <- evenness_df %>%
 head(evenness_df)
 ```
 
+## Statistical tests
+
+### Check for normality
+
+```{r}
+hist(evenness_df$Evenness)
+shapiro.test(evenness_df$Evenness) # normality
+```
+
+::: callout-note
+Check normality of Pielou's Evenness values using Shapiro-Wilk test.
+:::
+
+### Run a two-way ANOVA
+
+#### Using categorical variables
+
+```{r}
+aov_evenness2 <- aov(Evenness ~ pvc_level * stage, data = evenness_df)
+summary(aov_evenness2)
+```
+
+::: callout-note
+Two-way ANOVA with Pielou's Evenness as the response variable and categorical factors (PVC leachate level and developmental stage).
+:::
+
+#### Using numerical variables
+
+```{r}
+aov_evenness2.num <- aov(Evenness ~ leachate * timepoint, data = evenness_df)
+summary(aov_evenness2.num)
+```
+
+::: callout-note
+Two-way ANOVA with Pielou's Evenness treating leachate concentration and timepoint as continuous variables.
+:::
+
+## Boxplots
+
 ```{r, pielou-plots}
 #| fig-width: 13
-#| fig-height: 6
+#| fig-height: 12
+
+# Extract p-values from ANOVA for annotations
+evenness_pvals <- summary(aov_evenness2)[[1]]
+pval_leachate_evenness <- evenness_pvals["pvc_level", "Pr(>F)"]
+pval_stage_evenness <- evenness_pvals["stage", "Pr(>F)"]
+pval_interaction_evenness <- evenness_pvals["pvc_level:stage", "Pr(>F)"]
 
 # Box plot by leachate treatment
 piel1 <- ggplot(evenness_df, aes(x = factor(leachate), y = Evenness, fill = factor(leachate))) +
@@ -230,11 +572,13 @@ piel1 <- ggplot(evenness_df, aes(x = factor(leachate), y = Evenness, fill = fact
     title = "Pielou's Evenness by Leachate Treatment",
     x = "Leachate Level",
     y = "Pielou's Evenness",
-    fill = "Leachate"
+    fill = "Leachate",
+    subtitle = paste0("Two-way ANOVA: ", format_pval(pval_leachate_evenness))
   ) +
   theme_classic() +
   theme(
     plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10, color = "grey40"),
     axis.title = element_text(size = 12),
     legend.position = "none"
   )
@@ -248,22 +592,60 @@ piel2 <- ggplot(evenness_df, aes(x = factor(timepoint), y = Evenness, fill = fac
     title = "Pielou's Evenness by Developmental Timepoint",
     x = "Hours Post Fertilization",
     y = "Pielou's Evenness",
-    fill = "Timepoint"
+    fill = "Timepoint",
+    subtitle = paste0("Two-way ANOVA: ", format_pval(pval_stage_evenness))
   ) +
   theme_classic() +
   theme(
     plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10, color = "grey40"),
     axis.title = element_text(size = 12),
-    legend.position = "none"
+    legend.position = "right"
   )
 
-# Combine plots
-piel1 + piel2
+# Box plot by leachate x timepoint interaction
+piel3 <- ggplot(evenness_df, aes(x = factor(timepoint), y = Evenness, fill = factor(leachate))) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA, position = position_dodge(width = 0.8)) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.8), 
+             size = 1.5, alpha = 0.6) +
+  scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Pielou's Evenness by Leachate Treatment x Timepoint",
+    x = "Hours Post Fertilization",
+    y = "Pielou's Evenness",
+    fill = "Leachate",
+    subtitle = paste0("Interaction: ", format_pval(pval_interaction_evenness))
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10, color = "grey40"),
+    axis.title = element_text(size = 12),
+    legend.position = "right",
+    axis.text.x = ggtext::element_markdown(size = 11)
+  ) +
+  scale_x_discrete(labels = c(
+    "4" = paste0("<span style='background-color:", mako_colors[1], ";padding:2px 8px;border-radius:3px;'>4</span>"),
+    "9" = paste0("<span style='background-color:", mako_colors[2], ";padding:2px 8px;border-radius:3px;'>9</span>"),
+    "14" = paste0("<span style='background-color:", mako_colors[3], ";padding:2px 8px;border-radius:3px;'>14</span>")
+  ))
+
+# Combine plots using patchwork
+pielou_combined <- (piel1 + piel2) / piel3
+
+# Save plots
+ggsave(filename = file.path(figures_dir, "pielou_by_leachate.png"), plot = piel1, width = 10, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "pielou_by_timepoint.png"), plot = piel2, width = 10, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "pielou_leachate_x_timepoint.png"), plot = piel3, width = 10, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "pielou_combined.png"), plot = pielou_combined, width = 13, height = 12, dpi = 300)
+
+pielou_combined
 ```
 
 ## Observed Features (ASV Richness)
 
-The number of unique amplicon sequence variants (ASVs) observed in each sample.
+The number of unique amplicon sequence variants (ASVs) observed in each
+sample.
 
 ```{r, asv-rich-data}
 # Load observed features vector
@@ -275,6 +657,7 @@ observed_df <- observed$data
 # View it
 head(observed_df)
 ```
+
 ```{r, asv-rich-metadata}
 observed_df <- observed_df %>%
   rownames_to_column("SampleID") %>%
@@ -282,10 +665,54 @@ observed_df <- observed_df %>%
   left_join(metadata, by = "SampleID")
 ```
 
+## Statistical tests
+
+### Check for normality
+
+```{r}
+hist(observed_df$ObservedFeatures)
+shapiro.test(observed_df$ObservedFeatures) # normality
+```
+
+::: callout-note
+Check normality of Observed Features values using Shapiro-Wilk test.
+:::
+
+### Run a two-way ANOVA
+
+#### Using categorical variables
+
+```{r}
+aov_observed2 <- aov(ObservedFeatures ~ pvc_level * stage, data = observed_df)
+summary(aov_observed2)
+```
+
+::: callout-note
+Two-way ANOVA with Observed Features as the response variable and categorical factors (PVC leachate level and developmental stage).
+:::
+
+#### Using numerical variables
+
+```{r}
+aov_observed2.num <- aov(ObservedFeatures ~ leachate * timepoint, data = observed_df)
+summary(aov_observed2.num)
+```
+
+::: callout-note
+Two-way ANOVA with Observed Features treating leachate concentration and timepoint as continuous variables.
+:::
+
+## Boxplots
 
 ```{r, asv-rich-boxplots}
 #| fig-width: 13
-#| fig-height: 6
+#| fig-height: 12
+
+# Extract p-values from ANOVA for annotations
+observed_pvals <- summary(aov_observed2)[[1]]
+pval_leachate_observed <- observed_pvals["pvc_level", "Pr(>F)"]
+pval_stage_observed <- observed_pvals["stage", "Pr(>F)"]
+pval_interaction_observed <- observed_pvals["pvc_level:stage", "Pr(>F)"]
 
 # Box plot by leachate treatment
 asv1 <- ggplot(observed_df, aes(x = factor(leachate), y = ObservedFeatures, fill = factor(leachate))) +
@@ -296,11 +723,13 @@ asv1 <- ggplot(observed_df, aes(x = factor(leachate), y = ObservedFeatures, fill
     title = "Observed ASV Richness by Leachate Treatment",
     x = "Leachate Level",
     y = "Number of Observed Features",
-    fill = "Leachate"
+    fill = "Leachate",
+    subtitle = paste0("Two-way ANOVA: ", format_pval(pval_leachate_observed))
   ) +
   theme_classic() +
   theme(
     plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10, color = "grey40"),
     axis.title = element_text(size = 12),
     legend.position = "none"
   )
@@ -314,17 +743,54 @@ asv2 <- ggplot(observed_df, aes(x = factor(timepoint), y = ObservedFeatures, fil
     title = "Observed ASV Richness by Developmental Timepoint",
     x = "Hours Post Fertilization",
     y = "Number of Observed Features",
-    fill = "Timepoint"
+    fill = "Timepoint",
+    subtitle = paste0("Two-way ANOVA: ", format_pval(pval_stage_observed))
   ) +
   theme_classic() +
   theme(
     plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10, color = "grey40"),
     axis.title = element_text(size = 12),
-    legend.position = "none"
+    legend.position = "right"
   )
 
-# Combine plots
-asv1 + asv2
+# Box plot by leachate x timepoint interaction
+asv3 <- ggplot(observed_df, aes(x = factor(timepoint), y = ObservedFeatures, fill = factor(leachate))) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA, position = position_dodge(width = 0.8)) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.8), 
+             size = 1.5, alpha = 0.6) +
+  scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Observed ASV Richness by Leachate Treatment x Timepoint",
+    x = "Hours Post Fertilization",
+    y = "Number of Observed Features",
+    fill = "Leachate",
+    subtitle = paste0("Interaction: ", format_pval(pval_interaction_observed))
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10, color = "grey40"),
+    axis.title = element_text(size = 12),
+    legend.position = "right",
+    axis.text.x = ggtext::element_markdown(size = 11)
+  ) +
+  scale_x_discrete(labels = c(
+    "4" = paste0("<span style='background-color:", mako_colors[1], ";padding:2px 8px;border-radius:3px;'>4</span>"),
+    "9" = paste0("<span style='background-color:", mako_colors[2], ";padding:2px 8px;border-radius:3px;'>9</span>"),
+    "14" = paste0("<span style='background-color:", mako_colors[3], ";padding:2px 8px;border-radius:3px;'>14</span>")
+  ))
+
+# Combine plots using patchwork
+asv_combined <- (asv1 + asv2) / asv3
+
+# Save plots
+ggsave(filename = file.path(figures_dir, "observed_features_by_leachate.png"), plot = asv1, width = 10, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "observed_features_by_timepoint.png"), plot = asv2, width = 10, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "observed_features_leachate_x_timepoint.png"), plot = asv3, width = 10, height = 6, dpi = 300)
+ggsave(filename = file.path(figures_dir, "observed_features_combined.png"), plot = asv_combined, width = 13, height = 12, dpi = 300)
+
+asv_combined
 ```
 
 ## Alpha Diversity Summary Panel
@@ -375,7 +841,8 @@ alph2 <- ggplot(alpha_combined, aes(x = factor(timepoint), y = Value, fill = fac
     title = "Alpha Diversity Metrics by Developmental Timepoint",
     x = "Hours Post Fertilization",
     y = "Diversity Value",
-    fill = "Timepoint"
+    fill = "Timepoint",
+    color = "Timepoint"
   ) +
   theme_classic() +
   theme(
@@ -383,8 +850,12 @@ alph2 <- ggplot(alpha_combined, aes(x = factor(timepoint), y = Value, fill = fac
     axis.title = element_text(size = 12),
     strip.background = element_rect(fill = "grey90"),
     strip.text = element_text(face = "bold", size = 11),
-    legend.position = "none"
+    legend.position = "right"
   )
+
+# Save plots
+ggsave(filename = file.path(figures_dir, "alpha_diversity_panel_by_leachate.png"), plot = alph1, width = 12, height = 10, dpi = 300)
+ggsave(filename = file.path(figures_dir, "alpha_diversity_panel_by_timepoint.png"), plot = alph2, width = 12, height = 10, dpi = 300)
 
 alph1
 alph2
@@ -392,11 +863,13 @@ alph2
 
 # Beta Diversity
 
-**Beta diversity measures the dissimilarity in community composition between samples.**
+**Beta diversity measures the dissimilarity in community composition
+between samples.**
 
 ## Bray-Curtis Dissimilarity
 
-Bray-Curtis dissimilarity is based on abundance differences and does not account for phylogeny.
+Bray-Curtis dissimilarity is based on abundance differences and does not
+account for phylogeny.
 
 ```{r, braycurtis-data}
 # Load Bray-Curtis PCoA results
@@ -404,20 +877,14 @@ bc_pcoa <- read_qza(file.path(core_metrics_path, "bray_curtis_pcoa_results.qza")
 
 # Extract principle component coordinates
 bc_coords <- bc_pcoa$data$Vectors
-
-str(bc_coords)
 ```
 
 ```{r, braycurtis-metadata}
 bc_coords <- bc_coords %>% 
   left_join(metadata, by = "SampleID")
 
-head(bc_coords)
-
 bc_variance <- bc_pcoa$data$ProportionExplained
-head(bc_variance)
 ```
-
 
 ```{r, braycurtis-PCoAplot}
 #| fig-width: 10
@@ -463,17 +930,23 @@ bray2 <- ggplot(bc_coords, aes(x = PC1, y = PC2, color = factor(timepoint), shap
     legend.position = "right"
   )
 
+# Save plots
+ggsave(filename = file.path(figures_dir, "bray_curtis_by_leachate.png"), plot = bray1, width = 10, height = 8, dpi = 300)
+ggsave(filename = file.path(figures_dir, "bray_curtis_by_timepoint.png"), plot = bray2, width = 10, height = 8, dpi = 300)
+
 bray1
 bray2
 ```
-::: callout-note
-44.35% of variation explained by... parental cross? How do we add that info into the figure?
-:::
 
+::: callout-note
+44.35% of variation explained by... parental cross? How do we add that
+info into the figure?
+:::
 
 ## Jaccard Distance
 
-Jaccard distance is based on presence/absence and does not account for phylogeny.
+Jaccard distance is based on presence/absence and does not account for
+phylogeny.
 
 ```{r}
 # Load Jaccard PCoA results
@@ -541,13 +1014,18 @@ jacc2 <- ggplot(jac_coords, aes(x = PC1, y = PC2, color = factor(timepoint), sha
     legend.position = "right"
   )
 
+# Save plots
+ggsave(filename = file.path(figures_dir, "jaccard_by_leachate.png"), plot = jacc1, width = 10, height = 8, dpi = 300)
+ggsave(filename = file.path(figures_dir, "jaccard_by_timepoint.png"), plot = jacc2, width = 10, height = 8, dpi = 300)
+
 jacc1
 jacc2
 ```
 
 ## Weighted UniFrac Distance
 
-Weighted UniFrac considers phylogenetic distances and abundance differences.
+Weighted UniFrac considers phylogenetic distances and abundance
+differences.
 
 ```{r}
 # Load Weighted UniFrac PCoA results
@@ -565,7 +1043,6 @@ wuf_coords <- wuf_coords %>%
 
 wuf_variance <- wuf_pcoa$data$ProportionExplained
 ```
-
 
 ```{r}
 #| fig-width: 13
@@ -611,13 +1088,18 @@ wufr2 <- ggplot(wuf_coords, aes(x = PC1, y = PC2, color = factor(timepoint), sha
     legend.position = "right"
   )
 
+# Save plots
+ggsave(filename = file.path(figures_dir, "weighted_unifrac_by_leachate.png"), plot = wufr1, width = 10, height = 8, dpi = 300)
+ggsave(filename = file.path(figures_dir, "weighted_unifrac_by_timepoint.png"), plot = wufr2, width = 10, height = 8, dpi = 300)
+
 wufr1
 wufr2
 ```
 
 ## Unweighted UniFrac Distance
 
-Unweighted UniFrac considers phylogenetic distances but not abundance (presence/absence only).
+Unweighted UniFrac considers phylogenetic distances but not abundance
+(presence/absence only).
 
 ```{r}
 # Load Unweighted UniFrac PCoA results
@@ -674,24 +1156,61 @@ uwuf2 <- ggplot(uwuf_coords, aes(x = PC1, y = PC2, color = factor(timepoint), sh
     legend.position = "right"
   )
 
+# Save plots
+ggsave(filename = file.path(figures_dir, "unweighted_unifrac_by_leachate.png"), plot = uwuf1, width = 10, height = 8, dpi = 300)
+ggsave(filename = file.path(figures_dir, "unweighted_unifrac_by_timepoint.png"), plot = uwuf2, width = 10, height = 8, dpi = 300)
+
 uwuf1
 uwuf2
 ```
 
+## Beta Diversity Summary Panel
+
+```{r}
+#| fig-width: 14
+#| fig-height: 12
+
+# Combine all beta diversity PCoA plots by leachate
+beta_leachate <- (bray1 + jacc1) / (wufr1 + uwuf1) +
+  plot_annotation(
+    title = "Beta Diversity PCoA Plots - Colored by Leachate Treatment",
+    theme = theme(plot.title = element_text(face = "bold", size = 16, hjust = 0.5))
+  )
+
+# Combine all beta diversity PCoA plots by timepoint
+beta_timepoint <- (bray2 + jacc2) / (wufr2 + uwuf2) +
+  plot_annotation(
+    title = "Beta Diversity PCoA Plots - Colored by Developmental Timepoint",
+    theme = theme(plot.title = element_text(face = "bold", size = 16, hjust = 0.5))
+  )
+
+# Save plots
+ggsave(filename = file.path(figures_dir, "beta_diversity_panel_by_leachate.png"), plot = beta_leachate, width = 14, height = 12, dpi = 300)
+ggsave(filename = file.path(figures_dir, "beta_diversity_panel_by_timepoint.png"), plot = beta_timepoint, width = 14, height = 12, dpi = 300)
+
+beta_leachate
+beta_timepoint
+```
+
 # Summary
 
-This document provides manuscript-ready visualizations of all core diversity metrics from the filtered dataset:
+This document provides manuscript-ready visualizations of all core
+diversity metrics from the filtered dataset:
 
-**Alpha Diversity Metrics:**
-- Shannon Diversity Index
-- Faith's Phylogenetic Diversity
-- Pielou's Evenness
-- Observed ASV Richness
+**Alpha Diversity Metrics:** - Shannon Diversity Index - Faith's
+Phylogenetic Diversity - Pielou's Evenness - Observed ASV Richness -
+Alpha Diversity Summary Panel (all metrics combined)
 
-**Beta Diversity Metrics:**
-- Bray-Curtis dissimilarity (abundance-based)
-- Jaccard distance (presence/absence)
-- Weighted UniFrac distance (phylogenetic + abundance)
-- Unweighted UniFrac distance (phylogenetic presence/absence)
+**Beta Diversity Metrics:** - Bray-Curtis dissimilarity
+(abundance-based) - Jaccard distance (presence/absence) - Weighted
+UniFrac distance (phylogenetic + abundance) - Unweighted UniFrac
+distance (phylogenetic presence/absence) - Beta Diversity Summary Panel
+(all PCoA plots combined)
 
-Each metric is visualized by both leachate treatment level and developmental timepoint (hours post fertilization), allowing for comprehensive assessment of how microbiome diversity changes with PVC leachate exposure and coral development.
+Each metric is visualized by both leachate treatment level and
+developmental timepoint (hours post fertilization), allowing for
+comprehensive assessment of how microbiome diversity changes with PVC
+leachate exposure and coral development.
+
+**All plots are automatically saved to the `output/figures/` directory**
+for easy access and manuscript preparation.

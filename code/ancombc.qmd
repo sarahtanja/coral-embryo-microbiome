@@ -27,6 +27,9 @@ html:
   link-external-icon: true 
   link-external-newwindow: true
 ---
+# Background
+
+[ANCOM-BC2 vignette](https://www.bioconductor.org/packages/release/bioc/vignettes/ANCOMBC/inst/doc/ANCOMBC2.html)
 
 # Setup
 
@@ -67,6 +70,7 @@ library(tidyverse)
 library(qiime2R)
 library(phyloseq)
 library(DT)
+library(viridis)
 options(DT.options = list(
   initComplete = JS("function(settings, json) {",
   "$(this.api().table().header()).css({'background-color': 
@@ -82,13 +86,9 @@ options(DT.options = list(
 getwd()
 ```
 
-# Background
+# Load Inputs
 
-[ANCOM-BC2 vignette](https://www.bioconductor.org/packages/release/bioc/vignettes/ANCOMBC/inst/doc/ANCOMBC2.html)
-
-## Inputs
-
-### OTU feature table
+## OTU feature table
 
 -   Count table (raw integer counts) — one of:
 
@@ -107,7 +107,7 @@ otu_table <- otu_table %>%
 head(otu_table)
 ```
 
-### Metadata
+## Metadata
 
 -   Sample metadata (mapping file / metadata.tsv) — one row per sample; sample IDs must exactly match the sample IDs in the count table.
 
@@ -115,7 +115,7 @@ head(otu_table)
 metadata <- read_csv("../metadata/metadata.csv")
 ```
 
-### Taxonomy table
+## Taxonomy table
 
 -   Taxonomy table (feature -\> taxonomy) rows = features, columns = taxonomic ranks. Useful for annotating results.
 
@@ -191,4 +191,192 @@ res_ancombc$diff_abn    # logical matrix: TRUE if differential
 # Example: get significant taxa
 sig_taxa <- rownames(res_ancombc$res)[res_ancombc$res$q_val < 0.05]
 sig_taxa
+```
+
+# Clustering and Visualization of Significant Taxa
+
+## Extract abundance data for significant taxa
+
+```{r}
+# Extract abundance data for significant taxa
+if (length(sig_taxa) > 0) {
+  # Get OTU table as data frame
+  otu_df <- as.data.frame(otu_table(ps))
+  
+  # Filter for significant taxa
+  sig_otu <- otu_df[sig_taxa, , drop = FALSE]
+  
+  # Convert to relative abundance (proportions)
+  sig_otu_rel <- sweep(sig_otu, 2, colSums(otu_mat), FUN = "/") * 100
+  
+  # Transform to long format for visualization
+  sig_otu_long <- sig_otu_rel %>%
+    as.data.frame() %>%
+    rownames_to_column("taxon_id") %>%
+    pivot_longer(cols = -taxon_id, 
+                 names_to = "sample_id", 
+                 values_to = "rel_abundance")
+  
+  # Join with metadata
+  sig_otu_long <- sig_otu_long %>%
+    left_join(metadata, by = "sample_id")
+  
+  head(sig_otu_long)
+} else {
+  cat("No significant taxa found with q < 0.05\n")
+}
+```
+
+## Cluster significant taxa by abundance patterns
+
+```{r}
+if (length(sig_taxa) > 1) {
+  # Calculate distance matrix based on abundance patterns
+  dist_matrix <- dist(sig_otu_rel, method = "euclidean")
+  
+  # Perform hierarchical clustering
+  hc <- hclust(dist_matrix, method = "ward.D2")
+  
+  # Plot dendrogram
+  plot(hc, main = "Hierarchical Clustering of Significant Taxa",
+       xlab = "Taxa", ylab = "Height")
+  
+  # Cut tree into clusters (adjust k as needed)
+  k_clusters <- min(4, length(sig_taxa))  # Use 4 clusters or fewer if less taxa
+  clusters <- cutree(hc, k = k_clusters)
+  
+  # Add cluster assignments to data
+  sig_otu_long <- sig_otu_long %>%
+    left_join(
+      data.frame(taxon_id = names(clusters), 
+                 cluster = paste0("Cluster ", clusters)),
+      by = "taxon_id"
+    )
+  
+  cat("Taxa assigned to", k_clusters, "clusters\n")
+  cat("Cluster assignments:\n")
+  print(table(clusters))
+} else if (length(sig_taxa) == 1) {
+  # Only one taxon, no clustering needed
+  sig_otu_long$cluster <- "Single taxon"
+  cat("Only one significant taxon, no clustering performed\n")
+}
+```
+
+## Visualize significant taxa with facet_wrap
+
+```{r}
+#| fig-width: 12
+#| fig-height: 10
+#| fig-dpi: 300
+
+if (length(sig_taxa) > 0) {
+  # Convert leachate_mgL to ordered factor for proper x-axis ordering
+  sig_otu_long <- sig_otu_long %>%
+    mutate(
+      leachate_mgL_factor = factor(leachate_mgL, 
+                                   levels = sort(unique(leachate_mgL))),
+      stage = factor(stage)
+    )
+  
+  # Create the faceted plot
+  p_sig_taxa <- ggplot(sig_otu_long, 
+                       aes(x = leachate_mgL_factor, 
+                           y = rel_abundance, 
+                           color = stage, 
+                           group = stage)) +
+    geom_point(alpha = 0.6, size = 2) +
+    geom_line(stat = "summary", fun = "mean", linewidth = 1) +
+    stat_summary(fun = mean, geom = "point", size = 3, alpha = 0.8) +
+    facet_wrap(~ taxon_id, scales = "free_y", ncol = 3) +
+    scale_color_viridis_d(name = "Development Stage") +
+    labs(
+      title = "Abundance of Significant Taxa Across Leachate Concentrations",
+      subtitle = "Grouped by development stage (lines show mean abundance)",
+      x = "Leachate Concentration (mg/L)",
+      y = "Relative Abundance (%)"
+    ) +
+    theme_classic(base_size = 12) +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      strip.background = element_rect(fill = "lightgray", color = "black"),
+      strip.text = element_text(face = "bold", size = 9),
+      legend.position = "bottom",
+      plot.title = element_text(face = "bold", size = 14),
+      plot.subtitle = element_text(size = 11)
+    )
+  
+  print(p_sig_taxa)
+  
+  # Save the plot
+  dir.create("../output/figures", recursive = TRUE, showWarnings = FALSE)
+  ggsave("../output/figures/ancombc_significant_taxa_faceted.png", 
+         plot = p_sig_taxa, width = 12, height = 10, dpi = 300)
+  cat("\nFigure saved to output/figures/ancombc_significant_taxa_faceted.png\n")
+} else {
+  cat("No significant taxa to visualize\n")
+}
+```
+
+## Visualize by cluster (if multiple clusters)
+
+```{r}
+#| fig-width: 14
+#| fig-height: 10
+#| fig-dpi: 300
+
+if (length(sig_taxa) > 1) {
+  # Create a faceted plot by cluster
+  p_clusters <- ggplot(sig_otu_long, 
+                       aes(x = leachate_mgL_factor, 
+                           y = rel_abundance, 
+                           color = stage, 
+                           group = stage)) +
+    geom_point(alpha = 0.6, size = 2) +
+    geom_line(stat = "summary", fun = "mean", linewidth = 1) +
+    stat_summary(fun = mean, geom = "point", size = 3, alpha = 0.8) +
+    facet_grid(cluster ~ taxon_id, scales = "free_y") +
+    scale_color_viridis_d(name = "Development Stage") +
+    labs(
+      title = "Clustered Significant Taxa Patterns Across Leachate Concentrations",
+      subtitle = "Taxa grouped by hierarchical clustering patterns",
+      x = "Leachate Concentration (mg/L)",
+      y = "Relative Abundance (%)"
+    ) +
+    theme_classic(base_size = 11) +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+      strip.background = element_rect(fill = "lightgray", color = "black"),
+      strip.text = element_text(face = "bold", size = 8),
+      legend.position = "bottom",
+      plot.title = element_text(face = "bold", size = 14),
+      plot.subtitle = element_text(size = 11)
+    )
+  
+  print(p_clusters)
+  
+  # Save the plot
+  ggsave("../output/figures/ancombc_significant_taxa_clustered.png", 
+         plot = p_clusters, width = 14, height = 10, dpi = 300)
+  cat("\nFigure saved to output/figures/ancombc_significant_taxa_clustered.png\n")
+}
+```
+
+## Summary statistics by cluster
+
+```{r}
+if (length(sig_taxa) > 0) {
+  # Calculate mean abundance by cluster, stage, and leachate
+  cluster_summary <- sig_otu_long %>%
+    group_by(cluster, stage, leachate_mgL) %>%
+    summarize(
+      mean_abundance = mean(rel_abundance),
+      sd_abundance = sd(rel_abundance),
+      n_samples = n(),
+      .groups = "drop"
+    ) %>%
+    arrange(cluster, stage, leachate_mgL)
+  
+  print(cluster_summary)
+}
 ```
