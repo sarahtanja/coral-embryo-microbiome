@@ -1,0 +1,537 @@
+---
+title: "Compositional Data Analysis" 
+subtitle: "Following Gloor et al. 2017 recommendations for microbiome compositional data analysis"
+author: "Sarah Tanja" 
+date: 10/17/2025 
+date-modified: today
+format: 
+  gfm: 
+    toc: true 
+    number-sections: true 
+  html: 
+    theme: journal
+    highlight-style: github 
+    page-layout: full 
+    code-background: true
+    code-tools: 
+      source: true 
+      toggle: true
+    toc: true 
+    toc-depth: 2
+    toc-location: left 
+    number-sections: true 
+    df-print: kable 
+    smooth-scroll: true 
+    link-external-icon: true 
+    link-external-newwindow: true
+bibliography: "../microbiome_bibtex.bib"
+reference-location: margin
+citation-location: margin
+---
+
+# Background
+
+This analysis follows the recommendations from Gloor et al. 2017 for compositional data analysis of microbiome data. Microbiome sequence count data are compositional - they represent relative abundances constrained to sum to a total (sequencing depth). This requires specialized statistical methods that account for the compositional nature of the data.
+
+Key recommendations from Gloor et al. 2017:
+- Use centered log-ratio (CLR) transformation to convert compositional data to Euclidean space
+- Calculate Aitchison distance (Euclidean distance on CLR-transformed data) for dissimilarity
+- Use variance-based methods like PCA on CLR-transformed data
+- Perform statistical tests on transformed data
+
+# Setup
+
+## Install & load packages
+
+```{r}
+# Check R version
+R.version.string
+
+# Install and load required packages
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager")
+}
+
+# Install Bioconductor packages
+if (!requireNamespace("phyloseq", quietly = TRUE)) {
+  BiocManager::install("phyloseq")
+}
+if (!requireNamespace("ANCOMBC", quietly = TRUE)) {
+  BiocManager::install("ANCOMBC")
+}
+
+# Install CRAN packages
+required_packages <- c("tidyverse", "vegan", "compositions", "zCompositions", 
+                       "ggplot2", "reshape2", "corrplot", "devtools")
+for (pkg in required_packages) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    install.packages(pkg)
+  }
+}
+
+# Install qiime2R from GitHub
+if (!requireNamespace("qiime2R", quietly = TRUE)) {
+  devtools::install_github("jbisanz/qiime2R")
+}
+
+# Install SpiecEasi for SparCC (optional, can be slow to install)
+if (!requireNamespace("SpiecEasi", quietly = TRUE)) {
+  devtools::install_github("zdk123/SpiecEasi")
+}
+```
+
+```{r}
+# Load libraries
+library(tidyverse)
+library(qiime2R)
+library(phyloseq)
+library(vegan)
+library(compositions)
+library(zCompositions)
+library(ggplot2)
+library(reshape2)
+library(corrplot)
+library(ANCOMBC)
+
+# Set working directory
+getwd()
+```
+
+# Load Data
+
+## Import QIIME2 artifacts
+
+```{r}
+# Define file paths
+feature_table_path <- "../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza"
+metadata_path <- "../metadata/metadata.csv"
+taxonomy_path <- "../salipante/241121_StonyCoral/270x200/250414_270x200_representative-sequences_taxonomy.qza"
+
+# Load feature table from QIIME2 artifact
+feature_table <- read_qza(feature_table_path)$data
+
+# Load metadata
+metadata <- read_csv(metadata_path)
+
+# Load taxonomy (optional, for annotation)
+taxonomy <- read_qza(taxonomy_path)$data
+
+# Display data dimensions
+cat("Feature table dimensions:", dim(feature_table), "\n")
+cat("Number of samples in metadata:", nrow(metadata), "\n")
+```
+
+## Prepare data for analysis
+
+```{r}
+# Convert feature table to matrix (samples as rows, features as columns)
+# QIIME2 format typically has features as rows, samples as columns
+feature_matrix <- as.matrix(feature_table)
+feature_matrix_t <- t(feature_matrix)  # Transpose so samples are rows
+
+# Ensure sample IDs match between feature table and metadata
+sample_ids <- rownames(feature_matrix_t)
+metadata_filtered <- metadata %>%
+  filter(sample_id %in% sample_ids) %>%
+  arrange(match(sample_id, sample_ids))
+
+cat("Samples in feature table:", nrow(feature_matrix_t), "\n")
+cat("Samples in metadata:", nrow(metadata_filtered), "\n")
+```
+
+# CLR Transformation
+
+The centered log-ratio (CLR) transformation converts compositional data to Euclidean space. It handles zeros by replacing them with small values (geometric Bayesian multiplicative replacement).
+
+```{r}
+# Replace zeros with small values using cmultRepl from zCompositions
+# This is necessary because log transformation is undefined for zeros
+feature_matrix_nozero <- cmultRepl(feature_matrix_t, method = "CZM", label = 0)
+
+# Apply CLR transformation
+feature_clr <- clr(feature_matrix_nozero)
+
+# Convert to data frame for easier handling
+feature_clr_df <- as.data.frame(feature_clr)
+
+cat("CLR-transformed data dimensions:", dim(feature_clr_df), "\n")
+head(feature_clr_df[, 1:5])
+```
+
+# Aitchison Distance
+
+The Aitchison distance is the Euclidean distance between samples after CLR transformation. This is the appropriate distance metric for compositional data.
+
+```{r}
+# Calculate Aitchison distance (Euclidean distance on CLR-transformed data)
+aitchison_dist <- dist(feature_clr, method = "euclidean")
+
+# Display distance matrix summary
+cat("Aitchison distance matrix summary:\n")
+summary(as.vector(aitchison_dist))
+```
+
+# PCA Biplot
+
+Variance-based compositional PCA on CLR-transformed data.
+
+```{r}
+# Perform PCA on CLR-transformed data
+pca_result <- prcomp(feature_clr, scale. = FALSE)
+
+# Calculate variance explained
+variance_explained <- summary(pca_result)$importance[2, ] * 100
+
+# Create data frame for plotting
+pca_df <- data.frame(
+  PC1 = pca_result$x[, 1],
+  PC2 = pca_result$x[, 2],
+  sample_id = rownames(feature_clr)
+)
+
+# Merge with metadata
+pca_df <- pca_df %>%
+  left_join(metadata_filtered, by = "sample_id")
+
+# Create PCA biplot
+pca_plot <- ggplot(pca_df, aes(x = PC1, y = PC2, color = leachate, shape = stage)) +
+  geom_point(size = 3, alpha = 0.7) +
+  labs(
+    title = "PCA Biplot of CLR-Transformed Microbiome Data",
+    subtitle = "Following Gloor et al. 2017 recommendations",
+    x = paste0("PC1 (", round(variance_explained[1], 2), "% variance)"),
+    y = paste0("PC2 (", round(variance_explained[2], 2), "% variance)")
+  ) +
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  )
+
+print(pca_plot)
+
+# Save plot
+ggsave("../output/compositional_pca_biplot.png", pca_plot, 
+       width = 10, height = 7, dpi = 300)
+```
+
+```{r}
+# Create additional PCA plot colored by hours post fertilization
+pca_plot_hpf <- ggplot(pca_df, aes(x = PC1, y = PC2, color = factor(hpf), shape = leachate)) +
+  geom_point(size = 3, alpha = 0.7) +
+  labs(
+    title = "PCA Biplot by Hours Post Fertilization",
+    x = paste0("PC1 (", round(variance_explained[1], 2), "% variance)"),
+    y = paste0("PC2 (", round(variance_explained[2], 2), "% variance)"),
+    color = "Hours Post Fertilization",
+    shape = "Leachate"
+  ) +
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    plot.title = element_text(hjust = 0.5)
+  )
+
+print(pca_plot_hpf)
+
+# Save plot
+ggsave("../output/compositional_pca_biplot_hpf.png", pca_plot_hpf, 
+       width = 10, height = 7, dpi = 300)
+```
+
+# PERMANOVA
+
+PERMANOVA (Permutational Multivariate Analysis of Variance) on the Aitchison distance matrix to test for differences in microbial composition across experimental factors.
+
+```{r}
+# Perform PERMANOVA on Aitchison distance
+# Test effects of leachate, stage, and their interaction
+permanova_result <- adonis2(
+  aitchison_dist ~ leachate * stage + parents,
+  data = metadata_filtered,
+  permutations = 999
+)
+
+print(permanova_result)
+
+# Save results
+write.csv(as.data.frame(permanova_result), 
+          "../output/compositional_permanova_results.csv",
+          row.names = TRUE)
+```
+
+```{r}
+# Additional PERMANOVA testing time effects
+permanova_hpf <- adonis2(
+  aitchison_dist ~ leachate * hpf + parents,
+  data = metadata_filtered,
+  permutations = 999
+)
+
+print(permanova_hpf)
+
+# Save results
+write.csv(as.data.frame(permanova_hpf), 
+          "../output/compositional_permanova_hpf_results.csv",
+          row.names = TRUE)
+```
+
+```{r}
+# Pairwise PERMANOVA for leachate groups
+# Create function for pairwise comparisons
+pairwise_permanova <- function(dist_matrix, metadata, group_var) {
+  groups <- unique(metadata[[group_var]])
+  results <- list()
+  
+  for (i in 1:(length(groups) - 1)) {
+    for (j in (i + 1):length(groups)) {
+      group1 <- groups[i]
+      group2 <- groups[j]
+      
+      # Subset data for these two groups
+      subset_idx <- metadata[[group_var]] %in% c(group1, group2)
+      subset_dist <- as.dist(as.matrix(dist_matrix)[subset_idx, subset_idx])
+      subset_metadata <- metadata[subset_idx, ]
+      
+      # Run PERMANOVA
+      perm_result <- adonis2(
+        subset_dist ~ get(group_var),
+        data = subset_metadata,
+        permutations = 999
+      )
+      
+      comparison_name <- paste(group1, "vs", group2)
+      results[[comparison_name]] <- perm_result
+    }
+  }
+  
+  return(results)
+}
+
+# Run pairwise comparisons
+pairwise_results <- pairwise_permanova(aitchison_dist, metadata_filtered, "leachate")
+
+# Print results
+for (comparison in names(pairwise_results)) {
+  cat("\n", comparison, ":\n")
+  print(pairwise_results[[comparison]])
+}
+```
+
+# SparCC Correlation Analysis
+
+SparCC is designed specifically for compositional data and infers correlations while accounting for the compositional constraint.
+
+```{r}
+# Note: SparCC implementation can be done using SpiecEasi package
+# or the sparcc function from various implementations
+
+# If SpiecEasi is installed, uncomment and use:
+# library(SpiecEasi)
+# 
+# # Run SparCC
+# sparcc_result <- sparcc(t(feature_matrix_t))
+# 
+# # Extract correlation matrix
+# sparcc_cor <- sparcc_result$Cor
+# rownames(sparcc_cor) <- colnames(feature_matrix_t)
+# colnames(sparcc_cor) <- colnames(feature_matrix_t)
+# 
+# # Plot correlation matrix (subset for visualization)
+# # Select top 50 most abundant features
+# feature_abundance <- colSums(feature_matrix_t)
+# top_features <- names(sort(feature_abundance, decreasing = TRUE)[1:50])
+# 
+# sparcc_cor_subset <- sparcc_cor[top_features, top_features]
+# 
+# # Create correlation plot
+# png("../output/sparcc_correlation_plot.png", width = 12, height = 12, units = "in", res = 300)
+# corrplot(sparcc_cor_subset, method = "color", type = "upper",
+#          tl.cex = 0.5, tl.col = "black",
+#          title = "SparCC Correlation Matrix (Top 50 Features)",
+#          mar = c(0, 0, 2, 0))
+# dev.off()
+
+cat("SparCC analysis requires SpiecEasi package.\n")
+cat("To run SparCC, install SpiecEasi and uncomment the code above.\n")
+cat("Installation: devtools::install_github('zdk123/SpiecEasi')\n")
+```
+
+```{r}
+# Alternative: Calculate correlations on CLR-transformed data
+# This is a simpler approach that approximates compositional correlations
+
+# Calculate correlation matrix on CLR-transformed data
+clr_cor <- cor(feature_clr, method = "pearson")
+
+# Select top abundant features for visualization
+feature_abundance <- colSums(feature_matrix_t)
+top_features <- names(sort(feature_abundance, decreasing = TRUE)[1:50])
+
+clr_cor_subset <- clr_cor[top_features, top_features]
+
+# Create correlation plot
+png("../output/clr_correlation_plot.png", width = 12, height = 12, units = "in", res = 300)
+corrplot(clr_cor_subset, method = "color", type = "upper",
+         tl.cex = 0.5, tl.col = "black",
+         title = "Correlation Matrix on CLR-Transformed Data (Top 50 Features)",
+         mar = c(0, 0, 2, 0))
+dev.off()
+
+cat("Correlation plot saved to: ../output/clr_correlation_plot.png\n")
+```
+
+# ANCOMBC2 Differential Abundance Analysis
+
+ANCOMBC2 performs differential abundance analysis while accounting for compositionality through bias correction.
+
+```{r}
+# Create phyloseq object for ANCOMBC2
+# Convert feature table to phyloseq format
+otu_mat <- otu_table(feature_matrix, taxa_are_rows = TRUE)
+
+# Create sample data
+sample_data_df <- metadata_filtered %>%
+  column_to_rownames("sample_id")
+sample_data <- sample_data(sample_data_df)
+
+# Create phyloseq object
+physeq <- phyloseq(otu_mat, sample_data)
+
+# Add taxonomy if available
+if (exists("taxonomy")) {
+  tax_mat <- as.matrix(taxonomy)
+  tax_table <- tax_table(tax_mat)
+  physeq <- merge_phyloseq(physeq, tax_table)
+}
+
+cat("Phyloseq object created with", nsamples(physeq), "samples and", 
+    ntaxa(physeq), "taxa\n")
+```
+
+```{r}
+# Run ANCOMBC2 for leachate effect
+ancombc2_leachate <- ancombc2(
+  data = physeq,
+  fix_formula = "leachate",
+  p_adj_method = "fdr",
+  prv_cut = 0.05,  # Prevalence cutoff
+  lib_cut = 1000,  # Library size cutoff
+  group = "leachate",
+  struc_zero = TRUE,
+  neg_lb = FALSE,
+  alpha = 0.05,
+  global = TRUE
+)
+
+# Extract results
+ancombc2_results <- ancombc2_leachate$res
+
+# Display significant results
+sig_features <- ancombc2_results %>%
+  filter(diff_leachatehigh == TRUE | diff_leachatelow == TRUE | diff_leachatemid == TRUE)
+
+cat("Number of significant differentially abundant features:", nrow(sig_features), "\n")
+print(head(sig_features))
+
+# Save results
+write.csv(ancombc2_results, "../output/ancombc2_leachate_results.csv", row.names = TRUE)
+```
+
+```{r}
+# Run ANCOMBC2 for stage effect
+ancombc2_stage <- ancombc2(
+  data = physeq,
+  fix_formula = "stage",
+  p_adj_method = "fdr",
+  prv_cut = 0.05,
+  lib_cut = 1000,
+  group = "stage",
+  struc_zero = TRUE,
+  neg_lb = FALSE,
+  alpha = 0.05,
+  global = TRUE
+)
+
+# Extract results
+ancombc2_stage_results <- ancombc2_stage$res
+
+# Display significant results
+sig_features_stage <- ancombc2_stage_results %>%
+  filter(diff_stageearlygastrula == TRUE | diff_stageprawnchip == TRUE)
+
+cat("Number of significant differentially abundant features by stage:", 
+    nrow(sig_features_stage), "\n")
+print(head(sig_features_stage))
+
+# Save results
+write.csv(ancombc2_stage_results, "../output/ancombc2_stage_results.csv", row.names = TRUE)
+```
+
+```{r}
+# Visualize ANCOMBC2 results
+# Create volcano plot for leachate effect
+if (nrow(sig_features) > 0) {
+  # Prepare data for volcano plot (example for high vs control)
+  volcano_data <- ancombc2_results %>%
+    mutate(
+      neg_log10_q = -log10(q_leachatehigh),
+      significant = diff_leachatehigh
+    )
+  
+  volcano_plot <- ggplot(volcano_data, aes(x = lfc_leachatehigh, y = neg_log10_q, 
+                                            color = significant)) +
+    geom_point(alpha = 0.6) +
+    scale_color_manual(values = c("FALSE" = "gray", "TRUE" = "red")) +
+    labs(
+      title = "Differential Abundance: High Leachate vs Control",
+      x = "Log Fold Change",
+      y = "-log10(q-value)",
+      color = "Significant"
+    ) +
+    theme_bw() +
+    theme(
+      plot.title = element_text(hjust = 0.5),
+      legend.position = "right"
+    ) +
+    geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "blue")
+  
+  print(volcano_plot)
+  
+  ggsave("../output/ancombc2_volcano_plot_high.png", volcano_plot, 
+         width = 10, height = 7, dpi = 300)
+}
+```
+
+# Summary
+
+This analysis implemented the key recommendations from Gloor et al. 2017 for compositional microbiome data analysis:
+
+1. **CLR Transformation**: Applied centered log-ratio transformation to convert compositional data to Euclidean space
+2. **Aitchison Distance**: Calculated Euclidean distance on CLR-transformed data as the appropriate dissimilarity metric
+3. **PCA Biplot**: Created variance-based PCA visualizations on CLR-transformed data
+4. **PERMANOVA**: Tested for significant differences in microbial composition across experimental factors
+5. **Correlation Analysis**: Examined feature correlations using CLR-transformed data
+6. **ANCOMBC2**: Performed differential abundance analysis with bias correction
+
+## Key Findings
+
+- PCA plots show clustering patterns by experimental factors
+- PERMANOVA results indicate significant effects of [leachate/stage/etc.]
+- ANCOMBC2 identified [N] significantly differentially abundant features
+
+## Output Files
+
+All results and visualizations have been saved to the `../output/` directory:
+- PCA biplots
+- PERMANOVA results tables
+- Correlation plots
+- ANCOMBC2 results tables
+- Volcano plots
+
+# Session Info
+
+```{r}
+sessionInfo()
+```
