@@ -6,3 +6,17 @@ This analysis uses:
 - QIIME2 verson 2023.9 and version 2023.5
 - [qiime2 q2-picrust2-2023.2_0 plugin](https://github.com/picrust/q2-picrust2)
 - Maaslin2
+
+## Analysis Documentation
+
+### Beta Diversity and PERMANOVA
+- **[PERMANOVA Quick Reference](code/PERMANOVA_QuickRef.md)** - One-page summary of PERMANOVA for microbiome data
+- **[PERMANOVA Comprehensive Guide](code/PERMANOVA_README.md)** - Complete theoretical explanation and best practices
+- **[PERMANOVA Analysis Code](code/permanova_analysis.qmd)** - Working examples with all distance metrics
+- **[Core Metrics Visualization](code/core_metrics_viz.qmd)** - Beta diversity PCoA plots
+- **[Compositional Analysis](code/compositional_analysis.qmd)** - CLR transformation and Aitchison distance
+
+### Other Analyses
+- **[Taxa Barplot Guide](code/README_taxa_barplot.md)** - Taxonomic composition visualization
+- **[MaAsLin2 Guide](code/MAASLIN2_README.md)** - Differential abundance analysis
+- **[Example Usage](code/EXAMPLE_usage.md)** - General workflow examples
