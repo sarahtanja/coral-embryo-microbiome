@@ -16,6 +16,10 @@ This analysis uses:
 - **[Core Metrics Visualization](code/core_metrics_viz.qmd)** - Beta diversity PCoA plots
 - **[Compositional Analysis](code/compositional_analysis.qmd)** - CLR transformation and Aitchison distance
 
+### Multi-Omics Integration
+- **[Mantel Test Guide](code/MANTEL_TEST_GUIDE.md)** - Comprehensive guide for correlation analysis between microbiome and RNA-seq data
+- **[Mantel Test Analysis](code/mantel_test_analysis.qmd)** - Executable workflow for microbiome-transcriptome correlation
+
 ### Other Analyses
 - **[Taxa Barplot Guide](code/README_taxa_barplot.md)** - Taxonomic composition visualization
 - **[MaAsLin2 Guide](code/MAASLIN2_README.md)** - Differential abundance analysis
