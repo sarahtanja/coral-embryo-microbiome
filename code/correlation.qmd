@@ -1,0 +1,67 @@
+---
+title: "correlation"
+format: html
+---
+
+# SparCC Correlation Analysis
+
+SparCC is designed specifically for compositional data and infers correlations while accounting for the compositional constraint.
+
+```{r}
+# Note: SparCC implementation can be done using SpiecEasi package
+# or the sparcc function from various implementations
+
+# If SpiecEasi is installed, uncomment and use:
+# library(SpiecEasi)
+# 
+# # Run SparCC
+# sparcc_result <- sparcc(t(feature_matrix_t))
+# 
+# # Extract correlation matrix
+# sparcc_cor <- sparcc_result$Cor
+# rownames(sparcc_cor) <- colnames(feature_matrix_t)
+# colnames(sparcc_cor) <- colnames(feature_matrix_t)
+# 
+# # Plot correlation matrix (subset for visualization)
+# # Select top 50 most abundant features
+# feature_abundance <- colSums(feature_matrix_t)
+# top_features <- names(sort(feature_abundance, decreasing = TRUE)[1:50])
+# 
+# sparcc_cor_subset <- sparcc_cor[top_features, top_features]
+# 
+# # Create correlation plot
+# png("../output/sparcc_correlation_plot.png", width = 12, height = 12, units = "in", res = 300)
+# corrplot(sparcc_cor_subset, method = "color", type = "upper",
+#          tl.cex = 0.5, tl.col = "black",
+#          title = "SparCC Correlation Matrix (Top 50 Features)",
+#          mar = c(0, 0, 2, 0))
+# dev.off()
+
+cat("SparCC analysis requires SpiecEasi package.\n")
+cat("To run SparCC, install SpiecEasi and uncomment the code above.\n")
+cat("Installation: devtools::install_github('zdk123/SpiecEasi')\n")
+```
+
+```{r}
+# Alternative: Calculate correlations on CLR-transformed data
+# This is a simpler approach that approximates compositional correlations
+
+# Calculate correlation matrix on CLR-transformed data
+clr_cor <- cor(feature_clr, method = "pearson")
+
+# Select top abundant features for visualization
+feature_abundance <- colSums(feature_matrix_t)
+top_features <- names(sort(feature_abundance, decreasing = TRUE)[1:50])
+
+clr_cor_subset <- clr_cor[top_features, top_features]
+
+# Create correlation plot
+png("../output/clr_correlation_plot.png", width = 12, height = 12, units = "in", res = 300)
+corrplot(clr_cor_subset, method = "color", type = "upper",
+         tl.cex = 0.5, tl.col = "black",
+         title = "Correlation Matrix on CLR-Transformed Data (Top 50 Features)",
+         mar = c(0, 0, 2, 0))
+dev.off()
+
+cat("Correlation plot saved to: ../output/clr_correlation_plot.png\n")
+```

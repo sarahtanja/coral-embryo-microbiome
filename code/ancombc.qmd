@@ -69,27 +69,80 @@ library(ANCOMBC)
 library(tidyverse)
 library(qiime2R)
 library(phyloseq)
-library(DT)
 library(viridis)
-options(DT.options = list(
-  initComplete = JS("function(settings, json) {",
-  "$(this.api().table().header()).css({'background-color': 
-  '#000', 'color': '#fff'});","}")))
-
-# It appears to be a package compatibility issue between the release version of 
-# phyloseq and lme4, a fresh installation of phyloseq might be needed
-# See this post: https://github.com/lme4/lme4/issues/743
-# remotes::install_github("joey711/phyloseq", force = TRUE)
 ```
 
+# Step 1: Load each QZA file
 ```{r}
-getwd()
+ft <- read_qza("../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza")$data
+tax <- read_qza("../salipante/241121_StonyCoral/270x200/250414_270x200_representative-sequences_taxonomy.qza")$data
+tree <- read_qza("../salipante/241121_StonyCoral/SEPP/insertion-tree.qza")$data
 ```
+# Step 2: Load metadata
+```{r}
+metadata <- read_csv("../metadata/meta.csv")
+```
+
+
+
+# Step 3: Perform checks before integration
+```{r}
+str(ft)               # Check feature matrix
+head(colnames(ft))    # Inspect sample IDs (colnames in matrix)
+
+str(tax)             # Inspect taxonomy structure
+rownames(metadata)    # Compare with sample names
+
+# Optionally ensure consistent sample ordering
+metadata <- metadata[colnames(ft), ]
+```
+
+# Step 4: Process taxonomy into a clean matrix
+```{r}
+# QIIME2 taxonomy strings are often semicolon-separated — split into ranks
+tax_split <- do.call(rbind, strsplit(as.character(tax$Taxon), "; "))
+rownames(tax_split) <- tax$Feature.ID
+colnames(tax_split) <- c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")
+```
+
+# Step 5: Convert components to phyloseq-compatible objects
+```{r}
+OTU <- otu_table(as.matrix(ft), taxa_are_rows = TRUE)
+TAX <- tax_table(as.matrix(tax_split))
+SAM <- sample_data(metadata)
+TREE <- phy_tree(tree)
+```
+
+# Step 6: Create phyloseq object
+```{r}
+physeq <- phyloseq(OTU, TAX, SAM, TREE)
+```
+
+# Step 7: Validate
+```{r}
+physeq
+```
+
+
+
+
+
+
+
+
+
+
 
 # Load Inputs
+```{r}
+# Define your input files
+table_path <- "../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza"
+taxonomy_path <- "../salipante/241121_StonyCoral/270x200/250414_270x200_representative-sequences_taxonomy.qza"
+tree_path <- "../salipante/241121_StonyCoral/SEPP/insertion-tree.qza"
+metadata_path <- "../metadata/meta.csv"  
+```
 
 ## OTU feature table
-
 -   Count table (raw integer counts) — one of:
 
     -   BIOM file (feature-table.biom)
@@ -97,22 +150,21 @@ getwd()
     -   **TSV**/CSV count table (rows = features/ASVs/**OTUs** and **columns = samples**, or vice versa — see check below)
 
     -   QIIME2 feature table artifact (.qza)
-
 ```{r}
-otu_table <- read_tsv("../salipante/241121_StonyCoral/270x200/1st_collapse/feature-table.tsv", skip = 1, show_col_types = FALSE)
-
-otu_table <- otu_table %>% 
-  rename(OTU_ID = "#OTU ID")
-
-head(otu_table)
+feature_table <- qiime2R::read_qza(file.path(table_path))
 ```
 
 ## Metadata
 
 -   Sample metadata (mapping file / metadata.tsv) — one row per sample; sample IDs must exactly match the sample IDs in the count table.
+```{r}
+metadata <- read_tsv("../metadata/metadata.tsv")
+str(metadata)
+```
+
 
 ```{r}
-metadata <- read_csv("../metadata/metadata.csv")
+meta <- read_csv("../metadata/meta.csv")
 ```
 
 ## Taxonomy table
@@ -121,40 +173,47 @@ metadata <- read_csv("../metadata/metadata.csv")
 
 ```{r}
 tax_path <- "../salipante/241121_StonyCoral/270x200/250414_270x200_representative-sequences_taxonomy.qza" 
-tax <- read_tsv(tax_path, show_col_types = FALSE)
-colnames(tax)
+tax <- read_qza(tax_path)
 ```
 
 ## Outputs
 
 # Convert feature table to matrix
-
 ```{r}
 # convert to matrix with features as rows
-otu_mat <- otu_table %>% 
-  select(!OTU_ID) %>% 
-  as.matrix(.)
-
-# make rownames from otu_table OTU_ID column 
-rownames(otu_mat) <- otu_table$OTU_ID
-
+# Extract the data component
+ft_data <- feature_table$data
 ```
 
 OTUs should be positive integers! Check to make sure there are no NA or negative values
 
 ```{r}
 # quick sanity checks
-if (any(is.na(otu_mat))) stop("NA values found in the OTU matrix")
-if (any(otu_mat < 0)) stop("Negative counts found in the OTU matrix")
+if (any(is.na(ft_data))) stop("NA values found in the OTU matrix")
+if (any(ft_data < 0)) stop("Negative counts found in the OTU matrix")
 ```
 
 Check to see if there are any differences between OTU sample id and metadata sample id character strings. This should return a '0'.
 
 ```{r}
-setdiff(colnames(otu_mat), metadata$sample_id)
+setdiff(colnames(ft_data), meta$sample_id)
 ```
 
 # Create phyloseq object
+
+```{r}
+# Create the phyloseq object
+physeq <- qza_to_phyloseq(
+  features = table_path,
+  taxonomy = taxonomy_path,
+  tree = tree_path,
+  metadata = metadata
+)
+
+# Inspect the created object
+physeq
+```
+
 
 ```{r}
 ps <- phyloseq(otu_table(otu_mat, taxa_are_rows = TRUE),
@@ -380,3 +439,5 @@ if (length(sig_taxa) > 0) {
   print(cluster_summary)
 }
 ```
+
+

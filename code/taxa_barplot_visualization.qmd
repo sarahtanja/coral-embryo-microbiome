@@ -99,14 +99,22 @@ cat("Level 5 dimensions:", dim(taxa_l5), "\n")
 ## Load metadata
 
 ```{r}
-metadata <- read_tsv("../metadata/metadata.tsv", 
-                     skip = 1,  # Skip the q2:types line
-                     show_col_types = FALSE)
-
+meta <- read_csv("../metadata/meta.csv") 
+# set factors
+metadata <- meta %>% 
+  mutate(
+    collection_date = as.Date(collection_date, format = "%d-%b-%Y"),
+    stage    = factor(stage,    levels = c("cleavage", "prawnchip", "earlygastrula"), ordered = TRUE),
+    leachate = factor(leachate, levels = c("control", "low", "mid", "high"),        ordered = TRUE),
+    spawn_night = factor(
+      collection_date,
+      levels  = as.Date(c("06-Jul-2024", "07-Jul-2024", "08-Jul-2024"), format = "%d-%b-%Y"),
+      labels  = c("July 6th", "July 7th", "July 8th"),
+      ordered = TRUE
+    )
+  )
 # Display metadata structure
 head(metadata)
-cat("\nSample groups:\n")
-table(metadata$leachate, metadata$timepoint)
 ```
 
 # Data Processing
@@ -114,15 +122,14 @@ table(metadata$leachate, metadata$timepoint)
 ## Transform data for visualization
 
 We'll use Level 6 (genus level) as it provides a good balance between detail and interpretability.
-
 ```{r}
 # Transform data to long format
 taxa_long <- taxa_l6 %>%
   pivot_longer(
-    cols = -index,
+    cols = -c(index, `development-stage`, cross, timepoint, leachate), 
     names_to = "taxon",
     values_to = "count"
-  ) %>%
+  ) %>% 
   rename(sample_id = index)
 
 # Calculate relative abundance
@@ -151,7 +158,7 @@ taxa_long <- taxa_long %>%
 
 # Join with metadata
 taxa_long <- taxa_long %>%
-  left_join(metadata, by = c("sample_id" = "sample-id"))
+  left_join(metadata, by = "sample_id")
 
 head(taxa_long)
 ```
@@ -172,8 +179,8 @@ taxa_plot <- taxa_long %>%
   mutate(
     genus_grouped = if_else(genus %in% top_genera, genus, "Other")
   ) %>%
-  group_by(sample_id, genus_grouped, development.stage, 
-           timepoint, leachate) %>%
+  group_by(sample_id, genus_grouped, stage, 
+           hpf, leachate.y) %>%
   summarize(rel_abundance = sum(rel_abundance), .groups = "drop")
 
 # Order samples by metadata
@@ -186,6 +193,58 @@ taxa_plot <- taxa_plot %>%
 ```
 
 # Visualization
+```{r}
+# install if needed:
+# install.packages(c("ggplot2", "ggthemes", "pals", "Polychrome", "viridisLite"))
+library(ggplot2)
+library(ggthemes)
+library(pals)
+library(Polychrome)
+library(viridisLite)
+library(dplyr)
+library(tidyr)
+library(stringr)
+
+# helper to turn a vector of colors into a swatch data frame
+as_swatch <- function(cols, name) {
+  tibble(palette = name,
+         idx = seq_along(cols),
+         hex = cols)
+}
+
+# build the four palettes (16 colors each)
+pal_glasbey  <- pals::glasbey(16)
+pal_tableau  <- ggthemes::tableau_color_pal("Tableau 20")(20)[1:16]
+pal_poly36   <- Polychrome::palette36.colors(16)
+pal_mako16   <- viridisLite::viridis(16, option = "mako")
+
+swatches <- bind_rows(
+  as_swatch(pal_glasbey, "Glasbey (16)"),
+  as_swatch(pal_tableau, "Tableau 20 (first 16)"),
+  as_swatch(pal_poly36, "Polychrome 36 (first 16)"),
+  as_swatch(pal_mako16, "Viridis 'mako' (16)")
+) %>%
+  mutate(idx = factor(idx, levels = 1:16))
+
+# plot swatches
+ggplot(swatches, aes(x = idx, y = 1, fill = hex)) +
+  geom_tile(color = "grey20") +
+  geom_text(aes(label = hex),
+            size = 3, vjust = 1.7, color = "white", fontface = "bold",
+            data = ~ .x %>% filter(palette != "Viridis 'mako' (16)")) +
+  scale_fill_identity() +
+  facet_wrap(~ palette, ncol = 1, strip.position = "top") +
+  scale_x_discrete(drop = FALSE) +
+  labs(x = NULL, y = NULL,
+       title = "Quick swatch view (16 colors each)") +
+  theme_minimal(base_size = 12) +
+  theme(panel.grid = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        strip.text = element_text(face = "bold"))
+
+```
 
 ## Taxa barplot - Main Figure
 
@@ -196,7 +255,7 @@ taxa_plot <- taxa_plot %>%
 
 # Create color palette
 n_colors <- length(top_genera) + 1
-colors <- c(brewer.pal(min(12, n_colors-1), "Set3"), "grey80")
+colors <- pal_tableau
 
 # Create the barplot
 p1 <- ggplot(taxa_plot, 
@@ -234,7 +293,7 @@ print(p1)
 taxa_treatment <- taxa_long %>%
   mutate(
     genus_grouped = if_else(genus %in% top_genera, genus, "Other"),
-    leachate_label = paste0("Leachate: ", leachate),
+    leachate_label = paste0("Leachate: ", leachate.y),
     timepoint_label = paste0(timepoint, " hpf")
   ) %>%
   group_by(leachate_label, timepoint_label, genus_grouped) %>%
@@ -289,8 +348,8 @@ taxa_phylum <- taxa_long %>%
   mutate(
     phylum_grouped = if_else(phylum %in% top_phyla, phylum, "Other")
   ) %>%
-  group_by(sample_id, phylum_grouped, development.stage, 
-           timepoint, leachate) %>%
+  group_by(sample_id, phylum_grouped, stage, 
+           timepoint, leachate.x) %>%
   summarize(rel_abundance = sum(rel_abundance), .groups = "drop") %>%
   mutate(
     phylum_grouped = factor(phylum_grouped, levels = c(top_phyla, "Other"))
@@ -337,60 +396,6 @@ top_taxa_summary <- taxa_long %>%
 print(top_taxa_summary)
 ```
 
-## Diversity by treatment
-
-```{r}
-# Calculate diversity metrics per sample
-diversity_metrics <- taxa_long %>%
-  filter(count > 0) %>%
-  group_by(sample_id, leachate, timepoint, development.stage) %>%
-  summarize(
-    richness = n(),  # Number of unique taxa
-    shannon_entropy = -sum((rel_abundance/100) * log(rel_abundance/100)),
-    .groups = "drop"
-  )
-
-# Summary by treatment
-diversity_summary <- diversity_metrics %>%
-  group_by(leachate, timepoint) %>%
-  summarize(
-    mean_richness = mean(richness),
-    sd_richness = sd(richness),
-    mean_shannon = mean(shannon_entropy),
-    sd_shannon = sd(shannon_entropy),
-    .groups = "drop"
-  )
-
-print(diversity_summary)
-```
-
-## Visualization of diversity metrics
-
-```{r}
-#| fig-width: 10
-#| fig-height: 6
-
-p4 <- ggplot(diversity_metrics, 
-             aes(x = factor(timepoint), y = richness, 
-                 color = factor(leachate), group = factor(leachate))) +
-  geom_point(size = 3, alpha = 0.6) +
-  geom_line() +
-  stat_summary(fun = mean, geom = "line", linewidth = 1) +
-  stat_summary(fun = mean, geom = "point", size = 4) +
-  scale_color_viridis_d(name = "Leachate\nConcentration") +
-  labs(
-    title = "Taxonomic Richness Across Treatments",
-    x = "Timepoint (hours post fertilization)",
-    y = "Number of Genera"
-  ) +
-  theme_classic(base_size = 12) +
-  theme(
-    legend.position = "right",
-    plot.title = element_text(face = "bold", size = 14)
-  )
-
-print(p4)
-```
 
 # Save Figures
 
@@ -408,8 +413,6 @@ ggsave("../output/figures/taxa_barplot_by_treatment.png",
 ggsave("../output/figures/taxa_barplot_phylum.png", 
        plot = p3, width = 12, height = 8, dpi = 300)
 
-ggsave("../output/figures/diversity_by_treatment.png", 
-       plot = p4, width = 10, height = 6, dpi = 300)
 
 cat("Figures saved to output/figures/\n")
 ```

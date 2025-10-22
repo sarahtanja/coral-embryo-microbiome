@@ -93,14 +93,20 @@ metadata <- metadata %>%
       trimws() %>%
       gsub("\\s+", "", .) %>% # remove spaces
       factor(levels = c("cleavage", "prawnchip", "earlygastrula"),
-             ordered = TRUE)
-  )
-
-metadata <- metadata %>% 
-  mutate(pvc_level=factor(leachate, levels = c(0,0.01,0.1,1)) )
+             ordered = TRUE),
+    leachate = factor(leachate, levels = c("control","low","mid","high"),
+                      ordered = TRUE),
+    parents = factor(parents),
+    group = factor(group)
+    ) %>% 
+  rename(SampleID = sample_id)
 
 str(metadata)
 ```
+::: callout-note
+- stage & leachate are categorical
+- hpf & leachate_mgL are numerical
+:::
 
 # Alpha Diversity
 
@@ -124,12 +130,8 @@ shannon_df <- shannon$data %>%
 head(shannon_df)
 ```
 
-
-
 ## Statistical tests
-
 ### Check for normality
-
 ```{r}
 hist(shannon_df$Shannon)
 shapiro.test(shannon_df$Shannon) # normality
@@ -165,12 +167,12 @@ choose to code our factors as categorical.
 :::
 
 ```{r}
-levels(shannon_df$pvc_level)
+levels(shannon_df$leachate)
 levels(shannon_df$stage)
 ```
 
 ```{r}
-aov_shannon2 <- aov(Shannon ~ pvc_level * stage, data = shannon_df)
+aov_shannon2 <- aov(Shannon ~ leachate * stage, data = shannon_df)
 summary(aov_shannon2)
 ```
 
@@ -202,8 +204,8 @@ fixed, categorical factors.
 ... but what if they were linear?
 
 ```{r}
-class(shannon_df$leachate)
-class(shannon_df$timepoint)
+class(shannon_df$leachate_mgL)
+class(shannon_df$hpf)
 ```
 
 ```{r}
