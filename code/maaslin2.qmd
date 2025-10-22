@@ -16,36 +16,89 @@ citation-location: margin
 
 # Background
 
-Maaslin2 (Microbiome Multivariable Associations with Linear Models) is a comprehensive R package for efficiently determining multivariable association between clinical metadata and microbial meta'omics features. This analysis identifies which bacterial taxa show differential abundance across experimental conditions.
+> MaAsLin2 is comprehensive R package for efficiently determining multivariable association between phenotypes, environments, exposures, covariates and microbial meta’omic features. MaAsLin2 relies on general linear models to accommodate most modern epidemiological study designs, including cross-sectional and longitudinal, and offers a variety of data exploration, normalization, and transformation methods. 
+
+[MaAslin2](https://huttenhower.sph.harvard.edu/maaslin/) was developed by the Huttenhower Lab at the Harvard School of Public Health in the Department of Biostatistics. 
 
 **For detailed interpretation of model design and results, see [maaslin2_interpretation.qmd](maaslin2_interpretation.qmd)**
 
+# Install
+```{r}
+#if(!requireNamespace("BiocManager", quietly = TRUE))
+#    install.packages("BiocManager")
+#BiocManager::install("Maaslin2")
+```
 # Load Libraries
 
 ```{r}
 library(Maaslin2)
+?Maaslin2
+```
+
+> MaAsLin2 requires two input files, one for taxonomic or functional feature abundances, and one for sample metadata.
+
+> 1. Data (or features) file
+- This file is tab-delimited.
+- Formatted with features as columns and samples as rows.
+- The transpose of this format is also okay.
+- Possible features in this file include microbes, genes, pathways, etc.
+
+> 2. Metadata file
+- This file is tab-delimited.
+- Formatted with features as columns and samples as rows.
+- The transpose of this format is also okay.
+
+```{r}
+library(qiime2R)
+library(tidyverse)
+```
+# Setup
+```{r}
+# Define file paths
+feature_table_path <- "../salipante/241121_StonyCoral/270x200/collapsed-l7.qza"
+metadata_path <- "../metadata/meta.csv"
+```
+
+## Load metadata
+```{r}
+# Load metadata
+meta <- read_csv(metadata_path)
+
+# set factors
+meta <- meta %>% 
+  mutate(
+    collection_date = as.Date(collection_date, format = "%d-%b-%Y"),
+    stage    = factor(stage,    levels = c("cleavage", "prawnchip", "earlygastrula"), ordered = TRUE),
+    leachate = factor(leachate, levels = c("control", "low", "mid", "high"),        ordered = TRUE),
+    spawn_night = factor(
+      collection_date,
+      levels  = as.Date(c("06-Jul-2024", "07-Jul-2024", "08-Jul-2024"), format = "%d-%b-%Y"),
+      labels  = c("July 6th", "July 7th", "July 8th"),
+      ordered = TRUE
+    )
+  )
+
+# make samples rownames
+meta <- meta %>% 
+  column_to_rownames(var = "sample_id")
+
+
+# View metadata structure
+str(meta)
 ```
 
 # Load Data
-
+## Feature table
 ```{r}
-# Using filtered data that removed chloroplast and mitochondria
-df_Level7_filtered_data = read.table(
-  file = '250425_level7_x100_flipped_filtered_maalin2_input.txt', 
-  header = TRUE, 
-  sep = "\t", 
-  row.names = 1, 
-  stringsAsFactors = FALSE
-)
+# Load feature table from QIIME2 artifact
+feature_table <- read_qza(feature_table_path)$data
 
-df_Level7_filtered_metadata = read.table(
-  file = '250425_metadata_only_maaslin2.txt', 
-  header = TRUE, 
-  sep = "\t", 
-  row.names = 1, 
-  stringsAsFactors = FALSE
-)
+head(feature_table)
+head.matrix()
 ```
+
+
+# Run MaAslin2
 
 # Model 1: Additive Effects (Original)
 

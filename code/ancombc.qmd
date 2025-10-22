@@ -440,4 +440,126 @@ if (length(sig_taxa) > 0) {
 }
 ```
 
+# PASTED
+# ANCOMBC2 Differential Abundance Analysis
+
+ANCOMBC2 performs differential abundance analysis while accounting for compositionality through bias correction.
+
+```{r}
+# Create phyloseq object for ANCOMBC2
+# Convert feature table to phyloseq format
+otu_mat <- otu_table(feature_matrix, taxa_are_rows = TRUE)
+
+# Create sample data
+sample_data_df <- meta_filt %>%
+  column_to_rownames("sample_id")
+sample_data <- sample_data(sample_data_df)
+
+# Create phyloseq object
+physeq <- phyloseq(otu_mat, sample_data)
+
+# Add taxonomy if available
+if (exists("taxonomy")) {
+  tax_mat <- as.matrix(taxonomy)
+  tax_table <- tax_table(tax_mat)
+  physeq <- merge_phyloseq(physeq, tax_table)
+}
+
+cat("Phyloseq object created with", nsamples(physeq), "samples and", 
+    ntaxa(physeq), "taxa\n")
+```
+
+```{r}
+# Run ANCOMBC2 for leachate effect
+ancombc2_leachate <- ancombc2(
+  data = physeq,
+  fix_formula = "leachate",
+  p_adj_method = "fdr",
+  prv_cut = 0.05,  # Prevalence cutoff
+  lib_cut = 1000,  # Library size cutoff
+  group = "leachate",
+  struc_zero = TRUE,
+  neg_lb = FALSE,
+  alpha = 0.05,
+  global = TRUE
+)
+
+# Extract results
+ancombc2_results <- ancombc2_leachate$res
+
+# Display significant results
+sig_features <- ancombc2_results %>%
+  filter(diff_leachatehigh == TRUE | diff_leachatelow == TRUE | diff_leachatemid == TRUE)
+
+cat("Number of significant differentially abundant features:", nrow(sig_features), "\n")
+print(head(sig_features))
+
+# Save results
+write.csv(ancombc2_results, "../output/ancombc2_leachate_results.csv", row.names = TRUE)
+```
+
+```{r}
+# Run ANCOMBC2 for stage effect
+ancombc2_stage <- ancombc2(
+  data = physeq,
+  fix_formula = "stage",
+  p_adj_method = "fdr",
+  prv_cut = 0.05,
+  lib_cut = 1000,
+  group = "stage",
+  struc_zero = TRUE,
+  neg_lb = FALSE,
+  alpha = 0.05,
+  global = TRUE
+)
+
+# Extract results
+ancombc2_stage_results <- ancombc2_stage$res
+
+# Display significant results
+sig_features_stage <- ancombc2_stage_results %>%
+  filter(diff_stageearlygastrula == TRUE | diff_stageprawnchip == TRUE)
+
+cat("Number of significant differentially abundant features by stage:", 
+    nrow(sig_features_stage), "\n")
+print(head(sig_features_stage))
+
+# Save results
+write.csv(ancombc2_stage_results, "../output/ancombc2_stage_results.csv", row.names = TRUE)
+```
+
+```{r}
+# Visualize ANCOMBC2 results
+# Create volcano plot for leachate effect
+if (nrow(sig_features) > 0) {
+  # Prepare data for volcano plot (example for high vs control)
+  volcano_data <- ancombc2_results %>%
+    mutate(
+      neg_log10_q = -log10(q_leachatehigh),
+      significant = diff_leachatehigh
+    )
+  
+  volcano_plot <- ggplot(volcano_data, aes(x = lfc_leachatehigh, y = neg_log10_q, 
+                                            color = significant)) +
+    geom_point(alpha = 0.6) +
+    scale_color_manual(values = c("FALSE" = "gray", "TRUE" = "red")) +
+    labs(
+      title = "Differential Abundance: High Leachate vs Control",
+      x = "Log Fold Change",
+      y = "-log10(q-value)",
+      color = "Significant"
+    ) +
+    theme_bw() +
+    theme(
+      plot.title = element_text(hjust = 0.5),
+      legend.position = "right"
+    ) +
+    geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "blue")
+  
+  print(volcano_plot)
+  
+  ggsave("../output/ancombc2_volcano_plot_high.png", volcano_plot, 
+         width = 10, height = 7, dpi = 300)
+}
+```
 
