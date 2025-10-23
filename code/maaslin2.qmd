@@ -163,7 +163,7 @@ fit_Level7_Model1 <- maaslin3(
   input_data = ft_l7,
   input_metadata = meta,
   output = "../output/maaslin-taxa/Model1",
-  formula = ~ ordered(leachate) * hpf + (1 | spawn_night),
+  formula = ~ leachate * hpf + (1 | spawn_night),
   normalization = 'TSS',
   transform = 'LOG',
   correction = 'BH',
@@ -230,6 +230,64 @@ ncol(mm)     # compare against number of columns
 > warnings in this case
 
 ### Singularity
+
+> **Why Random Effects Can Cause Singularity or Rank Deficiency**
+>
+> -   If a random effect (like **`(1 | group)`**) is included for a
+>     grouping variable that has **too few levels**, **only one
+>     observation per level**, or **no meaningful variance among
+>     levels**, the model cannot estimate a variance for this effect; it
+>     collapses to zero, causing singularity.
+>
+> -   Including **redundant** or **unidentifiable** random effects
+>     (e.g., nesting or crossing factors unnecessarily, or random slopes
+>     with no replication) can also lead to singular fits—where the
+>     model's estimated random-effects covariance matrix is not positive
+>     definite, or group-level variance is estimated as zero.​
+>
+> **What to Check**
+>
+> 1.  **Random Effect Structure and Data Support**
+>
+>     -   For each random effect, do you have multiple observations per
+>         level? (You need replication within levels to estimate
+>         variance.)
+>
+>     -   Are any random effects perfectly nested or redundant with
+>         others?
+>
+>     -   Are there any groups with only one or two levels, or with low
+>         sample size?
+>
+> 2.  **Variance Estimates and Model Output**
+>
+>     -   Inspect the random effects using **`summary(model)`** and
+>         **`VarCorr(model)`**.
+>
+>     -   If any variance component is estimated as **zero** (or close
+>         to it), or if **`isSingular(model)`** yields **`TRUE`**, that
+>         random effect is not supported by the data.
+>
+> 3.  **Visualization**
+>
+>     -   Plot the number of observations per random effect level (e.g.,
+>         **`table(dat$parents)`**) to check for under-represented
+>         groups.
+>
+>     -   Use the **`dotplot(ranef(model))`** to visualize the estimated
+>         random effects.
+>
+> 4.  **Simplification**
+>
+>     -   Remove or simplify random effects that are unsupported (e.g.,
+>         drop random slopes or nested terms without sufficient levels).
+>
+>     -   Try stepwise removal: fit the model with fewer random terms
+>         and see if singularity resolves.
+
+```{r}
+
+```
 
 ### .L, .Q, .C ?
 
@@ -446,11 +504,11 @@ fit_Level7_Model4 <- maaslin3(
 
 ```{r}
 set.seed(1)
-fit_Level7_Model1 <- maaslin3(
+fit_Level7_Model5 <- maaslin3(
   input_data = ft_l7,
   input_metadata = meta,
-  output = "../output/maaslin-taxa/Model1",
-  formula = ~ ordered(leachate) * hpf + (1 | spawn_night),
+  output = "../output/maaslin-taxa/Model5",
+  formula = '~ ordered(leachate) + hpf + (1 | spawn_night)',
   normalization = 'TSS',
   transform = 'LOG',
   correction = 'BH',
@@ -462,10 +520,13 @@ fit_Level7_Model1 <- maaslin3(
   plot_summary_plot = TRUE,
   plot_associations = TRUE,
   max_pngs = 30,
+  heatmap_vars = c('control','low', 'mid','high'),
   cores = 1,
   verbosity = 'WARN'
 )
 ```
+
+# Model 6: Group-wise differences
 
 # Model Comparison Guide
 
