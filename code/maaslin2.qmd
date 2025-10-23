@@ -15,10 +15,13 @@ citation-location: margin
 ---
 
 # Background
+Microbiome Multivariable Associations with Linear Models (MaAsLin)
 
 > MaAsLin2 is comprehensive R package for efficiently determining multivariable association between phenotypes, environments, exposures, covariates and microbial meta’omic features. MaAsLin2 relies on general linear models to accommodate most modern epidemiological study designs, including cross-sectional and longitudinal, and offers a variety of data exploration, normalization, and transformation methods. 
 
 [MaAslin2](https://huttenhower.sph.harvard.edu/maaslin/) was developed by the Huttenhower Lab at the Harvard School of Public Health in the Department of Biostatistics. 
+
+[MaAslin3](https://huttenhower.sph.harvard.edu/MaAsLin3)improves on MaAslin2 by accounting for compositionality... and accommodates cross-sectional studies (that's ours!)
 
 **For detailed interpretation of model design and results, see [maaslin2_interpretation.qmd](maaslin2_interpretation.qmd)**
 
@@ -27,12 +30,15 @@ citation-location: margin
 #if(!requireNamespace("BiocManager", quietly = TRUE))
 #    install.packages("BiocManager")
 #BiocManager::install("Maaslin2")
+
+library("devtools")
+install_github("biobakery/maaslin3")
 ```
 # Load Libraries
 
 ```{r}
 library(Maaslin2)
-?Maaslin2
+library(maaslin3)
 ```
 
 > MaAsLin2 requires two input files, one for taxonomic or functional feature abundances, and one for sample metadata.
@@ -80,7 +86,8 @@ meta <- meta %>%
 
 # make samples rownames
 meta <- meta %>% 
-  column_to_rownames(var = "sample_id")
+  column_to_rownames(var = "sample_id") %>% 
+  as.data.frame()
 
 
 # View metadata structure
@@ -91,10 +98,11 @@ str(meta)
 ## Feature table
 ```{r}
 # Load feature table from QIIME2 artifact
-feature_table <- read_qza(feature_table_path)$data
+ft_l7 <- read_qza(feature_table_path)$data
 
-head(feature_table)
-head.matrix()
+# Convert to data.frame
+ft_l7 <- ft_l7 %>% 
+  as.data.frame()
 ```
 
 
@@ -102,7 +110,7 @@ head.matrix()
 
 # Model 1: Additive Effects (Original)
 
-This model tests for main effects of leachate and timepoint separately, without testing for interaction between them.
+This model tests for main effects of leachate and timepoint separately, without testing for interaction between them, and controlling for parental cross.
 
 **Model formula:** `Abundance ~ leachate + timepoint + (1|cross)`
 
@@ -110,40 +118,122 @@ This tests:
 - Does leachate affect bacterial abundance (averaged across all timepoints)?
 - Does timepoint affect bacterial abundance (averaged across all leachate levels)?
 
+::: callout-note
+I modified the metadata file such that:
+- `leachate_mgL` is the numerical value (previously leachate) of microplastic mass in milligrams per liter of seawater
+- `hpf` is the numerical value (previously timepoint) 
+- `parents` is the categorical string (previously cross) indicating pooled mix of colony crosses
+:::
+
+
 ```{r}
 fit_Level7_filtered_data = Maaslin2(
-  input_data = df_Level7_filtered_data, 
-  input_metadata = df_Level7_filtered_metadata, 
+  input_data = ft_l7, 
+  input_metadata = meta, 
   min_prevalence = 0.05, 
   min_abundance = 0.001,
   normalization = "NONE", 
-  output = "Level7_filtered_organism_output", 
-  fixed_effects = c("leachate", "timepoint"), 
-  random_effects = c("cross")
+  output = "../output/maaslin-taxa/Level7_filtered", 
+  fixed_effects = c("leachate_mgL", "hpf"), 
+  random_effects = c("parents")
 )
 ```
+# Run MaAslin3
 
-# Model 2: With Interaction Term (Optional)
+# Model 2: Categorical interaction
+
+With Interaction term, and categorical factors
 
 To test whether the effect of leachate depends on timepoint (or vice versa), add an interaction term:
 
-**Model formula:** `Abundance ~ leachate + timepoint + leachate:timepoint + (1|cross)`
+**Model formula:** `Abundance/Prevelance ~ leachate * stage + (1|parents) + (1|spawn_night)`
 
 ```{r eval=FALSE}
-# This model tests for interaction effects
-fit_Level7_interaction = Maaslin2(
-  input_data = df_Level7_filtered_data, 
-  input_metadata = df_Level7_filtered_metadata, 
-  min_prevalence = 0.05, 
-  min_abundance = 0.001,
-  normalization = "NONE", 
-  output = "Level7_filtered_organism_output_interaction", 
-  fixed_effects = c("leachate", "timepoint", "leachate:timepoint"), 
-  random_effects = c("cross")
+set.seed(1)
+fit_Level7_int <- maaslin3(
+  input_data = ft_l7,
+  input_metadata = meta,
+  output = "../output/maaslin-taxa/M3catv2",
+  formula = ~ leachate * stage + (1 | spawn_night),
+  normalization = 'TSS',
+  transform = 'LOG',
+  correction = 'BH',
+  augment = TRUE,
+  standardize = TRUE,
+  max_significance = 0.1,
+  median_comparison_abundance = TRUE,
+  median_comparison_prevalence = FALSE,
+  max_pngs = 5,
+  cores = 1,
+  verbosity = 'WARN'
 )
 ```
 
-# Model 3: Categorical Variables (Optional)
+## Explore warnings
+
+### Rank deficiency
+
+```{r}
+# Example assuming your data frame is named 'dat'
+mm <- model.matrix(~ leachate * stage, data = meta)
+head(mm)
+```
+```{r}
+cor(mm)
+```
+```{r}
+qr(mm)$rank  # check matrix rank
+ncol(mm)     # compare against number of columns
+```
+> Your correlation matrix from cor(mm) shows how linearly related the fixed-effect columns are in the design matrix created by model.matrix(~ leachate * stage, data). Here’s how to interpret what you’re seeing:
+Key observations
+- Intercept column (all NA correlations)
+The (Intercept) column gives NA correlations and the warning “standard deviation is zero” because it’s a constant value (all 1s). A constant has zero variance, so correlations with it are undefined. This part is normal and not a problem.​
+- Diagonal of 1s
+Each variable is perfectly correlated with itself, so each diagonal cell shows 1.0. That’s expected.
+- Off-diagonal values
+Most correlations between columns are small (e.g., -0.05, 0.06), which means your predictors are not strongly collinear.
+- The largest correlations are between orthogonal polynomial contrasts (like leachate.L, leachate.Q, leachate.C), but those are meant to be orthogonalized in R’s polynomial or sum coding, so small correlations near 0 are fine.
+- The extremely tiny entries (e.g., 1.49e-21) are effectively zero, due to floating-point rounding.
+- No near-1 or -1 correlations between predictors
+That indicates there’s no multicollinearity issue — none of your predictors or interaction columns are redundant.
+- Rank check
+Since qr(mm)$rank equals ncol(mm), your matrix is full rank, meaning no fixed-effect columns are linearly dependent (no rank deficiency). That confirms your model is well-specified at the fixed-effects level.
+- Quick summary
+NA with intercept → expected (constant column).
+- Warning: sd = 0 → expected due to the constant intercept.
+- All other correlations small (< |0.1|) → no collinearity problem.
+- Rank = ncol → model matrix is full rank, no redundancy.
+- Your fixed-effect part (leachate * stage) is statistically valid and not the cause of any rank-deficiency warnings in this case
+
+### Singularity
+
+### .L, .Q, .C ? 
+
+> .L, .Q, .C are polynomial contrast columns for linear, quadratic, cubic trends in ordered factors.Your factors are encoded as ordered, so R uses polynomial contrasts to represent them.
+
+
+## Explore significant results
+
+
+[MaAsLin3 Wiki](https://github.com/biobakery/biobakery/wiki/maaslin3)
+> Any significant abundance associations with a categorical variable should usually have at least 10 observations in each category.
+Significant prevalence associations with categorical variables should also have at least 10 samples in which the feature was present and at least 10 samples in which it was absent for each significant category.
+Significant abundance associations with continuous metadata should be checked visually for influential outliers.
+
+> There are also a few rules of thumb to keep in mind.
+Models should ideally have about 10 times as many samples (all samples for logistic fits, non-zero samples for linear fits) as covariate terms (all continuous variables plus all categorical variable levels).
+Coefficients (effect sizes) larger than about 15 in absolute value are usually suspect unless very small unstandardized predictors are being included. (A coefficient of 15 corresponds to a fold change >30000!). If you encounter such coefficients, check that (1) no error was thrown, (2) the diagnostics look reasonable, (3) a sufficient number of samples were used in fitting, (4) the q-value is significant, (5) the metadata are not highly collinear, and (6) the random effects are plausible.
+
+```{r}
+sig_l7_int <- read_tsv("../output/maaslin-taxa/Level7_filtered_interaction/significant_results.tsv")
+```
+
+```{r}
+sig_l7_m3cat <- read_tsv("../output/maaslin-taxa/M3cat/significant_results.tsv")
+```
+
+# Model 3: Continuous interaction  
 
 To compare specific leachate concentrations and timepoints, treat them as categorical factors:
 

@@ -1,0 +1,3 @@
+2025-10-22 20:35:01.088253 WARNING::Input is a matrix,
+                        passing through as.data.frame() .
+2025-10-22 20:35:01.121428 ERROR::Variable name not found in metadata so not applied to formula as fixed effect: leachate:stage
