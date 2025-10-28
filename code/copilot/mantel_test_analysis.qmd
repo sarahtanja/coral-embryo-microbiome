@@ -1,0 +1,663 @@
+---
+title: "Mantel Test: Microbiome-Transcriptome Correlation Analysis"
+subtitle: "Assessing correlation between microbiome composition and host gene expression"
+author: "Coral Embryo Microbiome Project"
+date: today
+date-modified: today
+format:
+  gfm:
+    toc: true
+    number-sections: true
+  html:
+    theme: journal
+    highlight-style: github
+    page-layout: full
+    code-background: true
+    code-tools:
+      source: true
+      toggle: true
+    toc: true
+    toc-depth: 3
+    toc-location: left
+    number-sections: true
+    df-print: kable
+    smooth-scroll: true
+    link-external-icon: true
+    link-external-newwindow: true
+bibliography: "../microbiome_bibtex.bib"
+reference-location: margin
+citation-location: margin
+---
+
+# Background
+
+The **Mantel test** [@Mantel1967] is a permutation-based statistical method that evaluates the correlation between two distance or dissimilarity matrices. In multi-omics research, the Mantel test can be used to assess whether patterns in one dataset (e.g., microbiome composition) are correlated with patterns in another dataset (e.g., host gene expression).
+
+## Research Question
+
+**Are patterns in coral embryo microbiome composition correlated with patterns in host gene expression during development?**
+
+If microbiome and transcriptome are correlated, samples that are similar in their microbial community composition should also be similar in their gene expression profiles.
+
+## Prerequisites
+
+This analysis requires:
+
+1. **Microbiome data**: ASV/OTU feature table from 16S rRNA sequencing
+2. **RNA-seq data**: Gene expression count matrix from host transcriptome sequencing
+3. **Matched samples**: The same biological samples must have both microbiome and RNA-seq data
+
+::: {.callout-important}
+## Note on Available Data
+
+This repository currently contains only microbiome 16S rRNA sequencing data. To perform the Mantel test, you will need to:
+
+1. Generate RNA-seq data from the same coral embryo samples
+2. Ensure sample IDs match between the two datasets
+3. Process RNA-seq data to obtain a gene expression count matrix
+
+This document provides a complete workflow that you can execute once RNA-seq data becomes available.
+:::
+
+# Setup
+
+## Load Required Packages
+
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+
+# Install packages if needed
+packages <- c("vegan", "tidyverse", "compositions", "ggplot2")
+
+for (pkg in packages) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    install.packages(pkg)
+  }
+}
+
+# Bioconductor packages
+if (!requireNamespace("DESeq2", quietly = TRUE)) {
+  if (!requireNamespace("BiocManager", quietly = TRUE)) {
+    install.packages("BiocManager")
+  }
+  BiocManager::install("DESeq2")
+}
+
+# Load libraries
+library(vegan)
+library(tidyverse)
+library(compositions)
+library(DESeq2)
+library(ggplot2)
+
+# Set random seed for reproducibility
+set.seed(123)
+```
+
+## Check R and Package Versions
+
+```{r}
+#| label: check-versions
+
+cat("R version:", R.version.string, "\n")
+cat("vegan version:", as.character(packageVersion("vegan")), "\n")
+cat("tidyverse version:", as.character(packageVersion("tidyverse")), "\n")
+```
+
+# Data Import and Preparation
+
+## Microbiome Data (ASV Table)
+
+```{r}
+#| label: import-microbiome
+#| eval: false
+
+# Import ASV feature table from QIIME2 export
+# This is the collapsed taxonomy table at species level
+asv_file <- "../salipante/241121_StonyCoral/270x200/1st_collapse/feature-table.tsv"
+
+# Check if file exists
+if (!file.exists(asv_file)) {
+  stop("ASV feature table not found at: ", asv_file)
+}
+
+# Import and format
+asv_table <- read_tsv(asv_file, skip = 1, show_col_types = FALSE)
+
+# Transpose so samples are rows, features are columns
+asv_matrix <- asv_table %>%
+  column_to_rownames("#OTU ID") %>%
+  t() %>%
+  as.data.frame()
+
+cat("Microbiome data dimensions:", dim(asv_matrix)[1], "samples x", 
+    dim(asv_matrix)[2], "features\n")
+```
+
+## RNA-seq Data (Gene Expression Matrix)
+
+```{r}
+#| label: import-rnaseq
+#| eval: false
+
+# Import RNA-seq count matrix
+# PLACEHOLDER: Update path to your actual RNA-seq data file
+rnaseq_file <- "path/to/rnaseq_counts.csv"
+
+if (!file.exists(rnaseq_file)) {
+  stop("RNA-seq data not found. Please provide the path to your gene expression count matrix.")
+}
+
+# Import gene expression data
+rnaseq_counts <- read.csv(rnaseq_file, row.names = 1)
+
+# Ensure samples are rows (transpose if needed)
+if (nrow(rnaseq_counts) > ncol(rnaseq_counts)) {
+  cat("Transposing RNA-seq matrix so samples are rows...\n")
+  rnaseq_counts <- t(rnaseq_counts) %>% as.data.frame()
+}
+
+cat("RNA-seq data dimensions:", dim(rnaseq_counts)[1], "samples x",
+    dim(rnaseq_counts)[2], "genes\n")
+```
+
+## Import Metadata
+
+```{r}
+#| label: import-metadata
+#| eval: false
+
+metadata <- read.csv("../metadata/metadata.csv", row.names = 1)
+
+cat("Metadata dimensions:", nrow(metadata), "samples\n")
+head(metadata)
+```
+
+# Data Transformation and Distance Calculation
+
+## Transform Microbiome Data
+
+For microbiome compositional data, we use **centered log-ratio (CLR)** transformation following @Gloor2017:
+
+```{r}
+#| label: transform-microbiome
+#| eval: false
+
+# Filter rare ASVs (optional but recommended)
+# Keep features present in at least 10% of samples
+prevalence_threshold <- 0.1 * nrow(asv_matrix)
+asv_matrix_filtered <- asv_matrix[, colSums(asv_matrix > 0) >= prevalence_threshold]
+
+cat("Retained", ncol(asv_matrix_filtered), "features after prevalence filtering\n")
+
+# Apply CLR transformation
+# Add pseudocount to handle zeros
+pseudocount <- 0.5
+asv_clr <- clr(asv_matrix_filtered + pseudocount)
+
+# Calculate Aitchison distance (Euclidean distance on CLR-transformed data)
+microbiome_dist <- dist(asv_clr, method = "euclidean")
+
+cat("Microbiome distance matrix: ", attr(microbiome_dist, "Size"), "samples\n")
+```
+
+::: {.callout-note}
+## Why CLR Transformation?
+
+The CLR transformation is appropriate for compositional data because it:
+- Removes the unit-sum constraint of relative abundances
+- Makes the data symmetric and suitable for standard multivariate statistics
+- The resulting Aitchison distance properly accounts for the compositional nature
+
+See `compositional_analysis.qmd` for more details on CLR transformation.
+:::
+
+## Transform RNA-seq Data
+
+For RNA-seq count data, we use **variance stabilizing transformation (VST)** from DESeq2:
+
+```{r}
+#| label: transform-rnaseq
+#| eval: false
+
+# Create DESeq2 dataset for normalization
+# DESeq2 expects genes as rows
+dds <- DESeqDataSetFromMatrix(
+  countData = t(rnaseq_counts),
+  colData = data.frame(sample = rownames(rnaseq_counts)),
+  design = ~ 1  # Simple design for normalization only
+)
+
+# Apply variance stabilizing transformation
+vst_data <- vst(dds, blind = TRUE)
+
+# Extract transformed counts and transpose back (samples as rows)
+rnaseq_transformed <- t(assay(vst_data)) %>% as.data.frame()
+
+# Calculate Euclidean distance on transformed expression
+rnaseq_dist <- dist(rnaseq_transformed, method = "euclidean")
+
+cat("RNA-seq distance matrix:", attr(rnaseq_dist, "Size"), "samples\n")
+```
+
+::: {.callout-note}
+## Why VST?
+
+Variance stabilizing transformation:
+- Normalizes for library size differences
+- Stabilizes variance across the range of expression levels
+- Handles zeros without adding arbitrary pseudocounts
+- Recommended by DESeq2 for downstream visualization and clustering
+
+Alternative: You could also use `rlog()` transformation or log2(CPM + 1).
+:::
+
+# Match Samples Between Datasets
+
+```{r}
+#| label: match-samples
+#| eval: false
+
+# Find samples present in both datasets
+common_samples <- intersect(labels(microbiome_dist), labels(rnaseq_dist))
+
+if (length(common_samples) == 0) {
+  stop("No common samples found between microbiome and RNA-seq data!")
+}
+
+cat("Found", length(common_samples), "samples present in both datasets\n")
+
+# Subset both distance matrices to common samples
+microbiome_dist_matched <- as.dist(
+  as.matrix(microbiome_dist)[common_samples, common_samples]
+)
+
+rnaseq_dist_matched <- as.dist(
+  as.matrix(rnaseq_dist)[common_samples, common_samples]
+)
+
+# Verify sample order is identical
+if (!all(labels(microbiome_dist_matched) == labels(rnaseq_dist_matched))) {
+  stop("Sample order does not match between distance matrices!")
+}
+
+cat("Successfully matched", length(common_samples), "samples for Mantel test\n")
+cat("\nCommon samples:", paste(common_samples[1:min(5, length(common_samples))], 
+                                collapse = ", "), "...\n")
+```
+
+# Mantel Test
+
+## Run Standard Mantel Test
+
+```{r}
+#| label: mantel-test
+#| eval: false
+
+# Perform Mantel test
+# method: "pearson" for linear correlation, "spearman" for rank correlation
+# permutations: number of random permutations for significance testing
+mantel_result <- mantel(
+  xdis = microbiome_dist_matched,
+  ydis = rnaseq_dist_matched,
+  method = "spearman",
+  permutations = 9999
+)
+
+# Display results
+print(mantel_result)
+
+# Extract key statistics
+cat("\n=== Mantel Test Results ===\n")
+cat("Mantel statistic (r):", round(mantel_result$statistic, 4), "\n")
+cat("Significance (p-value):", round(mantel_result$signif, 4), "\n")
+cat("Permutations:", 9999, "\n")
+```
+
+## Interpret Results
+
+```{r}
+#| label: interpret-results
+#| eval: false
+
+# Create interpretation
+r_value <- round(mantel_result$statistic, 3)
+p_value <- round(mantel_result$signif, 4)
+
+if (p_value < 0.001) {
+  p_text <- "p < 0.001"
+} else if (p_value < 0.01) {
+  p_text <- "p < 0.01"
+} else if (p_value < 0.05) {
+  p_text <- "p < 0.05"
+} else {
+  p_text <- paste("p =", p_value)
+}
+
+# Interpret correlation strength
+if (abs(r_value) < 0.2) {
+  strength <- "very weak"
+} else if (abs(r_value) < 0.4) {
+  strength <- "weak"
+} else if (abs(r_value) < 0.6) {
+  strength <- "moderate"
+} else if (abs(r_value) < 0.8) {
+  strength <- "strong"
+} else {
+  strength <- "very strong"
+}
+
+# Interpret direction
+if (r_value > 0) {
+  direction <- "positive"
+  meaning <- "samples with similar microbiome composition tend to have similar gene expression profiles"
+} else {
+  direction <- "negative"
+  meaning <- "samples with similar microbiome composition tend to have dissimilar gene expression profiles"
+}
+
+# Interpret significance
+if (p_value < 0.05) {
+  significance <- "statistically significant"
+} else {
+  significance <- "not statistically significant"
+}
+
+cat("\n=== Interpretation ===\n")
+cat("The Mantel test shows a", strength, direction, "correlation (r =", r_value, ",", p_text, ")\n")
+cat("between microbiome composition and host gene expression.\n\n")
+cat("This correlation is", significance, ".\n\n")
+if (p_value < 0.05) {
+  cat("Interpretation:", meaning, ".\n")
+} else {
+  cat("Interpretation: No significant relationship was detected between microbiome composition\n")
+  cat("and gene expression patterns in this dataset.\n")
+}
+```
+
+# Visualization
+
+## Mantel Scatterplot
+
+Create a scatterplot showing the relationship between microbiome and RNA-seq distances:
+
+```{r}
+#| label: mantel-plot
+#| eval: false
+#| fig-width: 10
+#| fig-height: 7
+
+# Convert distance matrices to vectors for plotting
+plot_data <- data.frame(
+  Microbiome_Distance = as.vector(microbiome_dist_matched),
+  RNAseq_Distance = as.vector(rnaseq_dist_matched)
+)
+
+# Create scatterplot
+mantel_plot <- ggplot(plot_data, 
+                      aes(x = Microbiome_Distance, y = RNAseq_Distance)) +
+  geom_point(alpha = 0.3, size = 2, color = "steelblue") +
+  geom_smooth(method = "lm", color = "red", se = TRUE, linewidth = 1) +
+  labs(
+    title = "Mantel Test: Microbiome vs. RNA-seq Distances",
+    subtitle = paste0("Spearman r = ", round(mantel_result$statistic, 3),
+                     ", ", p_text, " (", 9999, " permutations)"),
+    x = "Microbiome Distance (Aitchison)",
+    y = "RNA-seq Distance (Euclidean on VST)",
+    caption = paste("Based on", length(common_samples), "matched samples")
+  ) +
+  theme_bw() +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 12),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 10)
+  )
+
+print(mantel_plot)
+
+# Save plot
+ggsave("../output/mantel_test_scatterplot.png",
+       mantel_plot,
+       width = 10,
+       height = 7,
+       dpi = 300)
+
+cat("\nPlot saved to: ../output/mantel_test_scatterplot.png\n")
+```
+
+## Correlation Heatmap
+
+Visualize the distance matrices side-by-side:
+
+```{r}
+#| label: distance-heatmaps
+#| eval: false
+#| fig-width: 14
+#| fig-height: 6
+
+library(reshape2)
+
+# Convert distance matrices to long format
+microbiome_long <- as.matrix(microbiome_dist_matched) %>%
+  as.data.frame() %>%
+  rownames_to_column("Sample1") %>%
+  pivot_longer(-Sample1, names_to = "Sample2", values_to = "Distance") %>%
+  mutate(Dataset = "Microbiome (Aitchison)")
+
+rnaseq_long <- as.matrix(rnaseq_dist_matched) %>%
+  as.data.frame() %>%
+  rownames_to_column("Sample1") %>%
+  pivot_longer(-Sample1, names_to = "Sample2", values_to = "Distance") %>%
+  mutate(Dataset = "RNA-seq (Euclidean)")
+
+# Combine
+combined_long <- bind_rows(microbiome_long, rnaseq_long)
+
+# Create heatmaps
+heatmap_plot <- ggplot(combined_long, 
+                       aes(x = Sample1, y = Sample2, fill = Distance)) +
+  geom_tile() +
+  facet_wrap(~Dataset, scales = "free") +
+  scale_fill_viridis_c(option = "viridis") +
+  labs(
+    title = "Distance Matrices: Microbiome vs. RNA-seq",
+    x = "Sample",
+    y = "Sample",
+    fill = "Distance"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 6),
+    axis.text.y = element_text(size = 6),
+    plot.title = element_text(face = "bold", size = 14)
+  )
+
+print(heatmap_plot)
+
+ggsave("../output/mantel_test_heatmaps.png",
+       heatmap_plot,
+       width = 14,
+       height = 6,
+       dpi = 300)
+
+cat("Heatmap saved to: ../output/mantel_test_heatmaps.png\n")
+```
+
+# Partial Mantel Test (Controlling for Confounders)
+
+If you want to control for the effect of a confounding variable (e.g., developmental timepoint or treatment), use a partial Mantel test:
+
+```{r}
+#| label: partial-mantel
+#| eval: false
+
+# Match metadata to common samples
+metadata_matched <- metadata[common_samples, ]
+
+# Create distance matrix based on confounding variable
+# Example 1: Control for developmental timepoint (categorical)
+timepoint_matrix <- model.matrix(~ hpf - 1, data = metadata_matched)
+timepoint_dist <- dist(timepoint_matrix, method = "euclidean")
+
+# Run partial Mantel test
+partial_mantel_result <- mantel.partial(
+  xdis = microbiome_dist_matched,
+  ydis = rnaseq_dist_matched,
+  zdis = timepoint_dist,
+  method = "spearman",
+  permutations = 9999
+)
+
+print(partial_mantel_result)
+
+cat("\n=== Partial Mantel Test Results ===\n")
+cat("Controlling for: Developmental timepoint\n")
+cat("Mantel statistic (r):", round(partial_mantel_result$statistic, 4), "\n")
+cat("Significance (p-value):", round(partial_mantel_result$signif, 4), "\n")
+```
+
+# Sensitivity Analyses
+
+## Alternative Distance Metrics
+
+Test if results are robust to different distance metrics:
+
+```{r}
+#| label: sensitivity-distance
+#| eval: false
+
+# Alternative for microbiome: Bray-Curtis dissimilarity
+asv_rel_abund <- decostand(asv_matrix_filtered, method = "total")
+microbiome_dist_bc <- vegdist(asv_rel_abund[common_samples, ], method = "bray")
+
+mantel_bc <- mantel(microbiome_dist_bc, rnaseq_dist_matched, 
+                    method = "spearman", permutations = 9999)
+
+cat("\n=== Sensitivity Analysis: Bray-Curtis Distance ===\n")
+print(mantel_bc)
+
+# Alternative for RNA-seq: Correlation-based distance
+rnaseq_cor <- cor(t(rnaseq_transformed[common_samples, ]), method = "spearman")
+rnaseq_dist_cor <- as.dist(1 - rnaseq_cor)
+
+mantel_cor <- mantel(microbiome_dist_matched, rnaseq_dist_cor,
+                     method = "spearman", permutations = 9999)
+
+cat("\n=== Sensitivity Analysis: Correlation Distance ===\n")
+print(mantel_cor)
+```
+
+## Subset by Treatment or Timepoint
+
+Examine if correlation differs across experimental conditions:
+
+```{r}
+#| label: stratified-analysis
+#| eval: false
+
+# Example: Test correlation separately for each timepoint
+timepoints <- unique(metadata_matched$hpf)
+
+stratified_results <- data.frame()
+
+for (tp in timepoints) {
+  # Get samples for this timepoint
+  tp_samples <- rownames(metadata_matched)[metadata_matched$hpf == tp]
+  tp_samples <- intersect(tp_samples, common_samples)
+  
+  if (length(tp_samples) < 4) {
+    cat("Skipping timepoint", tp, "- insufficient samples\n")
+    next
+  }
+  
+  # Subset distance matrices
+  microbiome_tp <- as.dist(
+    as.matrix(microbiome_dist_matched)[tp_samples, tp_samples]
+  )
+  rnaseq_tp <- as.dist(
+    as.matrix(rnaseq_dist_matched)[tp_samples, tp_samples]
+  )
+  
+  # Run Mantel test
+  mantel_tp <- mantel(microbiome_tp, rnaseq_tp, 
+                      method = "spearman", permutations = 9999)
+  
+  # Store results
+  stratified_results <- rbind(stratified_results, data.frame(
+    Timepoint = tp,
+    N_Samples = length(tp_samples),
+    Mantel_r = mantel_tp$statistic,
+    P_value = mantel_tp$signif
+  ))
+}
+
+print(stratified_results)
+```
+
+# Save Results
+
+```{r}
+#| label: save-results
+#| eval: false
+
+# Compile comprehensive results
+results_summary <- data.frame(
+  Analysis = "Mantel Test",
+  N_Samples = length(common_samples),
+  Mantel_Statistic = mantel_result$statistic,
+  P_Value = mantel_result$signif,
+  Correlation_Method = "Spearman",
+  Permutations = 9999,
+  Microbiome_Metric = "Aitchison Distance (CLR + Euclidean)",
+  RNAseq_Metric = "Euclidean Distance (VST)",
+  Significance = ifelse(mantel_result$signif < 0.05, "Significant", "Not Significant"),
+  Date = Sys.Date()
+)
+
+# Save to file
+write.csv(results_summary, 
+          "../output/mantel_test_results.csv", 
+          row.names = FALSE)
+
+cat("\nResults saved to: ../output/mantel_test_results.csv\n")
+
+# Print summary
+print(results_summary)
+```
+
+# Session Information
+
+```{r}
+#| label: session-info
+
+sessionInfo()
+```
+
+# References
+
+::: {#refs}
+:::
+
+# Next Steps
+
+After completing this analysis, consider:
+
+1. **If significant correlation found:**
+   - Identify specific microbial taxa associated with expression changes
+   - Use Procrustes analysis for ordination-based comparison
+   - Explore co-inertia analysis or canonical correlation analysis
+   - Investigate functional pathways (PICRUSt2 for microbiome, GO/KEGG for transcriptome)
+
+2. **If no significant correlation found:**
+   - Consider partial Mantel test controlling for confounders
+   - Examine correlations within specific treatment groups or timepoints
+   - Investigate if specific microbial taxa (rather than whole community) correlate with expression
+   - Assess if technical factors (sequencing depth, batch effects) obscure biological signal
+
+3. **Additional multi-omics approaches:**
+   - Multi-Omics Factor Analysis (MOFA)
+   - DIABLO (Data Integration Analysis for Biomarker discovery using Latent variable approaches for 'Omics studies)
+   - mixOmics package for integrative analysis
