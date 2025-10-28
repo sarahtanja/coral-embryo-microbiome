@@ -1,6 +1,6 @@
 ---
 title: "Differential abundance of bacterial taxa analysis"
-subtitle: "Using Maaslin2"
+subtitle: "Using Maaslin3"
 author: "Sarah Tanja"
 date: 2025-05-12
 date-modified: "`r system('git log -1 --format=%ad --date=short', intern = TRUE)`"
@@ -20,18 +20,6 @@ editor:
 # Background
 
 Microbiome Multivariable Associations with Linear Models (MaAsLin)
-
-> MaAsLin2 is comprehensive R package for efficiently determining
-> multivariable association between phenotypes, environments, exposures,
-> covariates and microbial meta’omic features. MaAsLin2 relies on
-> general linear models to accommodate most modern epidemiological study
-> designs, including cross-sectional and longitudinal, and offers a
-> variety of data exploration, normalization, and transformation
-> methods.
-
-[MaAslin2](https://huttenhower.sph.harvard.edu/maaslin/) was developed
-by the Huttenhower Lab at the Harvard School of Public Health in the
-Department of Biostatistics.
 
 [MaAslin3](https://huttenhower.sph.harvard.edu/MaAsLin3) improves on
 MaAslin2 by accounting for compositionality and accommodates
@@ -54,7 +42,6 @@ install_github("biobakery/maaslin3")
 # Load Libraries
 
 ```{r}
-library(Maaslin2)
 library(maaslin3)
 ```
 
