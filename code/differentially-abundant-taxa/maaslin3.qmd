@@ -105,6 +105,8 @@ meta <- meta %>%
 str(meta)
 ```
 
+## Can I put reads per sample into the metadata?
+
 # Load Data
 
 ## Feature table
@@ -154,16 +156,19 @@ fit_Level7_Model1 <- maaslin3(
   normalization = 'TSS',
   transform = 'LOG',
   correction = 'BH',
+  small_random_effects = TRUE,
   augment = TRUE,
   standardize = TRUE,
   max_significance = 0.1,
   median_comparison_abundance = TRUE,
-  median_comparison_prevalence = FALSE,
+  median_comparison_prevalence = TRUE,
   plot_summary_plot = TRUE,
+  summary_plot_balanced = TRUE,
   plot_associations = TRUE,
+  save_models = TRUE,
+  save_plots_rds = TRUE,
   max_pngs = 30,
-  cores = 1,
-  verbosity = 'WARN'
+  verbosity = 'ERROR'
 )
 ```
 
@@ -359,10 +364,24 @@ least 10 samples in which it was absent for each significant category.
 Significant abundance associations with continuous metadata should be
 checked visually for influential outliers.
 
-> There are also a few rules of thumb to keep in mind. Models should
-> ideally have about 10 times as many samples (all samples for logistic
-> fits, non-zero samples for linear fits) as covariate terms (all
-> continuous variables plus all categorical variable levels).
+> There are also a few rules of thumb to keep in mind:
+>
+> -    Models should ideally have about **10 times as many samples**
+>     (all samples for logistic fits, non-zero samples for linear fits)
+>     **as covariate terms** (**all continuous variables plus all
+>     categorical variable levels**).
+>
+>     -   WE have \~60 samples... so max number of terms we *should* use
+>         = 6 ...
+>
+>         -   Here hpf is continuous time... The bacteria aren't going
+>             through vast changes with distinct developmental stages...
+>             they're just doing normal bacteria life. Biologically, it
+>             makes sense to keep our time variable as a continuous
+>             numeric term.
+>
+>         -   
+>
 > Coefficients (effect sizes) larger than about 15 in absolute value are
 > usually suspect unless very small unstandardized predictors are being
 > included. (A coefficient of 15 corresponds to a fold change \>30000!).
@@ -503,17 +522,54 @@ fit_Level7_Model5 <- maaslin3(
   standardize = TRUE,
   max_significance = 0.1,
   median_comparison_abundance = TRUE,
-  median_comparison_prevalence = FALSE,
+  median_comparison_prevalence = TRUE,
   plot_summary_plot = TRUE,
   plot_associations = TRUE,
   max_pngs = 30,
-  heatmap_vars = c('control','low', 'mid','high'),
   cores = 1,
-  verbosity = 'WARN'
+  verbosity = 'ERROR'
 )
 ```
 
+::: callout-note
+Leachate not significant
+:::
+
 # Model 6: Group-wise differences
+
+```{r}
+
+```
+
+# Model 7:
+
+-   `small_random_effects` (default `FALSE`): Automatically replace
+    random effects with fixed effects in the logistic prevalence model
+    to handle low numbers of observations per group.
+
+```{r}
+set.seed(1)
+fit_Level7_Model7 <- maaslin3(
+  input_data = ft_l7,
+  input_metadata = meta,
+  output = "../output/maaslin-taxa/Model7",
+  formula = '~ leachate + hpf + (1 | spawn_night)',
+  normalization = 'TSS',
+  transform = 'LOG',
+  correction = 'BH',
+  small_random_effects = TRUE, 
+  augment = TRUE,
+  standardize = TRUE,
+  max_significance = 0.1,
+  median_comparison_abundance = TRUE,
+  median_comparison_prevalence = TRUE,
+  plot_summary_plot = TRUE,
+  plot_associations = TRUE,
+  max_pngs = 30,
+  cores = 1,
+  verbosity = 'ERROR'
+)
+```
 
 # Model Comparison Guide
 
