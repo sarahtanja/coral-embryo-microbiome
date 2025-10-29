@@ -3,6 +3,8 @@
 .RData
 .Ruserdata
 .bashvars
+*.rds
+*.Rds
 *.bam
 *.sam
 *.fastq
