@@ -40,6 +40,20 @@ This document creates a publication-ready taxa barplot visualization from QIIME2
 
 # Setup
 
+## Define file paths
+
+```{r}
+# Input paths
+qzv_file <- "../../salipante/Sarah_StonyCoral/250414_StonyCoral_270x200_filtered_taxa-bar-plots.qzv"
+metadata_path <- "../../metadata/meta.csv"
+
+# Output directory
+output_dir <- "../../output/figures"
+
+# Create output directory if it doesn't exist
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+```
+
 ## Load libraries
 
 ```{r}
@@ -58,8 +72,7 @@ library(RColorBrewer)
 QIIME2 visualization files (.qzv) are zip archives containing CSV files with taxonomic data at different levels.
 
 ```{r}
-# Define paths
-qzv_file <- "../salipante/Sarah_StonyCoral/250414_StonyCoral_270x200_filtered_taxa-bar-plots.qzv"
+# Define temp paths for extraction
 temp_dir <- tempdir()
 extract_dir <- file.path(temp_dir, "qzv_extract")
 
@@ -121,7 +134,7 @@ cat("Level 7 (Species) dimensions:", dim(taxa_l7), "\n")
 ## Load metadata
 
 ```{r}
-meta <- read_csv("../metadata/meta.csv") 
+meta <- read_csv(metadata_path) 
 # set factors
 metadata <- meta %>% 
   mutate(
@@ -743,39 +756,36 @@ print(top_taxa_summary)
 # Save Figures
 
 ```{r}
-# Create output directory if it doesn't exist
-dir.create("../output/figures", recursive = TRUE, showWarnings = FALSE)
-
 # Save main figures for all taxonomic levels
-ggsave("../output/figures/taxa_barplot_level1_kingdom.png", 
+ggsave(file.path(output_dir, "taxa_barplot_level1_kingdom.png"), 
        plot = p_level1, width = 12, height = 8, dpi = 300)
 
-ggsave("../output/figures/taxa_barplot_level2_phylum.png", 
+ggsave(file.path(output_dir, "taxa_barplot_level2_phylum.png"), 
        plot = p_level2, width = 12, height = 8, dpi = 300)
 
-ggsave("../output/figures/taxa_barplot_level3_class.png", 
+ggsave(file.path(output_dir, "taxa_barplot_level3_class.png"), 
        plot = p_level3, width = 12, height = 8, dpi = 300)
 
-ggsave("../output/figures/taxa_barplot_level4_order.png", 
+ggsave(file.path(output_dir, "taxa_barplot_level4_order.png"), 
        plot = p_level4, width = 12, height = 8, dpi = 300)
 
-ggsave("../output/figures/taxa_barplot_level5_family.png", 
+ggsave(file.path(output_dir, "taxa_barplot_level5_family.png"), 
        plot = p_level5, width = 12, height = 8, dpi = 300)
 
-ggsave("../output/figures/taxa_barplot_level6_genus.png", 
+ggsave(file.path(output_dir, "taxa_barplot_level6_genus.png"), 
        plot = p_level6, width = 12, height = 8, dpi = 300)
 
-ggsave("../output/figures/taxa_barplot_level7_species.png", 
+ggsave(file.path(output_dir, "taxa_barplot_level7_species.png"), 
        plot = p_level7, width = 12, height = 8, dpi = 300)
 
 # Save additional figures (treatment and phylum views)
-ggsave("../output/figures/taxa_barplot_all_samples.png", 
+ggsave(file.path(output_dir, "taxa_barplot_all_samples.png"), 
        plot = p1, width = 12, height = 8, dpi = 300)
 
-ggsave("../output/figures/taxa_barplot_by_treatment.png", 
+ggsave(file.path(output_dir, "taxa_barplot_by_treatment.png"), 
        plot = p2, width = 14, height = 10, dpi = 300)
 
-ggsave("../output/figures/taxa_barplot_phylum.png", 
+ggsave(file.path(output_dir, "taxa_barplot_phylum.png"), 
        plot = p3, width = 12, height = 8, dpi = 300)
 
 
