@@ -218,6 +218,33 @@ qiime picrust2 full-pipeline --help
 > These files correspond to the ASV count table, ASV sequences, and
 > metadata for the samples.
 
+## Verbosity Options
+
+The `qiime picrust2 full-pipeline` command supports verbosity flags to control output:
+
+- `--verbose` - Displays detailed progress information and warnings during execution
+- `--quiet` - Suppresses all output except errors (**this option doesn't show anything during normal execution**)
+
+**Example with verbose output:**
+``` bash
+qiime picrust2 full-pipeline \
+   --i-table input.qza \
+   --i-seq sequences.qza \
+   --output-dir output/ \
+   --verbose
+```
+
+**Example with quiet mode (no output):**
+``` bash
+qiime picrust2 full-pipeline \
+   --i-table input.qza \
+   --i-seq sequences.qza \
+   --output-dir output/ \
+   --quiet
+```
+
+If neither flag is specified, the command runs with default verbosity (minimal output).
+
 ## Feature table (BIOM)
 
 located at path
