@@ -1,37 +1,4 @@
-2025-10-23 14:24:06.966469 WARNING::Fitting problem for feature 13 returning NA
-2025-10-23 14:24:09.28825 WARNING::Fitting problem for feature 53 a warning was issued
-2025-10-23 14:24:09.291927 WARNING::Fitting problem for feature 53 a warning was issued
-2025-10-23 14:24:09.31959 WARNING::Fitting problem for feature 53 a warning was issued
-2025-10-23 14:24:10.3243 WARNING::Fitting problem for feature 71 a warning was issued
-2025-10-23 14:24:10.328064 WARNING::Fitting problem for feature 71 returning NA
-2025-10-23 14:24:10.602619 WARNING::Fitting problem for feature 75 returning NA
-2025-10-23 14:24:18.781316 WARNING::Fitting problem for feature 80 a warning was issued
-2025-10-23 14:24:18.785607 WARNING::Fitting problem for feature 80 a warning was issued
-2025-10-23 14:24:18.789982 WARNING::Fitting problem for feature 80 a warning was issued
-2025-10-23 14:24:18.816857 WARNING::Fitting problem for feature 80 a warning was issued
-2025-10-23 14:24:19.278251 WARNING::Fitting problem for feature 84 a warning was issued
-2025-10-23 14:24:19.51713 WARNING::Fitting problem for feature 88 returning NA
-2025-10-23 14:24:19.634928 WARNING::Fitting problem for feature 92 returning NA
-2025-10-23 14:24:19.844021 WARNING::Fitting problem for feature 95 returning NA
-2025-10-23 14:24:20.516775 WARNING::Fitting problem for feature 106 returning NA
-2025-10-23 14:24:20.687937 WARNING::Fitting problem for feature 112 returning NA
-2025-10-23 14:24:20.72508 WARNING::Fitting problem for feature 113 returning NA
-2025-10-23 14:24:20.895297 WARNING::Fitting problem for feature 115 returning NA
-2025-10-23 14:24:21.325237 WARNING::Fitting problem for feature 122 returning NA
-2025-10-23 14:24:21.743123 WARNING::Fitting problem for feature 127 a warning was issued
-2025-10-23 14:24:21.746646 WARNING::Fitting problem for feature 127 returning NA
-2025-10-23 14:24:22.405087 WARNING::Fitting problem for feature 139 returning NA
-2025-10-23 14:24:22.890113 WARNING::Fitting problem for feature 145 a warning was issued
-2025-10-23 14:24:22.893607 WARNING::Fitting problem for feature 145 returning NA
-2025-10-23 14:24:23.023652 WARNING::Fitting problem for feature 147 returning NA
-2025-10-23 14:24:23.522111 WARNING::Fitting problem for feature 154 a warning was issued
-2025-10-23 14:24:23.525884 WARNING::Fitting problem for feature 154 returning NA
-2025-10-23 14:24:23.890976 WARNING::Fitting problem for feature 160 a warning was issued
-2025-10-23 14:24:23.894955 WARNING::Fitting problem for feature 160 returning NA
-2025-10-23 14:24:24.216407 WARNING::Fitting problem for feature 165 a warning was issued
-2025-10-23 14:24:24.219937 WARNING::Fitting problem for feature 165 returning NA
-2025-10-23 14:24:24.424357 WARNING::Fitting problem for feature 167 a warning was issued
-2025-10-23 14:24:24.451737 WARNING::Fitting problem for feature 167 a warning was issued
-2025-10-23 14:24:24.880464 WARNING::Fitting problem for feature 174 returning NA
-2025-10-23 14:24:24.913389 WARNING::Fitting problem for feature 175 returning NA
-2025-10-23 14:24:24.984032 WARNING::Fitting problem for feature 176 returning NA
+2025-10-23 15:38:28.816823 ERROR::Balanced plotting requires 
+                            you set the variables you 
+                            want to plot using
+                            the parameter coef_plot_vars
