@@ -25,7 +25,7 @@ format:
     smooth-scroll: true 
     link-external-icon: true 
     link-external-newwindow: true
-bibliography: "../microbiome_bibtex.bib"
+bibliography: "../../microbiome_bibtex.bib"
 reference-location: margin
 citation-location: margin
 ---
@@ -58,9 +58,9 @@ Key recommendations from Gloor et al. 2017:
 # Setup
 ```{r}
 # Define file paths
-feature_table_path <- "../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza"
-metadata_path <- "../metadata/meta.csv"
-taxonomy_path <- "../salipante/241121_StonyCoral/270x200/250414_270x200_representative-sequences_taxonomy.qza"
+feature_table_path <- "../../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza"
+metadata_path <- "../../metadata/meta.csv"
+taxonomy_path <- "../../salipante/241121_StonyCoral/270x200/250414_270x200_representative-sequences_taxonomy.qza"
 ```
 ## Install & load packages
 
@@ -269,7 +269,7 @@ pca_plot_cross <- ggplot(
 pca_plot_cross
 
 # Save plot
-ggsave("../output/compositional_pca_cross.png", pca_plot_cross, 
+ggsave("../../output/compositional_pca_cross.png", pca_plot_cross, 
        width = 10, height = 7, dpi = 300)
 ```
 ## Plot stage x leachate x spawn night
@@ -311,7 +311,7 @@ pca_plot_spawn_night <- ggplot(
 pca_plot_spawn_night
 
 # Save plot
-ggsave("../output/compositional_pca_spawn_night.png", pca_plot_spawn_night, 
+ggsave("../../output/compositional_pca_spawn_night.png", pca_plot_spawn_night, 
        width = 10, height = 7, dpi = 300)
 ```
 ## Interactive plotly
@@ -504,7 +504,7 @@ print(permanova_result)
 
 # Save results
 write.csv(as.data.frame(permanova_result), 
-          "../output/permanova/permanova_result_interactionblocked.csv",
+          "../../output/permanova/permanova_result_interactionblocked.csv",
           row.names = TRUE)
 ```
 
@@ -523,7 +523,7 @@ print(permanova_cont.time)
 
 # Save results
 write.csv(as.data.frame(permanova_cont.time), 
-          "../output/permanova/permanova_result_cont.time.csv",
+          "../../output/permanova/permanova_result_cont.time.csv",
           row.names = TRUE)
 ```
 

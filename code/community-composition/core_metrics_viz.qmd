@@ -69,11 +69,11 @@ library(broom)
 
 ```{r}
 # Base path to core metrics results
-core_metrics_path <- "../salipante/241121_StonyCoral/core-metrics-results-filtered"
-metadata_path <- "../metadata/metadata.csv"
+core_metrics_path <- "../../salipante/241121_StonyCoral/core-metrics-results-filtered"
+metadata_path <- "../../metadata/metadata.csv"
 
 # Output directory for figures
-figures_dir <- "../output/figures"
+figures_dir <- "../../output/figures"
 
 # Create figures directory if it doesn't exist
 if (!dir.exists(figures_dir)) {

@@ -24,7 +24,7 @@ format:
     smooth-scroll: true
     link-external-icon: true
     link-external-newwindow: true
-bibliography: "../microbiome_bibtex.bib"
+bibliography: "../../microbiome_bibtex.bib"
 reference-location: margin
 citation-location: margin
 editor:
@@ -89,14 +89,14 @@ cat("vegan version:", as.character(packageVersion("vegan")), "\n")
 
 ```{r set-paths}
 # Paths to QIIME2 core metrics results
-core_metrics_path <- "../salipante/241121_StonyCoral/core-metrics-results-filtered"
-metadata_path <- "../metadata/metadata.csv"
+core_metrics_path <- "../../salipante/241121_StonyCoral/core-metrics-results-filtered"
+metadata_path <- "../../metadata/metadata.csv"
 
 # Path to feature table for compositional analysis
-feature_table_path <- "../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza"
+feature_table_path <- "../../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza"
 
 # Output directory
-output_dir <- "../output"
+output_dir <- "../../output"
 figures_dir <- file.path(output_dir, "figures")
 
 # Create output directories if they don't exist
