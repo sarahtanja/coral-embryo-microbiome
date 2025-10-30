@@ -1,24 +1,42 @@
 ---
 title: "Running PICRUSt2"
 author: "Sarah Tanja"
-format: gfm
-toc: true
-toc-title: Contents <i class="bi bi-bookmark-heart"></i>
-toc-depth: 5
-toc-location: left
+date-modified: today
+format:
+  gfm: 
+    toc: true
+    number-sections: true
+  html:
+    theme: journal
+    highlight-style: github
+    page-layout: article
+    code-background: true
+    code-tools: 
+      source: true
+      toggle: true
+    toc: true
+    toc-depth: 2
+    toc-location: left
+    number-sections: true
+    df-print: kable
+    smooth-scroll: true
+    link-external-icon: true
+    link-external-newwindow: true
+    reference-location: margin
+    citation-location: margin
 bibliography: "../microbiome_bibtex.bib"
-reference-location: margin
-citation-location: margin
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
-  echo = TRUE,         # Display code chunks
-  eval = FALSE,        # Evaluate code chunks
-  warning = FALSE,     # Hide warnings
-  message = FALSE,     # Hide messages
-  comment = ""         # Prevents appending '##' to beginning of lines in code output
-)
+  echo = TRUE, # Display code chunks
+  eval = FALSE, # Evaluate code chunks
+  warning = FALSE, # Hide warnings
+  message = FALSE, # Hide messages
+  comment = "", # Prevents appending '##' to beginning of lines in code output
+  dev = "jpeg",
+  dpi = 600,
+  fig.retina = 2)        
 ```
 
 # Goals
