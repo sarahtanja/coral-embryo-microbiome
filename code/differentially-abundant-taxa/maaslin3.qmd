@@ -2,7 +2,7 @@
 title: "Differential abundance of bacterial taxa analysis"
 subtitle: "Using Maaslin3"
 author: "Sarah Tanja"
-date: 2025-05-12
+date: 2025-10-12
 date-modified: "`r system('git log -1 --format=%ad --date=short', intern = TRUE)`"
 format: gfm
 toc: true
@@ -28,51 +28,56 @@ cross-sectional studies (that's ours!)
 **For detailed interpretation of model design and results, see
 [maaslin2_interpretation.qmd](maaslin2_interpretation.qmd)**
 
+Here we aim to test changes in abundance (how many) and prevalence (presence/absence) of specific taxa due to stage, leachate, and their interaction. 
+
+Because abundance or prevalence may or may not have linear patterns across time, we should test for both by first coding hours post fertilization as a continuous numerical variable (`hpf`), and then again as an ordered categorical factor (`stage`).  
+
+Our PERMANOVA detected that spawn night was a significant batch effect and introduced nuisance variation into our data. To account for this `(1 | spawn_night)` adds a random intercept for each unique spawn night — that is, each spawn night gets its own baseline shift in abundance, but the effects of `hpf`/`stage` and `leachate` is assumed to be the same across nights.
+
 # Install
 
-```{r}
+```{r, eval=false}
 #if(!requireNamespace("BiocManager", quietly = TRUE))
 #    install.packages("BiocManager")
 #BiocManager::install("Maaslin2")
 
-library("devtools")
-install_github("biobakery/maaslin3")
+#library("devtools")
+#install_github("biobakery/maaslin3")
 ```
 
 # Load Libraries
 
 ```{r}
 library(maaslin3)
-```
-
-> MaAsLin2 requires two input files, one for taxonomic or functional
-> feature abundances, and one for sample metadata.
-
-> 1.  Data (or features) file
->
-> -   This file is tab-delimited.
-> -   Formatted with features as columns and samples as rows.
-> -   The transpose of this format is also okay.
-> -   Possible features in this file include microbes, genes, pathways,
->     etc.
-
-> 2.  Metadata file
->
-> -   This file is tab-delimited.
-> -   Formatted with features as columns and samples as rows.
-> -   The transpose of this format is also okay.
-
-```{r}
 library(qiime2R)
 library(tidyverse)
 ```
+
+> MaAsLin3 requires two input files, one for taxonomic or functional
+> feature abundances, and one for sample metadata.
+
+ 1.  Data (or features) file
+
+  -  This file is tab-delimited.
+  -  Formatted with features as columns and samples as rows.
+  -  The transpose of this format is also okay.
+  -  Possible features in this file include microbes, genes, pathways,
+     etc.
+
+2.  Metadata file
+
+  - Formatted with metadata as columns and samples as rownames
+  - Is a data.frame object
+  - Includes per sample read counts   
+
 
 # Setup
 
 ```{r}
 # Define file paths
-feature_table_path <- "../salipante/241121_StonyCoral/270x200/collapsed-l7.qza"
-metadata_path <- "../metadata/meta.csv"
+feature_table_path <- "../../salipante/241121_StonyCoral/270x200/collapsed-l7.qza"
+metadata_path <- "../../metadata/meta.csv"
+output_path <- "../../output/maaslin-taxa/"
 ```
 
 ## Load metadata
@@ -94,18 +99,54 @@ meta <- meta %>%
       ordered = TRUE
     )
   )
+```
 
+## Can I put reads per sample into the metadata?
+
+> Because MaAsLin 3 identifies prevalence (presence/absence) associations, sample read depth (number of reads) should be included as a covariate if available. Deeper sequencing will likely increase feature detection in a way that could spuriously correlate with metadata of interest when read depth is not included in the model.
+
+As a counterpoint.. this adds complexity to the model and takes away power. 
+
+```{r}
+reads <- read_csv("../../salipante/Sarah_StonyCoral/241121_StonyCoral_readcounts.csv")
+```
+
+```{r}
+meta <- meta %>% 
+  left_join(reads, by = c("sample_id" = "sample"))
+```
+
+```{r}
 # make samples rownames
 meta <- meta %>% 
   column_to_rownames(var = "sample_id") %>% 
   as.data.frame()
 
-
 # View metadata structure
 str(meta)
 ```
+ Summarize number of samples representative of each variable of interest
+```{r}
+# Summarize number of samples per 'leachate' category
+meta %>%
+  group_by(leachate) %>%
+  summarize(count = n())
+```
+```{r}
+# Summarize number of samples per 'stage' category
+meta %>%
+  group_by(stage) %>%
+  summarize(count = n())
+```
+```{r}
+# Summarize number of samples per 'spawn_night' category
+meta %>%
+  group_by(spawn_night) %>%
+  summarize(count = n())
+```
+ 
+ 
 
-## Can I put reads per sample into the metadata?
 
 # Load Data
 
@@ -136,7 +177,7 @@ indicating pooled mix of colony crosses
 
 # Run MaAslin3
 
-# Model 1: Categorical (interaction)
+# Model 1: Categorical leachate & continuous time (interactive)
 
 With Interaction term, and categorical factors
 
@@ -144,31 +185,24 @@ To test whether the effect of leachate depends on timepoint (or vice
 versa), add an interaction term:
 
 **Model formula:**
-`Abundance/Prevelance ~ leachate * stage + (1|parents) + (1|spawn_night)`
+`Abundance|Prevelance ~ leachate * hpf + reads + (1|spawn_night)`
 
-```{r eval=FALSE}
+```{r eval=FALSE, warning=FALSE, message=FALSE}
 set.seed(1)
 fit_Level7_Model1 <- maaslin3(
   input_data = ft_l7,
   input_metadata = meta,
-  output = "../output/maaslin-taxa/Model1",
-  formula = ~ leachate * hpf + (1 | spawn_night),
+  output = file.path(output_path, "Model1"),
+  formula = ~ leachate * hpf + reads + (1|spawn_night),
   normalization = 'TSS',
   transform = 'LOG',
   correction = 'BH',
   small_random_effects = TRUE,
-  augment = TRUE,
-  standardize = TRUE,
-  max_significance = 0.1,
-  median_comparison_abundance = TRUE,
-  median_comparison_prevalence = TRUE,
   plot_summary_plot = TRUE,
-  summary_plot_balanced = TRUE,
   plot_associations = TRUE,
-  save_models = TRUE,
-  save_plots_rds = TRUE,
   max_pngs = 30,
-  verbosity = 'ERROR'
+  verbosity = 'ERROR',
+  cores = 5
 )
 ```
 
@@ -277,10 +311,6 @@ ncol(mm)     # compare against number of columns
 >     -   Try stepwise removal: fit the model with fewer random terms
 >         and see if singularity resolves.
 
-```{r}
-
-```
-
 ### .L, .Q, .C ?
 
 > .L, .Q, .C are polynomial contrast columns for linear, quadratic,
@@ -353,7 +383,7 @@ ncol(mm)     # compare against number of columns
 > -   **Interpretability:** Instead of many dummy coefficients, you can
 >     test for specific trend types (overall increasing, U-shape, etc).
 
-## Explore significant results
+## significant results
 
 [MaAsLin3 Wiki](https://github.com/biobakery/biobakery/wiki/maaslin3) \>
 Any significant abundance associations with a categorical variable
@@ -392,18 +422,21 @@ checked visually for influential outliers.
 > plausible.
 
 ```{r}
-sig_l7_int <- read_tsv("../output/maaslin-taxa/Level7_filtered_interaction/significant_results.tsv")
+sig_m1 <- read_tsv(file.path(output_path, "Model1/significant_results.tsv"))
 ```
 
+Filter for leachate
 ```{r}
-sig_l7_m3cat <- read_tsv("../output/maaslin-taxa/M3cat/significant_results.tsv")
+sig_m1 <- sig_m1 %>% 
+  filter(metadata == "leachate")
+
+nrow(sig_m1)
 ```
 
-# Model 2: Categorical (additive)
+# Model 2: Categorical leachate & continuous time (additive)
 
-This is an **additive model** that can be written as:
-
-$$\text{Abundance|Prevalence} \sim \text{leachate} + \text{stage} + (1|\text{spawn_night})$$
+**Model formula:**
+`Abundance|Prevelance ~ leachate + hpf + (1|spawn_night)`
 
 Where:
 
@@ -434,23 +467,31 @@ set.seed(1)
 fit_Level7_Model2 <- maaslin3(
   input_data = ft_l7,
   input_metadata = meta,
-  output = "../output/maaslin-taxa/Model2",
-  formula = ~ leachate + stage + (1 | spawn_night),
+  output = file.path(output_path, "Model2"),
+  formula = ~ leachate + hpf + reads + (1|spawn_night),
   normalization = 'TSS',
   transform = 'LOG',
   correction = 'BH',
-  augment = TRUE,
-  standardize = TRUE,
-  max_significance = 0.1,
-  median_comparison_abundance = TRUE,
-  median_comparison_prevalence = FALSE,
-  max_pngs = 5,
-  cores = 1,
-  verbosity = 'WARN'
+  small_random_effects = TRUE,
+  verbosity = 'ERROR',
+  cores = 5
 )
 ```
 
-# Model 3: Continuous (interaction)
+## significant results
+```{r}
+sig_m2 <- read_tsv(file.path(output_path, "Model2/significant_results.tsv"))
+```
+
+Filter for leachate
+```{r}
+sig_m2 <- sig_m2 %>% 
+  filter(metadata == "leachate")
+
+nrow(sig_m2)
+```
+
+# Model 3: Categorical (interaction)
 
 To compare specific leachate concentrations and timepoints, treat them
 as categorical factors:
@@ -460,22 +501,27 @@ set.seed(1)
 fit_Level7_Model3 <- maaslin3(
   input_data = ft_l7,
   input_metadata = meta,
-  output = "../output/maaslin-taxa/Model3",
-  formula = ~ leachate_mgL * hpf + (1 | spawn_night),
+  output = file.path(output_path,"Model3"),
+  formula = ~ leachate * stage + reads + (1|spawn_night),
   normalization = 'TSS',
-  transform = 'LOG',
-  correction = 'BH',
-  augment = TRUE,
-  standardize = TRUE,
-  max_significance = 0.1,
-  median_comparison_abundance = TRUE,
-  median_comparison_prevalence = FALSE,
-  max_pngs = 5,
-  cores = 1,
-  verbosity = 'WARN'
+  transform = 'LOG', # log transform
+  correction = 'BH', # Benjamini-Hochberg FDR adjust pvalues
+  small_random_effects = TRUE,
+  verbosity = "WARN"
 )
 ```
+## significant results
+```{r}
+sig_m3 <- read_tsv(file.path(output_path, "Model3/significant_results.tsv"))
+```
 
+Filter for leachate
+```{r}
+sig_m3 <- sig_m3 %>% 
+  filter(metadata == "leachate")
+
+nrow(sig_m3)
+```
 This will provide comparisons like: - Leachate 0.01 vs 0, Leachate 0.1
 vs 0, Leachate 1 vs 0 - Timepoint 9 vs 4, Timepoint 14 vs 4
 
@@ -490,21 +536,31 @@ set.seed(1)
 fit_Level7_Model4 <- maaslin3(
   input_data = ft_l7,
   input_metadata = meta,
-  output = "../output/maaslin-taxa/Model4",
-  formula = ~ leachate_mgL + hpf + (1 | spawn_night),
+  output = file.path(output_path, "Model4"),
+  formula = ~ leachate_mgL + hpf + reads + (1 | spawn_night),
   normalization = 'TSS',
   transform = 'LOG',
   correction = 'BH',
-  augment = TRUE,
-  standardize = TRUE,
-  max_significance = 0.1,
-  median_comparison_abundance = TRUE,
-  median_comparison_prevalence = FALSE,
-  max_pngs = 5,
-  cores = 1,
-  verbosity = 'WARN'
+  small_random_effects = TRUE,
+  verbosity = "WARN"
 )
 ```
+
+## significant results
+```{r}
+sig_m4 <- read_tsv(file.path(output_path, "Model4/significant_results.tsv"))
+```
+
+Filter for leachate
+```{r}
+sig_m4 <- sig_m4 %>% 
+  filter(metadata == "leachate")
+
+nrow(sig_m4)
+```
+::: callout-note
+No taxa were considered differentially abundant due to leachate in continuous additive model
+:::
 
 # Model 5: Level contrasts
 
@@ -513,39 +569,70 @@ set.seed(1)
 fit_Level7_Model5 <- maaslin3(
   input_data = ft_l7,
   input_metadata = meta,
-  output = "../output/maaslin-taxa/Model5",
-  formula = '~ ordered(leachate) + hpf + (1 | spawn_night)',
+  output = file.path(output_path, "Model5"),
+  formula = '~ ordered(leachate) + hpf + reads + (1|spawn_night)',
   normalization = 'TSS',
   transform = 'LOG',
   correction = 'BH',
   augment = TRUE,
   standardize = TRUE,
-  max_significance = 0.1,
-  median_comparison_abundance = TRUE,
-  median_comparison_prevalence = TRUE,
   plot_summary_plot = TRUE,
   plot_associations = TRUE,
-  max_pngs = 30,
-  cores = 1,
-  verbosity = 'ERROR'
+  heatmap_vars = c('leachate control',
+                    'leachate low',
+                    'leachate mid',
+                    'leachate high'),
+  verbosity = 'ERROR',
+  cores = 5
 )
 ```
 
+```{r}
+sig_m5 <- read_tsv(file.path(output_path, "Model5/significant_results.tsv"))
+```
+
+Filter for leachate
+```{r}
+sig_m5 <- sig_m5 %>% 
+  filter(metadata == "leachate")
+
+nrow(sig_m4)
+```
+
 ::: callout-note
-Leachate not significant
+Leachate not significant...
 :::
 
 # Model 6: Group-wise differences
 
-```{r}
+> The last feature of MaAsLin 3 highlighted here is the ability to test for group-wise differences in categorical predictors using an ANOVA or ANOVA-like procedure. Group-wise predictors are categorical variables with or without an ordering such as race, country, or consumption frequency of a dietary factor. When performing a group-wise difference test, we are not comparing any two particular levels; rather, we are investigating whether abundances and prevalences are the same for all levels. Therefore, no coefficient is returned, only a p-value. Here, we test whether there are differences in microbial abundances and prevalences across people with different levels of red meat consumption by including group(red_meat). Group-wise predictors should only be included as fixed effects (i.e., no group-wise predictors as random effects etc.).
 
+```{r}
+set.seed(1)
+fit_Level7_Model6 <- maaslin3(
+  input_data = ft_l7,
+  input_metadata = meta,
+  output = file.path(output_path, "Model6"),
+  formula = '~ group(leachate) + hpf + reads + (1|spawn_night)',
+  normalization = 'TSS',
+  transform = 'LOG',
+  correction = 'BH',
+  augment = TRUE,
+  standardize = TRUE,
+  plot_summary_plot = TRUE,
+  plot_associations = TRUE,
+  heatmap_vars = c('leachate control',
+                    'leachate low',
+                    'leachate mid',
+                    'leachate high'),
+  verbosity = 'ERROR',
+  cores = 5
+)
 ```
 
-# Model 7:
+# Model 7: Spawn night as fixed instead of random effect
 
--   `small_random_effects` (default `FALSE`): Automatically replace
-    random effects with fixed effects in the logistic prevalence model
-    to handle low numbers of observations per group.
+> If spawn_night has very few samples per group (< 5), random-effect estimation may be unreliable. In that case, include it as a fixed effect but remove it from results post-hoc (since it’s not of interest):
 
 ```{r}
 set.seed(1)
@@ -553,21 +640,12 @@ fit_Level7_Model7 <- maaslin3(
   input_data = ft_l7,
   input_metadata = meta,
   output = "../output/maaslin-taxa/Model7",
-  formula = '~ leachate + hpf + (1 | spawn_night)',
+  formula = '~ leachate + hpf + reads + spawn_night',
   normalization = 'TSS',
   transform = 'LOG',
   correction = 'BH',
-  small_random_effects = TRUE, 
-  augment = TRUE,
-  standardize = TRUE,
-  max_significance = 0.1,
-  median_comparison_abundance = TRUE,
-  median_comparison_prevalence = TRUE,
-  plot_summary_plot = TRUE,
-  plot_associations = TRUE,
-  max_pngs = 30,
-  cores = 1,
-  verbosity = 'ERROR'
+  cores = 3,
+  verbosity = 'WARN'
 )
 ```
 
