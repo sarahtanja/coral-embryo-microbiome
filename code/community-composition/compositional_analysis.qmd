@@ -39,12 +39,6 @@ knitr::opts_chunk$set(
   dev = "jpeg",
   dpi = 600,
   fig.retina = 2)        
-
-#install.packages("webshot2")
-#library(webshot2)
-#?webshot2
-#webshot2::install_phantomjs()
-
 ```
 
 # Background
@@ -64,8 +58,8 @@ feature_table_path <- "../../salipante/241121_StonyCoral/270x200/250414_StonyCor
 metadata_path <- "../../metadata/meta.csv"
 taxonomy_path <- "../../salipante/241121_StonyCoral/270x200/250414_270x200_representative-sequences_taxonomy.qza"
 ```
-## Install & load packages
 
+## Install & load packages
 ```{r, eval=FALSE}
 # Check R version
 # R.version.string
@@ -79,10 +73,6 @@ taxonomy_path <- "../../salipante/241121_StonyCoral/270x200/250414_270x200_repre
 #if (!requireNamespace("phyloseq", quietly = TRUE)) {
 #  BiocManager::install("phyloseq")
 #}
-#if (!requireNamespace("ANCOMBC", quietly = TRUE)) {
-#  BiocManager::install("ANCOMBC")
-#}
-
 # Install CRAN packages
 #required_packages <- c("tidyverse", "vegan", "compositions", "zCompositions", 
 #                       "ggplot2", "reshape2", "corrplot", "devtools")
@@ -95,11 +85,6 @@ taxonomy_path <- "../../salipante/241121_StonyCoral/270x200/250414_270x200_repre
 # Install qiime2R from GitHub
 #if (!requireNamespace("qiime2R", quietly = TRUE)) {
 #  devtools::install_github("jbisanz/qiime2R")
-#}
-
-# Install SpiecEasi for SparCC (optional, can be slow to install)
-#if (!requireNamespace("SpiecEasi", quietly = TRUE)) {
-#  devtools::install_github("zdk123/SpiecEasi")
 #}
 ```
 
@@ -114,7 +99,6 @@ library(zCompositions)
 library(ggplot2)
 library(reshape2)
 library(corrplot)
-library(ANCOMBC)
 ```
 
 # Load Data
@@ -317,7 +301,10 @@ ggsave("../../output/compositional_pca_spawn_night.png", pca_plot_spawn_night,
        width = 10, height = 7, dpi = 300)
 ```
 ## Interactive plotly
-```{r}
+::: callout-note
+This will only display in html format
+:::
+```{r, echo = knitr::is_html_output(), eval = knitr::is_html_output()}
 library(ggplot2)
 library(plotly)
 
@@ -490,11 +477,15 @@ If PERMANOVA is significant and betadisper is non-significant, the signal likely
 
 If both are significant, some of the PERMANOVA “difference” could be due to dispersion heterogeneity (groups with different spreads). Report both, and interpret cautiously.
 
+> In adonis2, the strata argument restricts permutations to occur within levels of the strata variable (here, spawn night). This controls for the grouping effect by ensuring samples are only permuted among others within the same spawn night, which accounts for the non-independence of samples collected on the same night when calculating significance of other factors. `adonis2` does not currently support specifying random effects in the model formula like mixed models do. So you cannot directly include spawn night as a random effect.Using strata is a practical approach to avoid inflating Type I error due to pseudoreplication or clustering of samples within levels of spawn night and tests effects of leachate and stage while controlling for spawn night as a grouping factor.
+
+
+
 ```{r}
 set.seed(1)
 # Perform PERMANOVA on Aitchison distance
 # Test effects of leachate, stage, and their interaction (blocking permutations by parental cross)
-permanova_result <- adonis2(
+permanova_int.stage <- adonis2(
   aitchison_dist ~ leachate * stage,
   data = meta_filt,
   permutations = 999,
@@ -506,14 +497,14 @@ print(permanova_result)
 
 # Save results
 write.csv(as.data.frame(permanova_result), 
-          "../../output/permanova/permanova_result_interactionblocked.csv",
+          "../../output/permanova/perm_result_int.stage.csv",
           row.names = TRUE)
 ```
 
 ```{r}
 set.seed(1)
 # Additional PERMANOVA treating stage as continuous time 
-permanova_cont.time <- adonis2(
+permanova_int.hpf <- adonis2(
   aitchison_dist ~ leachate * hpf,
   data = meta_filt,
   permutations = 999,
@@ -525,7 +516,7 @@ print(permanova_cont.time)
 
 # Save results
 write.csv(as.data.frame(permanova_cont.time), 
-          "../../output/permanova/permanova_result_cont.time.csv",
+          "../../output/permanova/perm_result_int.hpf.csv",
           row.names = TRUE)
 ```
 
