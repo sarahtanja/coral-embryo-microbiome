@@ -32,11 +32,85 @@ knitr::opts_chunk$set(
   eval = TRUE, # Evaluate code chunks
   warning = FALSE, # Hide warnings
   message = FALSE, # Hide messages
-  comment = "", # Prevents appending '##' to beginning of lines in code output
-  dev = "jpeg",
-  dpi = 600,
-  fig.retina = 2)        
+  comment = "")        
 ```
+
+# Background
+
+see issue [2353](https://github.com/RobertsLab/resources/issues/2352)
+
+# Setup 
+## Install packages
+## Load libraries
+```{r}
+library(tidyverse)
+library(compositions)
+library(zCompositions)
+```
+## Set paths
+```{r}
+# Define file paths
+feature_table_path <- "../../salipante/241121_StonyCoral/270x200/collapsed-l7.qza"
+metadata_path <- "../../metadata/meta.csv"
+taxonomy_path <- "../../salipante/241121_StonyCoral/270x200/250414_270x200_representative-sequences_taxonomy.qza"
+```
+## Load data
+
+### DEGs
+
+```{r}
+norm_count_mat <- read_csv("../../input/host-significant/norm_count_mat.csv") # vst normalized gene count matrix
+sig_summary <- read_csv("../../input/host-significant/sig_summary.csv") # summary of DEGs log2FC & pval per test/contrast
+sig_all <- read_csv("../../input/host-significant/sig_all.csv") # list of 151 significant DEGs gene_id
+```
+
+Use a semi-join (keeps rows from `norm_count_mat` whose gene_id exists in `sig_all`)
+
+```{r}
+da_gene_matrix <- norm_count_mat %>% 
+  semi_join(sig_all, by = "gene_id") 
+```
+
+### DATs
+
+```{r}
+# Load feature table from QIIME2 artifact
+ft_l7 <- read_qza(feature_table_path)$data
+
+# Convert to data.frame
+ft_l7 <- ft_l7 %>% 
+  as.data.frame()
+
+# QIIME2 format typically has features as rows, samples as columns
+ft_l7 <- t(ft_l7)  # Transpose so samples are rows, taxa are columns
+```
+
+CLR Transformation
+
+The centered log-ratio (CLR) transformation converts compositional data to Euclidean space. It handles zeros by replacing them with small values (geometric Bayesian multiplicative replacement).
+
+```{r}
+# Replace zeros with small values using cmultRepl from zCompositions
+# This is necessary because log transformation is undefined for zeros
+ft_l7_nozero <- cmultRepl(ft_l7, method = "CZM", label = 0)
+
+# Apply CLR transformation
+ft_l7_clr <- clr(ft_l7_nozero)
+
+# Convert to data frame for easier handling
+ft_l7_clr_df <- as.data.frame(ft_l7_clr)
+```
+
+
+```{r}
+clr_feature_table <- read_csv()
+sig_res <- read_tsv("../../output/maaslin-taxa/Interaction/interaction_cat.con/significant_results.tsv")
+```
+
+```{r}
+da_taxa_matrix
+```
+
 
 # SparCC Correlation Analysis
 
@@ -100,3 +174,9 @@ dev.off()
 
 cat("Correlation plot saved to: ../output/clr_correlation_plot.png\n")
 ```
+
+Correlate DE effect sizes (log fold-changes)
+What: correlate log2 fold-changes (LFC) from DE genes with log fold-changes or effect sizes of DA taxa across conditions (i.e., compare LFC vectors).
+Pros: reduces dimensionality and focuses on features that change; easier to interpret biologically.
+Cons: LFCs across very different data types are not directly comparable; sample-size for correlation is limited by number of significant features.
+Caution: control for significance-selection bias; consider rank-based associations (Spearman) and examine direction consistency.

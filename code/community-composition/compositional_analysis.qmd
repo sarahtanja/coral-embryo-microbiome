@@ -176,6 +176,9 @@ feature_clr <- clr(feature_matrix_nozero)
 # Convert to data frame for easier handling
 feature_clr_df <- as.data.frame(feature_clr)
 
+write_csv(feature_clr_df, "../../output/CLR_feature_table.csv")
+
+
 cat("CLR-transformed data dimensions:", dim(feature_clr_df), "\n")
 head(feature_clr_df[, 1:5])
 ```

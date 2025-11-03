@@ -52,44 +52,65 @@ Microbiome Multivariable Associations with Linear Models (MaAsLin)
 MaAslin2 by accounting for compositionality and accommodates
 cross-sectional studies (that's ours!)
 
-First read and get familiar with the:
-[MaAslin3 package README](https://github.com/biobakery/maaslin3)
-[MaAslin3 tutorial](https://github.com/biobakery/biobakery/wiki/maaslin3)
+First read and get familiar with the: [MaAslin3 package
+README](https://github.com/biobakery/maaslin3) [MaAslin3
+tutorial](https://github.com/biobakery/biobakery/wiki/maaslin3)
 
+Here we aim to test changes in abundance (how many) and prevalence
+(presence/absence) of specific taxa due to leachate, and their
+interaction with stage while controlling for spawn night and read depth.
 
+Because abundance or prevalence may or may not have linear patterns
+across time, we should test for both by first coding hours post
+fertilization as a continuous numerical variable (`hpf`), and then again
+as an ordered categorical factor (`stage`).
 
-Here we aim to test changes in abundance (how many) and prevalence (presence/absence) of specific taxa due to leachate, and their interaction with stage while controlling for spawn night and read depth. 
+Our PERMANOVA detected that spawn night was a significant batch effect
+and introduced nuisance variation into our data. To account for this
+`(1 | spawn_night)` adds a random intercept for each unique spawn night
+--- that is, each spawn night gets its own baseline shift in abundance,
+but the effects of `hpf`/`stage` and `leachate` is assumed to be the
+same across nights.
 
-Because abundance or prevalence may or may not have linear patterns across time, we should test for both by first coding hours post fertilization as a continuous numerical variable (`hpf`), and then again as an ordered categorical factor (`stage`).  
+> leachate \* hpf (categorical x continuous): Tests whether the slope or
+> rate of change of the response across the continuous variable hpf
+> differs by leachate group.
 
-Our PERMANOVA detected that spawn night was a significant batch effect and introduced nuisance variation into our data. To account for this `(1 | spawn_night)` adds a random intercept for each unique spawn night — that is, each spawn night gets its own baseline shift in abundance, but the effects of `hpf`/`stage` and `leachate` is assumed to be the same across nights.
+The interaction term indicates if the effect of time (hpf) on the
+response depends on leachate treatment.
 
-> leachate * hpf (categorical x continuous):
-Tests whether the slope or rate of change of the response across the continuous variable hpf differs by leachate group.
+You get a different regression line slope for each leachate level across
+the continuous gradient of hpf.
 
-The interaction term indicates if the effect of time (hpf) on the response depends on leachate treatment.
+This reflects how response trajectories differ continuously over hpf for
+each leachate group.
 
-You get a different regression line slope for each leachate level across the continuous gradient of hpf.
+leachate \* stage (categorical x categorical): Tests whether the mean
+response differences between stages depend on leachate group (and vice
+versa).
 
-This reflects how response trajectories differ continuously over hpf for each leachate group.
+The interaction term indicates if the stage effect differs across
+leachate levels, estimating separate means for each leachate-stage
+combination.
 
-leachate * stage (categorical x categorical):
-Tests whether the mean response differences between stages depend on leachate group (and vice versa).
+This models discrete groups with no assumption of ordering or continuity
+between stages.
 
-The interaction term indicates if the stage effect differs across leachate levels, estimating separate means for each leachate-stage combination.
+You get distinct categorical combinations rather than slopes over a
+continuous variable.
 
-This models discrete groups with no assumption of ordering or continuity between stages.
+Summary: leachate \* hpf models interactions as varying
+slopes/continuous trends modulated by category.
 
-You get distinct categorical combinations rather than slopes over a continuous variable.
+leachate \* stage models interactions as differences in group means
+across categorical combinations.
 
-Summary:
-leachate * hpf models interactions as varying slopes/continuous trends modulated by category.
+The choice depends on whether your time variable is best treated
+continuously (rate/change over time) or categorically (discrete
+developmental stages).
 
-leachate * stage models interactions as differences in group means across categorical combinations.
-
-The choice depends on whether your time variable is best treated continuously (rate/change over time) or categorically (discrete developmental stages).
-
-This affects interpretation and model fit significantly: continuous allows smooth changes, categorical allows distinct group differences.
+This affects interpretation and model fit significantly: continuous
+allows smooth changes, categorical allows distinct group differences.
 
 [MaAsLin3 Wiki](https://github.com/biobakery/biobakery/wiki/maaslin3) \>
 Any significant abundance associations with a categorical variable
@@ -102,13 +123,15 @@ checked visually for influential outliers.
 
 There are also a few rules of thumb to keep in mind:
 
- -    Models should ideally have about **10 times as many samples**
-     (all samples for logistic fits, non-zero samples for linear fits)
-     **as covariate terms** (**all continuous variables plus all
-     categorical variable levels**).
+-   Models should ideally have about **10 times as many samples** (all
+    samples for logistic fits, non-zero samples for linear fits) **as
+    covariate terms** (**all continuous variables plus all categorical
+    variable levels**).
 
-     -   WE have \~60 samples... so max number of terms we *should* use
-         = 6 ...
+```         
+ -   WE have \~60 samples... so max number of terms we *should* use
+     = 6 ...
+```
 
 # Install
 
@@ -132,20 +155,19 @@ library(tidyverse)
 > MaAsLin3 requires two input files, one for taxonomic or functional
 > feature abundances, and one for sample metadata.
 
- 1.  Data (or features) file
+1.  Data (or features) file
 
-  -  This file is tab-delimited.
-  -  Formatted with features as columns and samples as rows.
-  -  The transpose of this format is also okay.
-  -  Possible features in this file include microbes, genes, pathways,
-     etc.
+-   This file is tab-delimited.
+-   Formatted with features as columns and samples as rows.
+-   The transpose of this format is also okay.
+-   Possible features in this file include microbes, genes, pathways,
+    etc.
 
 2.  Metadata file
 
-  - Formatted with metadata as columns and samples as rownames
-  - Is a data.frame object
-  - Includes per sample read counts   
-
+-   Formatted with metadata as columns and samples as rownames
+-   Is a data.frame object
+-   Includes per sample read counts
 
 # Setup
 
@@ -179,9 +201,14 @@ meta <- meta %>%
 
 ## Can I put reads per sample into the metadata?
 
-> Because MaAsLin 3 identifies prevalence (presence/absence) associations, sample read depth (number of reads) should be included as a covariate if available. Deeper sequencing will likely increase feature detection in a way that could spuriously correlate with metadata of interest when read depth is not included in the model.
+> Because MaAsLin 3 identifies prevalence (presence/absence)
+> associations, sample read depth (number of reads) should be included
+> as a covariate if available. Deeper sequencing will likely increase
+> feature detection in a way that could spuriously correlate with
+> metadata of interest when read depth is not included in the model.
 
-As a counterpoint.. this adds complexity to the model and takes away power. 
+As a counterpoint.. this adds complexity to the model and takes away
+power.
 
 ```{r}
 reads <- read_csv("../../salipante/Sarah_StonyCoral/241121_StonyCoral_readcounts.csv")
@@ -201,28 +228,29 @@ meta <- meta %>%
 # View metadata structure
 str(meta)
 ```
- Summarize number of samples representative of each variable of interest
+
+Summarize number of samples representative of each variable of interest
+
 ```{r}
 # Summarize number of samples per 'leachate' category
 meta %>%
   group_by(leachate) %>%
   summarize(count = n())
 ```
+
 ```{r}
 # Summarize number of samples per 'stage' category
 meta %>%
   group_by(stage) %>%
   summarize(count = n())
 ```
+
 ```{r}
 # Summarize number of samples per 'spawn_night' category
 meta %>%
   group_by(spawn_night) %>%
   summarize(count = n())
 ```
- 
- 
-
 
 # Load Data
 
@@ -255,34 +283,58 @@ indicating pooled mix of colony crosses
 
 # Model 1: Interactive
 
-Categorical leachate & continuous time (interactive)
-**Model formula:**
+Categorical leachate & continuous time (interactive) **Model formula:**
 `Abundance|Prevelance ~ leachate * hpf + reads + (1|spawn_night)`
 
-**This model tests:**
-- Main effect of leachate (categorical): Differences in the response between the levels of the leachate treatment, averaged over all hpf values.
+**This model tests:** - Main effect of leachate (categorical):
+Differences in the response between the levels of the leachate
+treatment, averaged over all hpf values.
 
-- Main effect of hpf (continuous): The overall linear trend in the response as hours post-fertilization (hpf) changes, averaged over all leachate groups.
+-   Main effect of hpf (continuous): The overall linear trend in the
+    response as hours post-fertilization (hpf) changes, averaged over
+    all leachate groups.
 
-- Interaction between leachate and hpf: Whether the slope of the response across hpf differs depending on the leachate category. This tests if leachate modifies how the response changes continuously over time; e.g., some leachate levels may accelerate or slow the effect of hpf.
+-   Interaction between leachate and hpf: Whether the slope of the
+    response across hpf differs depending on the leachate category. This
+    tests if leachate modifies how the response changes continuously
+    over time; e.g., some leachate levels may accelerate or slow the
+    effect of hpf.
 
-- Effect of reads (continuous covariate): Controls for the influence of read depth on the response, adjusting other effects accordingly.
+-   Effect of reads (continuous covariate): Controls for the influence
+    of read depth on the response, adjusting other effects accordingly.
 
-- Random intercept for spawn_night: Accounts for variability and non-independence among samples collected on the same spawn night by allowing different baseline response levels for each spawn night.
+-   Random intercept for spawn_night: Accounts for variability and
+    non-independence among samples collected on the same spawn night by
+    allowing different baseline response levels for each spawn night.
 
-Interpretation-wise, if the interaction term is significant, it indicates that the "trajectory" or slope of response change with hpf differs by leachate group. If the interaction is not significant but leachate is, then leachate affects overall response level but not the shape of the response over time.
+Interpretation-wise, if the interaction term is significant, it
+indicates that the "trajectory" or slope of response change with hpf
+differs by leachate group. If the interaction is not significant but
+leachate is, then leachate affects overall response level but not the
+shape of the response over time.
 
-Graphically, imagine separate regression lines (response vs. hpf) for each leachate group. The interaction tests whether these lines have different slopes. The main effects test differences in intercepts and general trend.
+Graphically, imagine separate regression lines (response vs. hpf) for
+each leachate group. The interaction tests whether these lines have
+different slopes. The main effects test differences in intercepts and
+general trend.
 
-This model lets you hone in on how leachate influences response patterns over continuous developmental time (hpf), adjusting for sequencing depth and blocking by spawn night.
+This model lets you hone in on how leachate influences response patterns
+over continuous developmental time (hpf), adjusting for sequencing depth
+and blocking by spawn night.
 
 ## 1v1 cat x con
 
 Here we test categorical leachate x continuous hpf
 
-leachate * hpf (categorical x continuous):
-Tests whether the slope or rate of change of the response across the continuous variable hpf differs by leachate group. The interaction term indicates if the effect of time (hpf) on the response depends on leachate treatment. You get a different regression line slope for each leachate level across the continuous gradient of hpf.
-This reflects how response trajectories differ continuously over hpf for each leachate group. `leachate * hpf` models interactions as varying slopes/continuous trends modulated by category.
+leachate \* hpf (categorical x continuous): Tests whether the slope or
+rate of change of the response across the continuous variable hpf
+differs by leachate group. The interaction term indicates if the effect
+of time (hpf) on the response depends on leachate treatment. You get a
+different regression line slope for each leachate level across the
+continuous gradient of hpf. This reflects how response trajectories
+differ continuously over hpf for each leachate group. `leachate * hpf`
+models interactions as varying slopes/continuous trends modulated by
+category.
 
 ```{r eval=FALSE, warning=FALSE, message=FALSE}
 set.seed(1)
@@ -298,25 +350,30 @@ fit_Level7_Model1v1 <- maaslin3(
   cores = 3
 )
 ```
+
 Read in the significant results
+
 ```{r}
 sig_m1v1 <- read_tsv(file.path(output_path, "Interaction/interaction_cat.con/significant_results.tsv"))
 ```
 
 Filter for leachate
+
 ```{r}
 sig_pvc_m1v1 <- sig_m1v1 %>% 
   filter(metadata == "leachate")
 
 nrow(sig_pvc_m1v1)
 ```
+
 ::: callout-note
 126 significant taxa!
 :::
 
-## 1v2 cat x cat 
+## 1v2 cat x cat
 
 Here we test for categorical leachate and categorical stage.
+
 ```{r eval=FALSE, warning=FALSE, message=FALSE}
 set.seed(1)
 fit_Level7_Model1v2 <- maaslin3(
@@ -331,18 +388,22 @@ fit_Level7_Model1v2 <- maaslin3(
   cores = 3
 )
 ```
+
 Read in significant results
+
 ```{r}
 sig_m1v2 <- read_tsv(file.path(output_path, "Interaction/interaction_cat.cat/significant_results.tsv"))
 ```
 
 Filter for leachate
+
 ```{r}
 sig_pvc_m1v2 <- sig_m1v2 %>% 
   filter(metadata == "leachate")
 
 nrow(sig_pvc_m1v2)
 ```
+
 ::: callout-note
 85 significant taxa!
 :::
@@ -357,13 +418,14 @@ This model tests:
 1.  **Main effect of leachate**: Does leachate concentration affect
     bacterial abundance/prevalence, averaging across all timepoints?
 2.  **Main effect of stage**: Does developmental stage (i.e. hours post
-    fertilization) affect bacterial abundance/prevalence, averaging across all
-    leachate treatments?
-3.  **Covariate effect of read depth**: Does read depth     
-3.  **Random effect of spawn night**: Accounts for correlation among
+    fertilization) affect bacterial abundance/prevalence, averaging
+    across all leachate treatments?
+3.  **Covariate effect of read depth**: Does read depth\
+4.  **Random effect of spawn night**: Accounts for correlation among
     samples collected from the same spawn night
 
 ## 2v1 cat x con
+
 ```{r}
 set.seed(1)
 fit_Level7_Model2v1 <- maaslin3(
@@ -380,17 +442,20 @@ fit_Level7_Model2v1 <- maaslin3(
 ```
 
 Read in the significant results
+
 ```{r}
 sig_m2v1 <- read_tsv(file.path(output_path, "Model2/significant_results.tsv"))
 ```
 
 Filter the significant results for leachate...
+
 ```{r}
 sig_pvc_m2v1 <- sig_m2v1 %>% 
   filter(metadata == "leachate")
 
 nrow(sig_pvc_m2v1)
 ```
+
 ::: callout-note
 9 significant taxa!
 :::
@@ -413,24 +478,30 @@ fit_Level7_Model2v2 <- maaslin3(
 ```
 
 Read in significant results
+
 ```{r}
 sig_m2v2 <- read_tsv(file.path(output_path, "Additive/additive_cat.cat/significant_results.tsv"))
 ```
 
 Filter for leachate
+
 ```{r}
 sig_pvc_m2v2 <- sig_m2v2 %>% 
   filter(metadata == "leachate")
 
 nrow(sig_pvc_m2v2)
 ```
+
 ::: callout-note
 15 significant taxa!
 :::
 
 # Model 3: Level contrasts
-## 3v1 
-Leachate level contrast | hpf numeric | spawn as random effect
+
+## 3v1
+
+Leachate level contrast \| hpf numeric \| spawn as random effect
+
 ```{r}
 set.seed(1)
 fit_Level7_Model3v1 <- maaslin3(
@@ -448,9 +519,11 @@ fit_Level7_Model3v1 <- maaslin3(
   cores = 3
 )
 ```
+
 ```{r}
 sig_m3v1 <- read_tsv(file.path(output_path, "level_contrast.spawn_random/significant_results.tsv"))
 ```
+
 ```{r}
 sig_m3v1 <- sig_m3v1 %>% 
   filter(metadata == "leachate")
@@ -484,6 +557,7 @@ fit_Level7_Model3v2 <- maaslin3(
 ```{r}
 sig_m3v2 <- read_tsv(file.path(output_path, "Fixed/additive.hpf.spawn_fixed/significant_results.tsv"))
 ```
+
 ```{r}
 sig_pvc_m3v2 <- sig_m3v2 %>% 
   filter(metadata == "leachate")
@@ -492,9 +566,22 @@ nrow(sig_pvc_m3v2)
 
 # Model 4: Group-wise differences
 
-> The last feature of MaAsLin 3 highlighted here is the ability to test for group-wise differences in categorical predictors using an ANOVA or ANOVA-like procedure. Group-wise predictors are categorical variables with or without an ordering such as race, country, or consumption frequency of a dietary factor. When performing a group-wise difference test, we are not comparing any two particular levels; rather, we are investigating whether abundances and prevalences are the same for all levels. Therefore, no coefficient is returned, only a p-value. Here, we test whether there are differences in microbial abundances and prevalences across people with different levels of red meat consumption by including group(red_meat). Group-wise predictors should only be included as fixed effects (i.e., no group-wise predictors as random effects etc.).
+> The last feature of MaAsLin 3 highlighted here is the ability to test
+> for group-wise differences in categorical predictors using an ANOVA or
+> ANOVA-like procedure. Group-wise predictors are categorical variables
+> with or without an ordering such as race, country, or consumption
+> frequency of a dietary factor. When performing a group-wise difference
+> test, we are not comparing any two particular levels; rather, we are
+> investigating whether abundances and prevalences are the same for all
+> levels. Therefore, no coefficient is returned, only a p-value. Here,
+> we test whether there are differences in microbial abundances and
+> prevalences across people with different levels of red meat
+> consumption by including group(red_meat). Group-wise predictors should
+> only be included as fixed effects (i.e., no group-wise predictors as
+> random effects etc.).
 
 ## 4v1
+
 ```{r}
 set.seed(1)
 fit_Level7_Model4v1 <- maaslin3(
@@ -516,6 +603,7 @@ fit_Level7_Model4v1 <- maaslin3(
 ```{r}
 sig_m4v1 <- read_tsv(file.path(output_path, "Fixed/additive.hpf.spawn_fixed/significant_results.tsv"))
 ```
+
 ```{r}
 sig_pvc_m4v1 <- sig_m4v1 %>% 
   filter(metadata == "leachate")
@@ -523,6 +611,7 @@ nrow(sig_pvc_m4v1)
 ```
 
 ## 4v2
+
 ```{r}
 set.seed(1)
 fit_Level7_Model6v1 <- maaslin3(
@@ -540,9 +629,11 @@ fit_Level7_Model6v1 <- maaslin3(
   cores = 3
 )
 ```
+
 ```{r}
 sig_m4v2 <- read_tsv(file.path(output_path, "Fixed/additive.hpf.spawn_fixed/significant_results.tsv"))
 ```
+
 ```{r}
 sig_pvc_m4v2 <- sig_m4v2 %>% 
   filter(metadata == "leachate")
@@ -551,9 +642,13 @@ nrow(sig_pvc_m4v2)
 
 # Model 5: Fixed effects
 
-> If spawn_night has very few samples per group (< 5), random-effect estimation may be unreliable. In that case, include it as a **fixed effect** but remove it from results post-hoc (since it’s not of interest):
+> If spawn_night has very few samples per group (\< 5), random-effect
+> estimation may be unreliable. In that case, include it as a **fixed
+> effect** but remove it from results post-hoc (since it's not of
+> interest):
 
 ## 5v1
+
 ```{r, eval=false}
 set.seed(1)
 fit_Level7_Model5v1 <- maaslin3(
@@ -568,16 +663,18 @@ fit_Level7_Model5v1 <- maaslin3(
   verbosity = 'ERROR'
 )
 ```
+
 ```{r}
 sig_m5v1 <- read_tsv(file.path(output_path, "Fixed/additive.hpf.spawn_fixed/significant_results.tsv"))
 ```
+
 ```{r}
 sig_pvc_m5v1 <- sig_m5v1 %>% 
   filter(metadata == "leachate")
 ```
 
-
 ## 5v2
+
 ```{r, eval=false}
 set.seed(1)
 fit_Level7_Model5v2 <- maaslin3(
@@ -592,16 +689,20 @@ fit_Level7_Model5v2 <- maaslin3(
   verbosity = 'ERROR'
 )
 ```
+
 ```{r}
 sig_m5v2 <- read_tsv(file.path(output_path, "Fixed/additive.stage.spawn_fixed/significant_results.tsv"))
 ```
+
 ```{r}
 sig_pvc_m5v2 <- sig_m5v2 %>% 
   filter(metadata == "leachate")
 
 nrow(sig_pvc_m5v2)
 ```
+
 ## 5v3
+
 ```{r, eval=FALSE}
 set.seed(1)
 fit_Level7_Model5v3 <- maaslin3(
@@ -616,16 +717,20 @@ fit_Level7_Model5v3 <- maaslin3(
   verbosity = 'ERROR'
 )
 ```
+
 ```{r}
 sig_m5v3 <- read_tsv(file.path(output_path, "Fixed/interactive.hpf.spawn_fixed/significant_results.tsv"))
 ```
+
 ```{r}
 sig_pvc_m5v3 <- sig_m5v3 %>% 
   filter(metadata == "leachate")
 
 nrow(sig_pvc_m5v3)
 ```
+
 ## 5v4
+
 ```{r, eval=FALSE}
 set.seed(1)
 fit_Level7_Model5v4 <- maaslin3(
@@ -640,9 +745,11 @@ fit_Level7_Model5v4 <- maaslin3(
   verbosity = 'ERROR'
 )
 ```
+
 ```{r}
 sig_m5v4 <- read_tsv(file.path(output_path, "Fixed/interactive.stage.spawn_fixed/significant_results.tsv"))
 ```
+
 ```{r}
 sig_pvc_m5v4 <- sig_m5v4 %>% 
   filter(metadata == "leachate")
@@ -652,35 +759,45 @@ nrow(sig_pvc_m5v4)
 
 # Model Comparison Guide
 
-| Model | Tests | Advantages | Limitations |
-|----------------|----------------|--------------------|---------------------|
-| **Additive** | Main effects only | Simple interpretation, detects overall trends | Cannot detect condition-specific effects, averages across other variable |
-| **Interaction** | Main + interaction effects | Identifies whether effects depend on other variables | More complex interpretation, requires more samples |
-| **Categorical** | Pairwise comparisons | Shows which specific levels differ | Many comparisons (multiple testing), doesn't test for linear trends |
+| Model           | Tests                      | Advantages                                           | Limitations                                                              |
+|-----------------|----------------------------|------------------------------------------------------|--------------------------------------------------------------------------|
+| **Additive**    | Main effects only          | Simple interpretation, detects overall trends        | Cannot detect condition-specific effects, averages across other variable |
+| **Interaction** | Main + interaction effects | Identifies whether effects depend on other variables | More complex interpretation, requires more samples                       |
+| **Categorical** | Pairwise comparisons       | Shows which specific levels differ                   | Many comparisons (multiple testing), doesn't test for linear trends      |
 
 ## Polynomial Contrasts .L, .Q, .C ?
 
-.L, .Q, .C are polynomial contrast columns for linear, quadratic, & cubic trends in ordered factors.
+.L, .Q, .C are polynomial contrast columns for linear, quadratic, &
+cubic trends in ordered factors.
 
 **Understanding Interaction Terms with Ordered Factors**
 
-When using **ordered factors** in R (like our **`leachate`** and **`stage`** variables), R uses **polynomial contrasts** by default. This results in model terms labeled **`.L`** (linear), **`.Q`** (quadratic), **`.C`** (cubic), depending on the number of levels. These contrasts represent different shapes of trend across the ordered levels, rather than treating each category separately.
+When using **ordered factors** in R (like our **`leachate`** and
+**`stage`** variables), R uses **polynomial contrasts** by default. This
+results in model terms labeled **`.L`** (linear), **`.Q`** (quadratic),
+**`.C`** (cubic), depending on the number of levels. These contrasts
+represent different shapes of trend across the ordered levels, rather
+than treating each category separately.
 
-**What Does an Interaction Mean Here?**
-Normally, an interaction like **`leachate:stage`** would tell you how the effect of one factor changes depending on the level of the other.
+**What Does an Interaction Mean Here?** Normally, an interaction like
+**`leachate:stage`** would tell you how the effect of one factor changes
+depending on the level of the other.
 
-**With polynomial contrasts for both factors**, their interaction expands into multiple terms:
+**With polynomial contrasts for both factors**, their interaction
+expands into multiple terms:
 
->     -   **`leachate.L:stage.L`**: linear-by-linear
+> ```         
+> -   **`leachate.L:stage.L`**: linear-by-linear
 >
->     -   **`leachate.L:stage.Q`**: linear effect of leachate changes in
->         a quadratic trend across stage
+> -   **`leachate.L:stage.Q`**: linear effect of leachate changes in
+>     a quadratic trend across stage
 >
->     -   **`leachate.Q:stage.L`**: quadratic effect of leachate changes
->         in a linear trend across stage
+> -   **`leachate.Q:stage.L`**: quadratic effect of leachate changes
+>     in a linear trend across stage
 >
->     -   **`leachate.Q:stage.C`**: quadratic effect of leachate changes
->         in a cubic trend across stage
+> -   **`leachate.Q:stage.C`**: quadratic effect of leachate changes
+>     in a cubic trend across stage
+> ```
 >
 > -   Each combination of a contrast for leachate and a contrast for
 >     stage is a separate interaction term.
@@ -690,7 +807,7 @@ Normally, an interaction like **`leachate:stage`** would tell you how the effect
 > -   **`.L` (Linear):** Does the effect change in a straight-line
 >     (monotonic) fashion across ordered levels?
 >
-> -   **`.Q` (Quadratic):** Is there a “U” or “n” shaped curve (i.e.,
+> -   **`.Q` (Quadratic):** Is there a "U" or "n" shaped curve (i.e.,
 >     the effect is more/less extreme at intermediate or end levels)?
 >
 > -   **`.C` (Cubic):** More complex curves with up to two inflection
@@ -698,7 +815,7 @@ Normally, an interaction like **`leachate:stage`** would tell you how the effect
 >
 > So, **`leachate.L:stage.Q`** asks: "Does the **linear trend** in
 > leachate change as a **quadratic function** of stage?" In practice, it
-> tests for more complex, curved interaction patterns—not just simple
+> tests for more complex, curved interaction patterns---not just simple
 > increases/decreases.
 >
 > **Why So Many Terms?**
@@ -720,7 +837,9 @@ Normally, an interaction like **`leachate:stage`** would tell you how the effect
 >     test for specific trend types (overall increasing, U-shape, etc).
 
 # Errors & Warnings
+
 ## Rank deficiency
+
 ```{r}
 mm <- model.matrix(~ leachate * stage + reads + spawn_night, data = meta)
 head(mm)
@@ -741,7 +860,7 @@ ncol(mm)     # compare against number of columns
 >
 > -   Including **redundant** or **unidentifiable** random effects
 >     (e.g., nesting or crossing factors unnecessarily, or random slopes
->     with no replication) can also lead to singular fits—where the
+>     with no replication) can also lead to singular fits---where the
 >     model's estimated random-effects covariance matrix is not positive
 >     definite, or group-level variance is estimated as zero.​
 >
@@ -784,9 +903,6 @@ ncol(mm)     # compare against number of columns
 >
 >     -   Try stepwise removal: fit the model with fewer random terms
 >         and see if singularity resolves.
-
-
-
 
 # Results Interpretation
 
