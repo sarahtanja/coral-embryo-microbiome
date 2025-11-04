@@ -361,13 +361,14 @@ Filter for leachate
 
 ```{r}
 sig_pvc_m1v1 <- sig_m1v1 %>% 
-  filter(metadata == "leachate")
+  filter(metadata == "leachate") %>% 
+  mutate(formula = "~ leachate * hpf + reads + (1|spawn_night)")
 
-nrow(sig_pvc_m1v1)
+unique(sig_pvc_m1v1$feature)
 ```
 
 ::: callout-note
-126 significant taxa!
+15 significant taxa
 :::
 
 ## 1v2 cat x cat
@@ -399,13 +400,14 @@ Filter for leachate
 
 ```{r}
 sig_pvc_m1v2 <- sig_m1v2 %>% 
-  filter(metadata == "leachate")
+  filter(metadata == "leachate")%>% 
+  mutate(formula = "~ leachate * stage + reads + (1|spawn_night)")
 
-nrow(sig_pvc_m1v2)
+unique(sig_pvc_m1v2$feature)
 ```
 
 ::: callout-note
-85 significant taxa!
+11 significant taxa!
 :::
 
 # Model 2: Additive
@@ -451,13 +453,14 @@ Filter the significant results for leachate...
 
 ```{r}
 sig_pvc_m2v1 <- sig_m2v1 %>% 
-  filter(metadata == "leachate")
+  filter(metadata == "leachate")%>% 
+  mutate(formula = "~ leachate + hpf + reads + (1|spawn_night)")
 
-nrow(sig_pvc_m2v1)
+unique(sig_pvc_m2v1$feature)
 ```
 
 ::: callout-note
-9 significant taxa!
+3 significant taxa!
 :::
 
 ## 2v2 cat x cat
@@ -487,13 +490,14 @@ Filter for leachate
 
 ```{r}
 sig_pvc_m2v2 <- sig_m2v2 %>% 
-  filter(metadata == "leachate")
+  filter(metadata == "leachate")%>% 
+  mutate(formula = "~ leachate + stage + reads + (1|spawn_night)")
 
-nrow(sig_pvc_m2v2)
+unique(sig_pvc_m2v2$feature)
 ```
 
 ::: callout-note
-15 significant taxa!
+4 significant taxa!
 :::
 
 # Model 3: Level contrasts
@@ -525,9 +529,11 @@ sig_m3v1 <- read_tsv(file.path(output_path, "level_contrast.spawn_random/signifi
 ```
 
 ```{r}
-sig_m3v1 <- sig_m3v1 %>% 
-  filter(metadata == "leachate")
-nrow(sig_m3v1)
+sig_pvc_m3v1 <- sig_m3v1 %>% 
+  filter(metadata == "leachate")%>% 
+  mutate(formula = "~ ordered(leachate) + hpf + reads + (1|spawn_night)")
+
+unique(sig_pvc_m3v1$feature)
 ```
 
 ::: callout-note
@@ -560,9 +566,14 @@ sig_m3v2 <- read_tsv(file.path(output_path, "Fixed/additive.hpf.spawn_fixed/sign
 
 ```{r}
 sig_pvc_m3v2 <- sig_m3v2 %>% 
-  filter(metadata == "leachate")
-nrow(sig_pvc_m3v2)
+  filter(metadata == "leachate")%>% 
+  mutate(formula = "~ ordered(leachate) + stage + reads + (1|spawn_night)")
+
+unique(sig_pvc_m3v2$feature)
 ```
+::: callout-note
+4 significant taxa
+:::
 
 # Model 4: Group-wise differences
 
@@ -606,10 +617,13 @@ sig_m4v1 <- read_tsv(file.path(output_path, "Fixed/additive.hpf.spawn_fixed/sign
 
 ```{r}
 sig_pvc_m4v1 <- sig_m4v1 %>% 
-  filter(metadata == "leachate")
-nrow(sig_pvc_m4v1)
+  filter(metadata == "leachate")%>% 
+  mutate(formula = "~ group(leachate) + hpf + reads + (1|spawn_night)")
+unique(sig_pvc_m4v1$feature)
 ```
-
+::: callout-note
+4 significant taxa
+:::
 ## 4v2
 
 ```{r}
@@ -636,9 +650,13 @@ sig_m4v2 <- read_tsv(file.path(output_path, "Fixed/additive.hpf.spawn_fixed/sign
 
 ```{r}
 sig_pvc_m4v2 <- sig_m4v2 %>% 
-  filter(metadata == "leachate")
-nrow(sig_pvc_m4v2)
+  filter(metadata == "leachate")%>% 
+  mutate(formula = "~ group(leachate) + stage + reads + (1|spawn_night)")
+unique(sig_pvc_m4v2$feature)
 ```
+::: callout-note
+4 significant taxa, same as above
+:::
 
 # Model 5: Fixed effects
 
@@ -670,8 +688,13 @@ sig_m5v1 <- read_tsv(file.path(output_path, "Fixed/additive.hpf.spawn_fixed/sign
 
 ```{r}
 sig_pvc_m5v1 <- sig_m5v1 %>% 
-  filter(metadata == "leachate")
+  filter(metadata == "leachate")%>% 
+  mutate(formula = "~ leachate + hpf + reads + spawn_night")
+unique(sig_pvc_m5v1$feature)
 ```
+::: callout-note
+4 significant taxa, same as above
+:::
 
 ## 5v2
 
@@ -696,10 +719,14 @@ sig_m5v2 <- read_tsv(file.path(output_path, "Fixed/additive.stage.spawn_fixed/si
 
 ```{r}
 sig_pvc_m5v2 <- sig_m5v2 %>% 
-  filter(metadata == "leachate")
+  filter(metadata == "leachate")%>% 
+  mutate(formula = "~ leachate + stage + reads + spawn_night")
 
-nrow(sig_pvc_m5v2)
+unique(sig_pvc_m5v2$feature)
 ```
+::: callout-note
+4 significant taxa ... slightly different group
+:::
 
 ## 5v3
 
@@ -724,11 +751,14 @@ sig_m5v3 <- read_tsv(file.path(output_path, "Fixed/interactive.hpf.spawn_fixed/s
 
 ```{r}
 sig_pvc_m5v3 <- sig_m5v3 %>% 
-  filter(metadata == "leachate")
+  filter(metadata == "leachate")%>% 
+  mutate(formula = "~ leachate * hpf + reads + spawn_night")
 
-nrow(sig_pvc_m5v3)
+unique(sig_pvc_m5v3$feature)
 ```
-
+::: callout-note
+3 significant taxa
+:::
 ## 5v4
 
 ```{r, eval=FALSE}
@@ -752,10 +782,14 @@ sig_m5v4 <- read_tsv(file.path(output_path, "Fixed/interactive.stage.spawn_fixed
 
 ```{r}
 sig_pvc_m5v4 <- sig_m5v4 %>% 
-  filter(metadata == "leachate")
+  filter(metadata == "leachate")%>% 
+  mutate(formula = "~ leachate * stage + reads + spawn_night")
 
-nrow(sig_pvc_m5v4)
+unique(sig_pvc_m5v4$feature)
 ```
+::: callout-note
+2 significant taxa
+:::
 
 # Model Comparison Guide
 
@@ -903,6 +937,22 @@ ncol(mm)     # compare against number of columns
 >
 >     -   Try stepwise removal: fit the model with fewer random terms
 >         and see if singularity resolves.
+
+# Compiled list
+```{r}
+sig_pvc <- list(sig_pvc_m1v1, sig_pvc_m1v2, sig_pvc_m2v1, 
+                sig_pvc_m2v2, sig_pvc_m3v1, sig_pvc_m3v2, 
+                sig_pvc_m4v1, sig_pvc_m4v2, sig_pvc_m5v1, 
+                sig_pvc_m5v2, sig_pvc_m5v3, sig_pvc_m5v4)
+sig_pvc_all <- bind_rows(sig_pvc)
+
+unique(sig_pvc_all$feature)
+```
+
+```{r}
+write_csv(sig_pvc_all, file.path(output_path,"sig_pvc_all.csv"))
+```
+
 
 # Results Interpretation
 

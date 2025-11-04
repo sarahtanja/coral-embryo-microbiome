@@ -1,5 +1,6 @@
 ---
 title: "Correlation Analysis"
+subtitle: "genes to taxa"
 author: "Sarah Tanja"
 date-modified: today
 format:
@@ -39,13 +40,25 @@ knitr::opts_chunk$set(
 
 see issue [2353](https://github.com/RobertsLab/resources/issues/2352)
 
+deg_cm is a matrix/data.frame with rows = gene_id, cols = samples
+dat_cm is a matrix/data.frame with rows = taxa, cols = samples
+sample columns are in the same order in both matrices
+
 # Setup 
 ## Install packages
+```{r}
+install.packages(c("psych","pheatmap","igraph")) # run once
+```
+
 ## Load libraries
 ```{r}
 library(tidyverse)
+library(qiime2R)
 library(compositions)
 library(zCompositions)
+library(psych)     # corr.test
+library(pheatmap)
+library(igraph)
 ```
 ## Set paths
 ```{r}
@@ -53,22 +66,30 @@ library(zCompositions)
 feature_table_path <- "../../salipante/241121_StonyCoral/270x200/collapsed-l7.qza"
 metadata_path <- "../../metadata/meta.csv"
 taxonomy_path <- "../../salipante/241121_StonyCoral/270x200/250414_270x200_representative-sequences_taxonomy.qza"
+output_path <- "../../output/correlation/"
 ```
 ## Load data
 
-### DEGs
-
 ```{r}
-norm_count_mat <- read_csv("../../input/host-significant/norm_count_mat.csv") # vst normalized gene count matrix
-sig_summary <- read_csv("../../input/host-significant/sig_summary.csv") # summary of DEGs log2FC & pval per test/contrast
-sig_all <- read_csv("../../input/host-significant/sig_all.csv") # list of 151 significant DEGs gene_id
+vst_gcm <- read_csv("../../input/host-significant/norm_count_mat.csv") # vst normalized gene count matrix
+sig_degs <- read_csv("../../input/host-significant/sig_summary.csv") # summary of DEGs log2FC & pval per test/contrast
+list_degs <- read_csv("../../input/host-significant/sig_all.csv") # list of 151 significant DEGs gene_id
+
+sig_leachate_taxa <- read_csv("../../output/maaslin-taxa/sig_pvc_all.csv")
 ```
+### DEGs
 
 Use a semi-join (keeps rows from `norm_count_mat` whose gene_id exists in `sig_all`)
 
 ```{r}
-da_gene_matrix <- norm_count_mat %>% 
-  semi_join(sig_all, by = "gene_id") 
+deg_cm <- norm_count_mat %>% 
+  semi_join(list_degs, by = "gene_id") %>% 
+  column_to_rownames(var = "gene_id")
+```
+
+```{r}
+# Save matrix to CSV (rows = genes/taxa preserved)
+write.csv(deg_cm, file = file.path(output_path, "deg_cm_vst.csv"), row.names = TRUE, quote = FALSE)
 ```
 
 ### DATs
@@ -97,20 +118,123 @@ ft_l7_nozero <- cmultRepl(ft_l7, method = "CZM", label = 0)
 # Apply CLR transformation
 ft_l7_clr <- clr(ft_l7_nozero)
 
-# Convert to data frame for easier handling
-ft_l7_clr_df <- as.data.frame(ft_l7_clr)
+# make features rownames
+taxa_matrix_clr <- t(ft_l7_clr) %>%
+  as.data.frame() %>% 
+  rownames_to_column(var = "feature")
+```
+
+```{r}
+dat_cm <- taxa_matrix_clr %>% 
+  semi_join(sig_leachate_taxa, by = "feature") %>% 
+  column_to_rownames(var="feature")
+```
+
+Remove outlier samples
+```{r}
+dat_cm <- dat_cm %>% 
+  dplyr::select(!"131415L4")%>% 
+  dplyr::select(!"789C4")
+```
+
+```{r}
+# Save matrix to CSV (rows = genes/taxa preserved)
+write.csv(dat_cm, file = file.path(output_path, "dat_cm_clr.csv"), row.names = TRUE, quote = FALSE)
+```
+
+# Check order 
+Examine the two count matrices and make sure the samples in the columns are ordered the same in each matrix. Should return TRUE. 
+```{r}
+# 1) Ensure matching sample order
+all(colnames(dat_cm) == colnames(deg_cm))
+```
+
+# Spearman 
+Compute Spearman correlations + p-values all pairs using psych::corr.test
+psych::corr.test can take two matrices (rows = variables, columns = observations)
+it will return correlation matrix (r) and p-value matrix (p)
+```{r}
+?psych
+```
+
+matrices should have the same number of rows
+```{r}
+cors <- psych::corr.test(t(deg_cm), t(dat_cm), method = "spearman", adjust = "BH", alpha = 0.05)
+```
+
+cors$r is a matrix of correlation coefficients (genes x taxa)
+cors$p is a matrix of p-values (genes x taxa)
+```{r}
+# 4) Tidy results into a long data.frame
+r_mat <- cors$r
+p_mat <- cors$p
+
+res_df <- as.data.frame(as.table(r_mat))
+colnames(res_df) <- c("gene", "taxa", "rho")
+
+p_df <- as.data.frame(as.table(p_mat))
+colnames(p_df) <- c("gene", "taxa", "pvalue")
+
+res <- left_join(res_df, p_df, by = c("gene", "taxa"))
 ```
 
 
 ```{r}
-clr_feature_table <- read_csv()
-sig_res <- read_tsv("../../output/maaslin-taxa/Interaction/interaction_cat.con/significant_results.tsv")
+# 6) Add thresholds and filter significant associations
+# Example thresholds: FDR < 0.05 and |rho| >= 0.3 (tune these)
+sig_res <- res %>%
+  filter(pvalue <= 0.05 & abs(rho) >= 0.3) %>%
+  arrange(pvalue, desc(abs(rho)))
+
+# Quick summary
+cat("Total tests:", nrow(res), "\n")
+cat("Significant pairs (FDR<=0.05 & |rho|>=0.3):", nrow(sig_res), "\n")
+
+```
+```{r}
+# 7) Save results
+write.csv(res, file = file.path(output_path, "gene_taxa_spearman_all_pairs.csv"), row.names = FALSE)
+write.csv(sig_res, file = file.path(output_path,"gene_taxa_spearman_significant_pairs.csv"), row.names = FALSE)
+```
+
+# Visualizations
+```{r}
+# 8) Visualizations
+# 8a. Heatmap of top associations: construct a small matrix of rho for top N genes & taxa
+top_genes <- unique(head(sig_res$gene, 50))
+top_taxa  <- unique(head(sig_res$taxa, 50))
+heat_mat <- r_mat[rownames(r_mat) %in% top_genes, colnames(r_mat) %in% top_taxa, drop = FALSE]
+pheatmap(heat_mat, cluster_rows = TRUE, cluster_cols = TRUE, 
+         main = "Spearman rho (genes x taxa) - top candidates")
 ```
 
 ```{r}
-da_taxa_matrix
+# 8b. Bipartite network of significant pairs
+if (nrow(sig_res) > 0) {
+  edges <- sig_res %>% select(gene, taxa, rho)
+  # Create igraph: prefix taxa names to avoid collisions with gene names
+  edges <- edges %>% mutate(taxa_node = paste0("taxa:", taxa))
+  g <- graph_from_data_frame(d = edges %>% select(gene, taxa_node, rho), directed = FALSE)
+  # Set edge width/color by rho
+  E(g)$weight <- abs(edges$rho)
+  plot(g, vertex.label.cex = 0.7, edge.width = E(g)$weight*2,
+       main = "Gene-Taxa association network (|rho| >= 0.3, FDR<=0.05)")
+}
 ```
 
+```{r}
+# 8c. Scatterplot for top pair
+if (nrow(sig_res) > 0) {
+  top_pair <- sig_res %>% slice(1)
+  gname <- top_pair$gene
+  tname <- top_pair$taxa
+  x <- as.numeric(deg_cm[gname, ])
+  y <- as.numeric(dat_cm[tname, ])
+  plot(x, y, xlab = paste("VST:", gname), ylab = paste("CLR:", tname),
+       main = paste0("rho=", round(top_pair$rho,3), ", FDR=", signif(top_pair$p_adj,3)))
+  abline(lm(y ~ x), col = "red")
+}
+```
 
 # SparCC Correlation Analysis
 
