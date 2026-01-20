@@ -52,8 +52,10 @@ library(tidyverse)
     ✖ dplyr::lag()    masks stats::lag()
     ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
 
-Let’s jump straight to significant results from the Maaslin2 significant
-differential features
+Let’s jump straight to significant results from the historical MaAsLin2
+
+analysis. For current MaAsLin3 analysis, see
+[differentially-abundant-taxa/maaslin3.qmd](differentially-abundant-taxa/maaslin3.qmd).
 
 # Import data
 
