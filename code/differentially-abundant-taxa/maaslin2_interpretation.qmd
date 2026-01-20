@@ -1,5 +1,5 @@
 ---
-title: "Understanding Maaslin2 Model Design and Results Interpretation"
+title: "Understanding MaAsLin2 Model Design and Results Interpretation"
 subtitle: "Additive vs. Interaction Effects in Differential Abundance Analysis"
 author: "Sarah Tanja"
 date: 2025-10-15
@@ -41,9 +41,17 @@ knitr::opts_chunk$set(
   fig.retina = 2)        
 ```
 
+::: {.callout-note}
+## Note on MaAsLin3
+
+This document provides historical documentation for MaAsLin2 analysis. For current analysis using MaAsLin3, which improves on MaAsLin2 by better accounting for compositionality, see [maaslin3.qmd](maaslin3.qmd). The concepts and interpretation principles described here remain relevant for understanding statistical modeling in differential abundance analysis.
+:::
+
 # Overview
 
-This document explains the Maaslin2 model design used in the coral embryo microbiome analysis and how to interpret the results in `salipante/Sarah_StonyCoral/Level7_filtered_organism_output/significant_results.tsv`.
+This document explains the MaAsLin2 model design used historically in the coral embryo microbiome analysis. The principles described here apply to both MaAsLin2 and MaAsLin3, though MaAsLin3 provides improved handling of compositional data.
+
+For current MaAsLin3 implementation with multiple model specifications, see [maaslin3.qmd](maaslin3.qmd).
 
 # Current Model Design
 
@@ -247,7 +255,10 @@ The results are valid but represent **average effects** across the other variabl
 
 # References
 
-For more on Maaslin2 and model interpretation:
+For more on MaAsLin2 and MaAsLin3 model interpretation:
 
 - Mallick H, et al. (2021). "Multivariable Association Discovery in Population-scale Meta-omics Studies." *PLOS Computational Biology*. https://doi.org/10.1371/journal.pcbi.1009442
-- Maaslin2 documentation: http://huttenhower.sph.harvard.edu/maaslin2
+- MaAsLin2 documentation: http://huttenhower.sph.harvard.edu/maaslin2
+- MaAsLin3 documentation: https://huttenhower.sph.harvard.edu/MaAsLin3
+- MaAsLin3 tutorial: https://github.com/biobakery/biobakery/wiki/maaslin3
+- Current MaAsLin3 implementation: [maaslin3.qmd](maaslin3.qmd)

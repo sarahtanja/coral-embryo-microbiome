@@ -1,13 +1,13 @@
-# Maaslin2 Analysis Documentation
+# MaAsLin3 Analysis Documentation
 
 ## Quick Summary
 
-The Maaslin2 analysis in this repository uses an **additive model** that tests main effects of leachate and timepoint separately, without interaction terms. This affects how we interpret the results.
+The MaAsLin3 analysis in this repository can use various model specifications including **additive models** that test main effects of leachate and timepoint separately, or **interaction models** that test whether effects depend on each other. MaAsLin3 improves on MaAsLin2 by better accounting for compositionality.
 
 ### Key Files
 
-- **[maaslin2_interpretation.md](maaslin2_interpretation.md)** - Comprehensive guide to understanding the model design and interpreting results
-- **[maaslin2.qmd](maaslin2.qmd)** - Analysis code with alternative model specifications
+- **[maaslin2_interpretation.md](maaslin2_interpretation.md)** - Comprehensive guide to understanding the model design and interpreting results (historical MaAsLin2 documentation)
+- **[maaslin3.qmd](maaslin3.qmd)** - Current analysis code using MaAsLin3 with multiple model specifications
 - **[explore.qmd](explore.qmd)** - Exploration of significant results
 - **`../salipante/Sarah_StonyCoral/Level7_filtered_organism_output/significant_results.tsv`** - Results file
 
@@ -41,34 +41,31 @@ From the 732 significant results:
 
 ## Solutions
 
-### Option 1: Add Interaction Term
+### Option 1: Use Interaction Model (MaAsLin3)
 
-Test whether effects depend on each other:
+Test whether effects depend on each other using MaAsLin3:
 
 ```r
-fixed_effects = c("leachate", "timepoint", "leachate:timepoint")
+formula = ~ leachate * hpf + reads + (1|spawn_night)
 ```
 
-This would identify bacteria where:
+This identifies bacteria where:
 - Leachate effects differ by developmental stage
 - Developmental changes differ by leachate treatment
+- See [maaslin3.qmd](maaslin3.qmd) for detailed examples
 
-### Option 2: Categorical Analysis
+### Option 2: Categorical Analysis (MaAsLin3)
 
-Get specific pairwise comparisons:
+Get specific pairwise comparisons using ordered factors:
 
 ```r
-# Convert to factors
-df_Level7_filtered_metadata$leachate <- as.factor(df_Level7_filtered_metadata$leachate)
-df_Level7_filtered_metadata$timepoint <- as.factor(df_Level7_filtered_metadata$timepoint)
-
-# Set reference levels and run
-fit = Maaslin2(..., reference = c("leachate,0", "timepoint,4"))
+# MaAsLin3 can use ordered factors for categorical analysis
+formula = ~ ordered(leachate) + stage + reads + (1|spawn_night)
 ```
 
-This provides comparisons like:
-- 0.01 vs 0, 0.1 vs 0, 1 vs 0 (for leachate)
-- 9 vs 4, 14 vs 4 (for timepoint)
+This provides level contrasts and comparisons:
+- Tests for linear, quadratic, and cubic trends
+- See [maaslin3.qmd](maaslin3.qmd) for level contrast models
 
 ### Option 3: Post-hoc Visualization
 
@@ -130,6 +127,8 @@ coef: -0.59
 
 ## Further Reading
 
-- Full interpretation guide: [maaslin2_interpretation.md](maaslin2_interpretation.md)
-- Maaslin2 documentation: http://huttenhower.sph.harvard.edu/maaslin2
-- Original paper: Mallick et al. (2021) PLOS Computational Biology https://doi.org/10.1371/journal.pcbi.1009442
+- Full interpretation guide: [maaslin2_interpretation.md](maaslin2_interpretation.md) (historical MaAsLin2 documentation)
+- MaAsLin3 analysis: [maaslin3.qmd](maaslin3.qmd) (current implementation)
+- MaAsLin3 documentation: https://huttenhower.sph.harvard.edu/MaAsLin3
+- MaAsLin3 tutorial: https://github.com/biobakery/biobakery/wiki/maaslin3
+- Original MaAsLin2 paper: Mallick et al. (2021) PLOS Computational Biology https://doi.org/10.1371/journal.pcbi.1009442
