@@ -51,7 +51,7 @@ The microbiome analysis was completed by Adam Waalkes of mim_c from the Salipant
 library(tidyverse)
 ```
 
-Let's jump straight to significant results from the Maaslin2 significant differential features
+Let's jump straight to significant results from the historical MaAsLin2 analysis. For current MaAsLin3 analysis, see [differentially-abundant-taxa/maaslin3.qmd](differentially-abundant-taxa/maaslin3.qmd).
 
 # Import data
 
@@ -71,19 +71,21 @@ sig_leach <- significant %>%
 125 bacteria were significantly different in leachate treatments. It seems there are many duplicates.. how do we consolidate? What are these bacteria, and what are their functions?
 
 ::: {.callout-note}
-## Understanding the Model Results
+## Understanding the Historical MaAsLin2 Model Results
 
-The Maaslin2 model uses an **additive design** (`leachate + timepoint`) without interaction terms. This means:
+The historical MaAsLin2 model uses an **additive design** (`leachate + timepoint`) without interaction terms. This means:
 
 - **Leachate effects** are averaged across all timepoints (4, 9, and 14 hpf)
 - **Timepoint effects** are averaged across all leachate concentrations (0, 0.01, 0.1, and 1)
 - We cannot determine from these results which specific leachate concentrations or timepoints drive the differences
 
-For a detailed explanation of the model design and how to interpret these results, see [maaslin2_interpretation.qmd](maaslin2_interpretation.qmd).
+For a detailed explanation of the model design and how to interpret these results, see [differentially-abundant-taxa/maaslin2_interpretation.qmd](differentially-abundant-taxa/maaslin2_interpretation.qmd).
+
+For current MaAsLin3 analysis with improved compositional data handling and multiple model specifications (additive, interactive, level contrasts, group-wise), see [differentially-abundant-taxa/maaslin3.qmd](differentially-abundant-taxa/maaslin3.qmd).
 
 To gain more granularity:
-1. Treat variables as categorical factors (e.g., compare 0.01 vs 0, 0.1 vs 0, etc.)
-2. Add an interaction term (`leachate:timepoint`) to test if effects differ across conditions
+1. Use MaAsLin3 with ordered factors for level contrasts
+2. Add an interaction term (`leachate * hpf`) to test if effects differ across conditions
 3. Conduct post-hoc pairwise comparisons for specific bacteria of interest
 :::
 

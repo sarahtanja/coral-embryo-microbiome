@@ -6,13 +6,13 @@ This directory contains microbiome analysis results from the Salipante Lab (mim_
 
 ### Sarah_StonyCoral/
 
-Primary analysis directory containing filtered QIIME2 results and Maaslin2 differential abundance analysis outputs.
+Primary analysis directory containing filtered QIIME2 results and historical MaAsLin2 differential abundance analysis outputs. For current MaAsLin3 analysis, see [../code/differentially-abundant-taxa/maaslin3.qmd](../code/differentially-abundant-taxa/maaslin3.qmd).
 
 **Contents:**
 - `250405_QIIME2_filtered_StonyCloral_final.txt` - Final QIIME2 analysis commands for filtered data
-- `250405_RScript_Maaslin2_StonyCloral_final.txt` - R script for Maaslin2 differential abundance analysis
+- `250405_RScript_Maaslin2_StonyCloral_final.txt` - R script for historical MaAsLin2 differential abundance analysis
 - `241121_StonyCoral_readcounts.xlsx` - Sequencing read count summaries
-- `250425_metadata_only_maaslin2.txt` - Metadata file formatted for Maaslin2 input
+- `250425_metadata_only_maaslin2.txt` - Metadata file formatted for MaAsLin2 input
 - `250425_shannon_alpha_diversity.xlsx` - Shannon diversity metrics
 - `250414_StonyCoral_imported_reads_trimmed.qzv` - QIIME2 visualization of imported and trimmed reads
 - `250414_StonyCoral_270x200_filtered_taxa-bar-plots.qzv` - Taxa bar plots for filtered data
@@ -20,7 +20,7 @@ Primary analysis directory containing filtered QIIME2 results and Maaslin2 diffe
 - `filtered_shannon_vector.qzv` - Shannon diversity vector visualization
 
 **Subdirectory:**
-- `Level7_filtered_organism_output/` - Maaslin2 results for species-level (Level 7) filtered data
+- `Level7_filtered_organism_output/` - Historical MaAsLin2 results for species-level (Level 7) filtered data
   - `significant_results.tsv` - Table of statistically significant differential abundance results
   - `all_results.tsv` - Complete results from differential abundance analysis
   - `leachate.pdf` & `timepoint.pdf` - Summary plots for treatment effects

@@ -5,7 +5,7 @@ A single stressor experiment exploring the microbial community during embryonic 
 This analysis uses:
 - QIIME2 verson 2023.9 and version 2023.5
 - [qiime2 q2-picrust2-2023.2_0 plugin](https://github.com/picrust/q2-picrust2)
-- Maaslin2
+- MaAsLin3 (with historical MaAsLin2 documentation)
 
 ## Analysis Documentation
 
@@ -24,5 +24,6 @@ This analysis uses:
 
 ### Other Analyses
 - **[Taxa Barplot Guide](code/README_taxa_barplot.md)** - Taxonomic composition visualization
-- **[MaAsLin2 Guide](code/MAASLIN2_README.md)** - Differential abundance analysis
+- **[MaAsLin3 Analysis](code/differentially-abundant-taxa/maaslin3.qmd)** - Differential abundance analysis (current)
+- **[MaAsLin2 Guide](code/differentially-abundant-taxa/MAASLIN2_README.md)** - Historical differential abundance documentation
 - **[Example Usage](code/EXAMPLE_usage.md)** - General workflow examples
