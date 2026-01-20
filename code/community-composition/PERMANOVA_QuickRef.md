@@ -18,7 +18,7 @@
 - Statistically validate patterns seen in PCoA plots
 
 ❌ **Don't use PERMANOVA for:**
-- Testing individual taxa abundance (use DESeq2, ANCOMBC, or MaAsLin2)
+- Testing individual taxa abundance (use DESeq2, ANCOMBC, or MaAsLin3)
 - Alpha diversity comparisons (use ANOVA, Kruskal-Wallis)
 - Testing ordination coordinates directly (use distance matrix instead!)
 
@@ -152,4 +152,4 @@ if (disp_p < 0.05) {
 
 ---
 
-**Remember**: PERMANOVA tells you IF groups differ in composition. To identify WHICH taxa drive differences, use differential abundance methods (ANCOMBC, DESeq2, MaAsLin2).
+**Remember**: PERMANOVA tells you IF groups differ in composition. To identify WHICH taxa drive differences, use differential abundance methods (ANCOMBC, DESeq2, MaAsLin3).

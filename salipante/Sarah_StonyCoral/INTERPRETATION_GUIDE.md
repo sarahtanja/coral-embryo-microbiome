@@ -1,6 +1,8 @@
-# How to Interpret Maaslin2 Results
+# How to Interpret MaAsLin2 Results (Historical)
 
-This directory contains Maaslin2 differential abundance analysis results. **Important:** The model design affects how we interpret these results.
+> **Note:** This directory contains historical MaAsLin2 differential abundance analysis results. For current analysis using MaAsLin3, which improves on MaAsLin2 by better accounting for compositionality, see [../../code/differentially-abundant-taxa/maaslin3.qmd](../../code/differentially-abundant-taxa/maaslin3.qmd).
+
+This guide explains the historical MaAsLin2 analysis. **Important:** The model design affects how we interpret these results.
 
 ## Quick Answer to the Issue
 
