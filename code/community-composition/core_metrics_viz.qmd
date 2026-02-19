@@ -48,9 +48,18 @@ This document visualizes core diversity metrics from the filtered QIIME2
 analysis (`core-metrics-results-filtered/`). The filtered dataset
 excludes chloroplast, mitochondria, and unassigned sequences.
 
-Core metrics include: - **Alpha Diversity**: Shannon diversity, Faith's
-Phylogenetic Diversity, Evenness, Observed Features - **Beta
-Diversity**: Bray-Curtis, Jaccard, Weighted UniFrac, Unweighted UniFrac
+Core metrics include: 
+- **Alpha Diversity**:
+  - Shannon diversity
+  - Faith's Phylogenetic Diversity, 
+  - Evenness
+  - Observed Features 
+
+- **Beta Diversity**: 
+  - Bray-Curtis
+  - Jaccard
+  - Weighted UniFrac
+  - Unweighted UniFrac
 
 # Setup
 
