@@ -27,6 +27,9 @@ format:
     reference-location: margin
     citation-location: margin
 bibliography: "../../microbiome_bibtex.bib"
+editor: 
+  markdown: 
+    wrap: sentence
 ---
 
 ```{r setup, include=FALSE}
@@ -35,23 +38,20 @@ knitr::opts_chunk$set(
   eval = TRUE, # Evaluate code chunks
   warning = FALSE, # Hide warnings
   message = FALSE, # Hide messages
-  comment = "", # Prevents appending '##' to beginning of lines in code output
-  dev = "jpeg",
-  dpi = 600,
-  fig.retina = 2)        
+  comment = "" # Prevents appending '##' to beginning of lines in code output  
+)
 ```
 
 # Background
 
-This analysis follows the recommendations from Gloor et al. 2017 for compositional data analysis of microbiome data. Microbiome sequence count data are compositional - they represent relative abundances constrained to sum to a total (sequencing depth). This requires specialized statistical methods that account for the compositional nature of the data.
+This analysis follows the recommendations from Gloor et al. 2017 for compositional data analysis of microbiome data.
+Microbiome sequence count data are compositional - they represent relative abundances constrained to sum to a total (sequencing depth).
+This requires specialized statistical methods that account for the compositional nature of the data.
 
-Key recommendations from Gloor et al. 2017:
-- Use centered log-ratio (CLR) transformation to convert compositional data to Euclidean space
-- Calculate Aitchison distance (Euclidean distance on CLR-transformed data) for dissimilarity
-- Use variance-based methods like PCA on CLR-transformed data
-- Perform statistical tests on transformed data
+Key recommendations from Gloor et al. 2017: - Use centered log-ratio (CLR) transformation to convert compositional data to Euclidean space - Calculate Aitchison distance (Euclidean distance on CLR-transformed data) for dissimilarity - Use variance-based methods like PCA on CLR-transformed data - Perform statistical tests on transformed data
 
 # Setup
+
 ```{r}
 # Define file paths
 feature_table_path <- "../../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza"
@@ -59,7 +59,8 @@ metadata_path <- "../../metadata/meta.csv"
 taxonomy_path <- "../../salipante/241121_StonyCoral/270x200/250414_270x200_representative-sequences_taxonomy.qza"
 ```
 
-## Install & load packages
+## Load packages
+
 ```{r, eval=FALSE}
 # Check R version
 # R.version.string
@@ -68,20 +69,10 @@ taxonomy_path <- "../../salipante/241121_StonyCoral/270x200/250414_270x200_repre
 #if (!requireNamespace("BiocManager", quietly = TRUE)) {
 #  install.packages("BiocManager")
 #}
-
 # Install Bioconductor packages
 #if (!requireNamespace("phyloseq", quietly = TRUE)) {
 #  BiocManager::install("phyloseq")
 #}
-# Install CRAN packages
-#required_packages <- c("tidyverse", "vegan", "compositions", "zCompositions", 
-#                       "ggplot2", "reshape2", "corrplot", "devtools")
-#for (pkg in required_packages) {
-#  if (!requireNamespace(pkg, quietly = TRUE)) {
-#    install.packages(pkg)
-#  }
-#}
-
 # Install qiime2R from GitHub
 #if (!requireNamespace("qiime2R", quietly = TRUE)) {
 #  devtools::install_github("jbisanz/qiime2R")
@@ -99,10 +90,90 @@ library(zCompositions)
 library(ggplot2)
 library(reshape2)
 library(corrplot)
+library(ggsidekick) # for theme_sleek from sean anderson
+library(patchwork)
+```
+
+## Set custom ggplot theme
+
+```{r}
+theme_sleek_axe <- function() {
+  theme_sleek() +
+    theme(
+      panel.border = element_line(color = "grey70", size = 0.5),
+      axis.line.x  = element_line(color = "grey70"),
+      axis.line.y  = element_line(color = "grey70"),
+      plot.title = element_text(
+      size  = 11,
+      color = "grey40",
+      hjust = 0.5,    # center
+      margin = margin(b = 20) # add space BELOW title
+      ),
+      plot.subtitle = element_text(
+      size   = 8,       # smaller than title
+      colour = "grey60", # lighter grey
+      hjust  = 0.5 ),      # center
+      margin = margin(b = 40) # add space BELOW title
+      )
+}
+
+```
+
+```{r}
+theme_sleek_axe <- function() {
+  theme_sleek() +
+    theme(
+      panel.border = element_rect(color = "grey70", fill = NA, linewidth = 0.5),
+      axis.line.x  = element_line(color = "grey70"),
+      axis.line.y  = element_line(color = "grey70"),
+
+      plot.title = element_text(
+        size  = 11,
+        color = "grey40",
+        hjust = 0.5,
+        margin = margin(b = 20)
+      ),
+
+      plot.subtitle = element_text(
+        size   = 8,
+        color  = "grey60",
+        hjust  = 0.5,
+        margin = margin(b = 40)
+      )
+    )
+}
+
+```
+
+
+## Set colorschemes
+
+```{r}
+leachate.colors <- c(control = "#AEF1FF", 
+                low = "#BBC7FF",
+                mid = "#7D8BFF", 
+                high = "#592F7D")
+
+stage.5.colors <- c(egg = "#FFE362",
+                    cleavage = "#EBA600", 
+                    morula = "#E6AA83",
+                    prawnchip = "#D9685B", 
+                    earlygastrula = "#A2223C")
+
+
+stage.3.colors <- c(cleavage = "#EBA600", 
+                  prawnchip = "#D9685B", 
+                  earlygastrula = "#A2223C")
+
+night.colors <- c("July 6th" = "#E3FAA5", 
+                  "July 7th" = "#578B21", 
+                  "July 8th" = "#1E2440")
 ```
 
 # Load Data
+
 ## Load metadata
+
 ```{r}
 # Load metadata
 meta <- read_csv(metadata_path)
@@ -125,17 +196,48 @@ meta <- meta %>%
 # View metadata structure
 str(meta)
 ```
+
 ## Import QIIME2 artifacts
+
 ### Feature table
+
+Our qiime2 feature table is in a .qza artifact format, which we can read into R using the `qiime2R` package.
+The feature table contains the "count" data for each sample (in columns) and Amplicon Sequence Variance (ASV) feature (in rows).
+The ASV features in the feature table rows are renamed as MD5 hashes of the DNA sequence.
+Instead of storing the full sequence as the feature ID, the pipeline stores a hash of the sequence string.The hash string uniquely identifies one exact DNA sequence in the feature table.
+
+ASV (Amplicon Sequence Variant) :
+
+-   An exact biological sequence inferred after error correction.
+-   No clustering threshold.
+-   Each unique sequence (after denoising) is treated as its own unit.
+-   Higher resolution and reproducible across studies.
+-   Think exact sequence identity.
+
 ```{r}
 # Load feature table from QIIME2 artifact
 feature_table <- read_qza(feature_table_path)$data
 ```
+
 ### Taxonomy
+
+The taxonomy table links the ASV MD5 hashes to the lowest taxonomic level
+
 ```{r}
 # Load taxonomy (optional, for annotation)
 taxonomy <- read_qza(taxonomy_path)$data
+
+glimpse(taxonomy)
 ```
+
+::: callout-important
+Why are there still **"Unassigned"** ASVs?
+I thought I had filtered those out...
+should I do that now?
+Or would that skew the sample similarity?
+I think it could skew sample similarity analysis so I'll leave it in...
+but flag this to ask Dr. Steve Salipante or Dr. Amy Van Cise ....
+:::
 
 ```{r}
 # Display data dimensions
@@ -163,7 +265,8 @@ cat("Samples in metadata:", nrow(meta_filt), "\n")
 
 # CLR Transformation
 
-The centered log-ratio (CLR) transformation converts compositional data to Euclidean space. It handles zeros by replacing them with small values (geometric Bayesian multiplicative replacement).
+The centered log-ratio (CLR) transformation converts compositional data to Euclidean space.
+It handles zeros by replacing them with small values (geometric Bayesian multiplicative replacement).
 
 ```{r}
 # Replace zeros with small values using cmultRepl from zCompositions
@@ -183,9 +286,10 @@ cat("CLR-transformed data dimensions:", dim(feature_clr_df), "\n")
 head(feature_clr_df[, 1:5])
 ```
 
-# Aitchison Distance
+# Aitchison Distance is a Beta Diversity metric for compositional data
 
-The Aitchison distance is the Euclidean distance between samples after CLR transformation. This is the appropriate distance metric for compositional data.
+The Aitchison distance is the Euclidean distance between samples after CLR transformation.
+This is the appropriate distance metric for compositional data.
 
 ```{r}
 # Calculate Aitchison distance (Euclidean distance on CLR-transformed data)
@@ -198,10 +302,12 @@ summary(as.vector(aitchison_dist))
 
 # PCA Biplots
 
-Variance-based compositional PCA on CLR-transformed data.
+Variance-based compositional PCA on CLR transformed feature table.
+
 ## Perform PCA
+
 ```{r}
-# Perform PCA on CLR-transformed data
+# Perform PCA on CLR transformed feature table 
 pca_result <- prcomp(feature_clr, scale. = FALSE)
 
 # Calculate variance explained
@@ -220,6 +326,7 @@ pca_df <- pca_df %>%
 ```
 
 ## Plot stage x leachate x cross
+
 ```{r, fig.height=6}
 pca_plot_cross <- ggplot(
   pca_df,
@@ -230,18 +337,19 @@ pca_plot_cross <- ggplot(
     shape = leachate                # shape must be 21–25
   )
 ) +
+  coord_equal()+
   geom_point(size = 3.5, stroke = 1.5, alpha = 0.8) +   # stroke controls outline width
   scale_shape_manual(values = c(21, 22, 23, 24, 25)[seq_along(levels(pca_df$leachate))]) +
   # light grey -> dark grey for discrete stages (shows in legend)
   scale_fill_grey(name = "Stage", start = 0.1, end = 1) +
   labs(
-    title = "PCA of all OTUs by Stage, Leachate, and Parental cross",
+    title = "PCA of CLR transformed  by Stage, Leachate, and Parental cross",
     x = paste0("PC1 (", round(variance_explained[1], 2), "% variance)"),
     y = paste0("PC2 (", round(variance_explained[2], 2), "% variance)"),
     shape = "Leachate",
     color = "Parental cross"
   ) +
-  theme_minimal() +
+  theme_sleek_axe() +
   theme(
     legend.position = "right",
     plot.title = element_text(hjust = 0.5)
@@ -261,7 +369,9 @@ pca_plot_cross
 ggsave("../../output/compositional_pca_cross.png", pca_plot_cross, 
        width = 10, height = 7, dpi = 300)
 ```
+
 ## Plot stage x leachate x spawn night
+
 ```{r, fig.height=6}
 pca_plot_spawn_night <- ggplot(
   pca_df,
@@ -272,18 +382,19 @@ pca_plot_spawn_night <- ggplot(
     shape = leachate                # shape must be 21–25
   )
 ) +
+  coord_equal()+
   geom_point(size = 3.5, stroke = 1.5, alpha = 0.8) +   # stroke controls outline width
   scale_shape_manual(values = c(21, 22, 23, 24, 25)[seq_along(levels(pca_df$leachate))]) +
   # light grey -> dark grey for discrete stages (shows in legend)
   scale_fill_grey(name = "Stage", start = 0.1, end = 1) +
   labs(
-    title = "PCA of all OTUs by Stage, Leachate, and Spawn night",
+    title = "PCA of all ASVs by Stage, Leachate, and Spawn night",
     x = paste0("PC1 (", round(variance_explained[1], 2), "% variance)"),
     y = paste0("PC2 (", round(variance_explained[2], 2), "% variance)"),
     shape = "Leachate",
     color = "Spawn night"
   ) +
-  theme_minimal() +
+  theme_sleek_axe() +
   theme(
     legend.position = "right",
     plot.title = element_text(hjust = 0.5)
@@ -303,10 +414,13 @@ pca_plot_spawn_night
 ggsave("../../output/compositional_pca_spawn_night.png", pca_plot_spawn_night, 
        width = 10, height = 7, dpi = 300)
 ```
+
 ## Interactive plotly
+
 ::: callout-note
 This will only display in html format
 :::
+
 ```{r, echo = knitr::is_html_output(), eval = knitr::is_html_output()}
 library(ggplot2)
 library(plotly)
@@ -326,6 +440,7 @@ pca_plot_hpf <- ggplot(
     )
   )
 ) +
+  coord_equal()+
   geom_point(size = 3.5, stroke = 1.5, alpha = 0.8) +
   scale_shape_manual(values = c(21, 22, 23, 24, 25)[seq_along(levels(pca_df$leachate))]) +
   scale_fill_grey(name = "Stage", start = 0.1, end = 1) +
@@ -336,7 +451,7 @@ pca_plot_hpf <- ggplot(
     shape = "Leachate",
     color = "Parental cross"
   ) +
-  theme_minimal() +
+  theme_sleek_axe() +
   theme(
     legend.position = "right",
     plot.title = element_text(hjust = 0.5)
@@ -354,44 +469,30 @@ pca_plot_hpf_interactive
 
 ```
 
-
 # PERMANOVA
 
-PERMANOVA (Permutational Multivariate Analysis of Variance) on the Aitchison distance matrix to test for differences in microbial composition across experimental factors.
+Here we run a PERMANOVA (Permutational Multivariate Analysis of Variance) on the Aitchison distance matrix to test for differences in microbial composition across experimental factors.
 
-::: {.callout-tip}
-## Learn More About PERMANOVA
+-   **Strata** are groups within which to constrain permutations.
+    Using `strata = spawn night` controls for spawn night by constraining shuffles to within the spawn night groupings; this removes spawn night as a source of spurious differences.
 
-For a comprehensive explanation of PERMANOVA, including:
-- How PERMANOVA works and its underlying principles
-- What inputs are required and what outputs mean
-- How to interpret results in microbiome context
-- Complete working examples with all distance metrics
+-   **Dispersion sensitivity**: PERMANOVA can flag significance if groups have different dispersions (spread), not just different centroids.
+    Consider checking with `betadisper` and `permutest`.
 
-See the dedicated documentation files:
-- **[`PERMANOVA_README.md`](PERMANOVA_README.md)** - Comprehensive theoretical guide
-- **[`permanova_analysis.qmd`](permanova_analysis.qmd)** - Working code examples and demonstrations
-:::
-
-strata are groups within which to constrain permutations. Using 
-strata = parents controls for parent by preventing shuffles across parents; this removes parent as a source of spurious differences.
-
-Caveats to keep in mind
-
-Dispersion sensitivity: PERMANOVA can flag significance if groups have different dispersions (spread), not just different centroids. Consider checking with `betadisper` and `permutest`.
-
-Unbalanced designs / small strata: With blocking, you need enough replicates within each parent and across factor levels to allow permutations; otherwise p-values become conservative or unavailable.
-
-Order dependence with by="terms": If you care about marginal effects “as if added last,” refit with by="margin"(or reorder terms thoughtfully).
+-   Unbalanced designs / small strata: With blocking, you need enough replicates within each strata and across factor levels to allow permutations; otherwise p-values become conservative or unavailable.
+    **This is why we don't fit a betadispersion model to parental cross, there aren't enough replicates.**
 
 ## Fit betadispr
-`betadisper` tests whether the within-group multivariate dispersion (spread) differs among groups. It’s the multivariate analogue of Levene’s test: it compares the distances of samples to their group centroid.
+
+`betadisper` tests whether the within-group multivariate dispersion (spread) differs among groups.
+It’s the multivariate analogue of Levene’s test: it compares the distances of samples to their group centroid.
 
 What happens under the hood:
-- Performs a PCoA on your distance matrix.
-- Computes each group’s centroid in that ordination space.
-- Calculates each sample’s distance to its group centroid.
-- Stores those distances for downstream tests/plots.
+
+-   Performs a PCoA on your distance matrix.
+-   Computes each group’s centroid in that ordination space.
+-   Calculates each sample’s distance to its group centroid.
+-   Stores those distances for downstream tests/plots.
 
 Define groups to test
 
@@ -403,7 +504,9 @@ grp_night <- meta_filt$spawn_night
 ```
 
 ### night
+
 ```{r}
+set.seed(02192026)
 # Fit beta dispersion model 
 bd_night <- betadisper(aitchison_dist, group = grp_night, type = "centroid")
 
@@ -415,18 +518,90 @@ perm_night
 ```
 
 ::: callout-note
-multivariate dispersion differs across spawn nights (groups = nights). In other words, samples from some nights are more spread out around their night-specific centroid than others.
+multivariate dispersion differs across spawn nights (groups = nights).
+In other words, samples from some nights are more spread out around their night-specific centroid than others.
 
-betadisper with group = spawn_night significant heterogeneous dispersion among nights.If your primary tests are leachate/stage, treat night as a nuisance:
-block by night in PERMANOVA (strata = spawn_night) so permutations happen within each night. This keeps night-to-night variance/dispersion from inflating your p-values for treatment effects.
+A permutation test for homogeneity of multivariate dispersions revealed a significant difference in dispersion among groups ( F2,60=6.29F_{2,60} = 6.29F2,60​=6.29, p=0.003p = 0.003p=0.003, 999 permutations), indicating that within-group variability in multivariate distance to centroid differed across nights.
+
+betadisper with group = spawn_night significant heterogeneous dispersion among nights.
+If your primary tests are leachate/stage, treat night as a nuisance: block by night in PERMANOVA (strata = spawn_night) so permutations happen within each night.
+This keeps night-to-night variance/dispersion from inflating your p-values for treatment effects.
 :::
 
 ```{r}
 plot(bd_night, hull = TRUE, ellipse = TRUE, label = FALSE, cex = 0.8)
 ```
 
-### leachate
+In a betadisper object, the sample coordinates are in `bd_night$vectors` and the group centroids are in `bd_night$centroids`.
+You can extract these for custom plotting or further analysis.
+`chull()` is a function convex hull that finds the outermost points that form the smallest convex polygon around a set of points, which is useful for visualizing group dispersion in ordination plots, wrapped in `slice()` which keeps only the rows corresponding to those hull points for each group.
+
 ```{r}
+# sample scores (vectors)
+bd_night_df <- as.data.frame(bd_night$vectors[, 1:2])
+bd_night_df$group <- bd_night$group
+
+# centroid scores
+bd_night_centroids <- as.data.frame(bd_night$centroids[, 1:2])
+bd_night_centroids$group <- factor(rownames(bd_night_centroids), levels = levels(bd_night$group))
+
+# axis labels with %variance explained
+eig <- bd_night$eig
+pct <- eig / sum(eig) * 100
+xlab <- sprintf("PCoA 1 (%.1f%%)", pct[1])
+ylab <- sprintf("PCoA 2 (%.1f%%)", pct[2])
+
+# hulls
+hulls <- bd_night_df %>%
+  group_by(group) %>%
+  slice(chull(PCoA1, PCoA2))
+
+# force consistent factor levels across spawn night
+unique(bd_night_df$group)
+names(night.colors)
+
+lvls <- levels(factor(bd_night_df$group))
+
+bd_night_df <- bd_night_df %>% mutate(group = factor(group, levels = lvls))
+hulls <- hulls %>% mutate(group = factor(group, levels = lvls))
+bd_night_centroids <- bd_night_centroids %>% mutate(group = factor(group, levels = lvls))
+
+
+# plot
+bd_night_plot <- ggplot(bd_night_df, aes(PCoA1, PCoA2, color = group)) +
+  geom_point(size = 2.6, alpha = 0.85) +
+  geom_polygon(
+    data = hulls,
+    aes(fill = group),
+    alpha = 0.2,
+    color = NA,
+    show.legend = FALSE
+  ) +
+  geom_point(
+    data = bd_night_centroids,
+    shape = 4,
+    stroke = 1.2,
+    size = 5
+  ) +
+  stat_ellipse(level = 0.68, linewidth = 0.8) +
+  coord_equal() +
+  scale_color_manual(values = night.colors) +
+  scale_fill_manual(values = night.colors) +
+  theme_sleek_axe() +
+  labs(
+    title = "betadisper (spawn night)",
+    x = xlab,
+    y = ylab,
+    color = "spawn night"
+  )
+
+bd_night_plot
+```
+
+### leachate
+
+```{r}
+set.seed(02192026)
 bd_leachate <- betadisper(aitchison_dist, group = grp_leachate, type = "centroid")
 
 # Permutation test with optional blocking
@@ -434,15 +609,85 @@ perm_leachate <- permutest(bd_leachate, permutations = 999, pairwise = FALSE,
                   strata = meta_filt$spawn_night)  # optional
 perm_leachate
 ```
-What this tests:
-Null hypothesis (Ho): all groups have equal average distance-to-centroid (equal dispersion/variance).If p < 0.05, at least one group is more/less dispersed than another.Why use the permutation test? The distances depend on the PCoA, so permutation is safer than the plain ANOVA F-test.
+
+::: callout-note
+A permutation test for homogeneity of multivariate dispersions revealed no significant difference in dispersion across leachate (*F*~3,59~ = 0.1393, *p* = 0.939, 999 permutations)
+:::
+
+What this tests: Null hypothesis (Ho): all groups have equal average distance-to-centroid (equal dispersion/variance).If p \< 0.05, at least one group is more/less dispersed than another.
+Why use the permutation test?
+The distances depend on the PCoA, so permutation is safer than the plain ANOVA F-test.
 
 ```{r}
 plot(bd_leachate, hull = TRUE, ellipse = TRUE, label = FALSE, cex = 0.8)
 ```
 
-### stage
 ```{r}
+# sample scores (vectors)
+bd_leachate_df <- as.data.frame(bd_leachate$vectors[, 1:2])
+bd_leachate_df$group <- bd_leachate$group
+
+# centroid scores
+bd_leachate_centroids <- as.data.frame(bd_leachate$centroids[, 1:2])
+bd_leachate_centroids$group <- factor(rownames(bd_leachate_centroids), levels = levels(bd_leachate$group))
+
+# axis labels with %variance explained
+eig <- bd_leachate$eig
+pct <- eig / sum(eig) * 100
+xlab <- sprintf("PCoA 1 (%.1f%%)", pct[1])
+ylab <- sprintf("PCoA 2 (%.1f%%)", pct[2])
+
+# hulls
+hulls <- bd_leachate_df %>%
+  group_by(group) %>%
+  slice(chull(PCoA1, PCoA2))
+
+# force consistent factor levels across leachate
+unique(bd_leachate_df$group)
+names(leachate.colors)
+
+lvls <- levels(factor(bd_leachate_df$group))
+
+bd_leachate_df <- bd_leachate_df %>% mutate(group = factor(group, levels = lvls))
+hulls <- hulls %>% mutate(group = factor(group, levels = lvls))
+bd_leachate_centroids <- bd_leachate_centroids %>% mutate(group = factor(group, levels = lvls))
+
+
+# plot
+bd_leachate_plot <- ggplot(bd_leachate_df, aes(PCoA1, PCoA2, color = group)) +
+  geom_point(size = 2.6, alpha = 0.85) +
+  geom_polygon(
+    data = hulls,
+    aes(fill = group),
+    alpha = 0.2,
+    color = NA,
+    show.legend = FALSE
+  ) +
+  geom_point(
+    data = bd_leachate_centroids,
+    shape = 4,
+    stroke = 1.2,
+    size = 5
+  ) +
+  stat_ellipse(level = 0.68, linewidth = 0.8) +
+  coord_equal() +
+  scale_color_manual(values = leachate.colors) +
+  scale_fill_manual(values = leachate.colors) +
+  theme_sleek_axe() +
+  labs(
+    title = "betadisper (leachate)",
+    x = xlab,
+    y = ylab,
+    color = "leachate"
+  )
+
+bd_leachate_plot
+```
+
+### stage
+
+```{r}
+set.seed(02192026)
 bd_stage <- betadisper(aitchison_dist, group = grp_stage, type = "centroid")
 
 # Permutation test with optional blocking
@@ -451,12 +696,79 @@ perm_stage <- permutest(bd_stage, permutations = 999, pairwise = FALSE)
 perm_stage
 ```
 
+::: callout-note
+A permutation test for homogeneity of multivariate dispersions revealed no significant difference in dispersion across stage (*F*~2,60~ = 1.0498, *p* = 0.359, 999 permutations)
+:::
+
 ```{r}
 plot(bd_stage, hull = TRUE, ellipse = TRUE, label = FALSE, cex = 0.8)
 ```
 
-### leachate x stage
 ```{r}
+# sample scores (vectors)
+bd_stage_df <- as.data.frame(bd_stage$vectors[, 1:2])
+bd_stage_df$group <- bd_stage$group
+
+# centroid scores
+bd_stage_centroids <- as.data.frame(bd_stage$centroids[, 1:2])
+bd_stage_centroids$group <- factor(rownames(bd_stage_centroids), levels = levels(bd_stage$group))
+
+# axis labels with %variance explained
+eig <- bd_stage$eig
+pct <- eig / sum(eig) * 100
+xlab <- sprintf("PCoA 1 (%.1f%%)", pct[1])
+ylab <- sprintf("PCoA 2 (%.1f%%)", pct[2])
+
+# hulls
+hulls <- bd_stage_df %>%
+  group_by(group) %>%
+  slice(chull(PCoA1, PCoA2))
+
+# force consistent factor levels across stage
+unique(bd_stage_df$group)
+names(stage.3.colors)
+
+lvls <- levels(factor(bd_stage_df$group))
+
+bd_stage_df <- bd_stage_df %>% mutate(group = factor(group, levels = lvls))
+hulls <- hulls %>% mutate(group = factor(group, levels = lvls))
+bd_stage_centroids <- bd_stage_centroids %>% mutate(group = factor(group, levels = lvls))
+
+# plot
+bd_stage_plot <- ggplot(bd_stage_df, aes(PCoA1, PCoA2, color = group)) +
+  geom_point(size = 2.6, alpha = 0.85) +
+  geom_polygon(
+    data = hulls,
+    aes(fill = group),
+    alpha = 0.2,
+    color = NA,
+    show.legend = FALSE
+  ) +
+  geom_point(
+    data = bd_stage_centroids,
+    shape = 4,
+    stroke = 1.2,
+    size = 5
+  ) +
+  stat_ellipse(level = 0.68, linewidth = 0.8) +
+  coord_equal() +
+  scale_color_manual(values = stage.3.colors) +
+  scale_fill_manual(values = stage.3.colors) +
+  theme_sleek_axe() +
+  labs(
+    title = "betadisper (stage)",
+    x = xlab,
+    y = ylab,
+    color = "stage"
+  )
+
+bd_stage_plot
+```
+
+### leachate x stage
+
+```{r}
+set.seed(02192026)
 bd_int <- betadisper(aitchison_dist, group = grp_int, type = "centroid")
 
 # Permutation test with optional blocking
@@ -465,10 +777,44 @@ perm_int <- permutest(bd_int, permutations = 999, pairwise = FALSE)
 perm_int
 ```
 
+::: callout-note
+A permutation test for homogeneity of multivariate dispersions revealed no significant difference in dispersion across the interaction between leachate and stage (*F*~11,51~ = 0.3491, *p* = 0.971, 999 permutations)
+:::
+
 ```{r}
 plot(bd_int, hull = TRUE, ellipse = TRUE, label = FALSE, cex = 0.8)
 ```
 
+```{r}
+# sample scores (vectors)
+bd_int_df <- as.data.frame(bd_int$vectors[, 1:2])
+bd_int_df$group <- bd_int$group
+
+# centroid scores
+bd_int_centroids <- as.data.frame(bd_int$centroids[, 1:2])
+bd_int_centroids$group <- factor(rownames(bd_int_centroids), levels = levels(bd_int$group))
+
+# axis labels with %variance explained
+eig <- bd_int$eig
+pct <- eig / sum(eig) * 100
+xlab <- sprintf("PCoA 1 (%.1f%%)", pct[1])
+ylab <- sprintf("PCoA 2 (%.1f%%)", pct[2])
+
+# hulls
+hulls <- bd_int_df %>%
+  group_by(group) %>%
+  slice(chull(PCoA1, PCoA2))
+
+# plot
+ggplot(bd_int_df, aes(PCoA1, PCoA2, color = group)) +
+  geom_point(size = 2.6, alpha = 0.85) +
+  geom_polygon(data = hulls, aes(fill = group), alpha = 0.18, color = NA, show.legend = FALSE) +
+  geom_point(data = bd_int_centroids, shape = 4, stroke = 1.2, size = 5) +
+  stat_ellipse(level = 0.68, linewidth = 0.8) +
+  coord_equal() +
+  theme_minimal(base_size = 14) +
+  labs(title = "betadisper (int)", x = xlab, y = ylab, color = "int")
+```
 
 ## Perform PERMANOVA
 
@@ -478,16 +824,18 @@ betadisper tests dispersion (variance) differences among groups.
 
 If PERMANOVA is significant and betadisper is non-significant, the signal likely reflects location (good).
 
-If both are significant, some of the PERMANOVA “difference” could be due to dispersion heterogeneity (groups with different spreads). Report both, and interpret cautiously.
+If both are significant, some of the PERMANOVA “difference” could be due to dispersion heterogeneity (groups with different spreads).
+Report both, and interpret cautiously.
 
-> In adonis2, the strata argument restricts permutations to occur within levels of the strata variable (here, spawn night). This controls for the grouping effect by ensuring samples are only permuted among others within the same spawn night, which accounts for the non-independence of samples collected on the same night when calculating significance of other factors. `adonis2` does not currently support specifying random effects in the model formula like mixed models do. So you cannot directly include spawn night as a random effect.Using strata is a practical approach to avoid inflating Type I error due to pseudoreplication or clustering of samples within levels of spawn night and tests effects of leachate and stage while controlling for spawn night as a grouping factor.
-
-
+> In adonis2, the strata argument restricts permutations to occur within levels of the strata variable (here, spawn night).
+> This controls for the grouping effect by ensuring samples are only permuted among others within the same spawn night, which accounts for the non-independence of samples collected on the same night when calculating significance of other factors.
+> `adonis2` does not currently support specifying random effects in the model formula like mixed models do.
+> So you cannot directly include spawn night as a random effect.Using strata is a practical approach to avoid inflating Type I error due to pseudoreplication or clustering of samples within levels of spawn night and tests effects of leachate and stage while controlling for spawn night as a grouping factor.
 
 ```{r}
-set.seed(1)
+set.seed(02192026)
 # Perform PERMANOVA on Aitchison distance
-# Test effects of leachate, stage, and their interaction (blocking permutations by parental cross)
+# Test effects of leachate, stage, and their interaction (blocking permutations by spawn night)
 permanova_int.stage <- adonis2(
   aitchison_dist ~ leachate * stage,
   data = meta_filt,
@@ -496,16 +844,16 @@ permanova_int.stage <- adonis2(
   strata = meta_filt$spawn_night
 )
 
-print(permanova_result)
+print(permanova_int.stage)
 
 # Save results
-write.csv(as.data.frame(permanova_result), 
+write.csv(as.data.frame(permanova_int.stage), 
           "../../output/permanova/perm_result_int.stage.csv",
           row.names = TRUE)
 ```
 
 ```{r}
-set.seed(1)
+set.seed(02192026)
 # Additional PERMANOVA treating stage as continuous time 
 permanova_int.hpf <- adonis2(
   aitchison_dist ~ leachate * hpf,
@@ -515,43 +863,60 @@ permanova_int.hpf <- adonis2(
   strata = meta_filt$spawn_night # control for parental cross
 )
 
-print(permanova_cont.time)
+print(permanova_int.hpf)
 
 # Save results
-write.csv(as.data.frame(permanova_cont.time), 
+write.csv(as.data.frame(permanova_int.hpf), 
           "../../output/permanova/perm_result_int.hpf.csv",
           row.names = TRUE)
 ```
 
+Whether we use developmental stage (categorical factor) or hours post fertilization (continuous numerical) the results are the same...
+stage/hpf is significant and leachate and the interactions between leachate and stage/hpf are not.
 
 # Summary
 
 This analysis implemented the key recommendations from Gloor et al. 2017 for compositional microbiome data analysis:
 
-1. **CLR Transformation**: Applied centered log-ratio transformation to convert compositional data to Euclidean space
-2. **Aitchison Distance**: Calculated Euclidean distance on CLR-transformed data as the appropriate dissimilarity metric
-3. **PCA Biplot**: Created variance-based PCA visualizations on CLR-transformed data
-4. **PERMANOVA**: Tested for significant differences in microbial composition across experimental factors
+1.  **CLR Transformation**: Applied centered log-ratio transformation to convert compositional data to Euclidean space
+2.  **Aitchison Distance**: Calculated Euclidean distance on CLR-transformed data as the appropriate dissimilarity metric
+3.  **PCA Biplot**: Created variance-based PCA visualizations on CLR-transformed data
+4.  **PERMANOVA**: Tested for significant differences in microbial composition across experimental factors
+
+```{r, fig.width=5, fig.height=9}
+bd_plots <- (bd_night_plot / bd_leachate_plot / bd_stage_plot) +
+  plot_annotation(tag_levels = "A") &
+  theme(
+    plot.tag = element_text(color = "grey60", size = 11),
+    legend.position = "right",
+    panel.spacing = unit(0.2, "lines")
+  ) +
+  plot_layout(guides = "collect", heights = c(1,1,1))
+
+bd_plots
+```
+Save combined plot
+```{r}
+ggsave("../../output/figs/betadisper_plots.png", plot = bd_plots, height = 12, dpi = 900)
+```
+
 
 ## Key Findings
 
-- PCA plots visually show clustering patterns by Developmental stage (aka timepoint/ hours post fertilization), Night of Spawn, and Parental cross (the later two are confounded)
-- PERMANOVA results (blocked across Night of Spawn) indicate significant effects of Developmental stage (aka timepoint/ hours post fertilization), and non-significance for leachate and leahcate:stage interactions
+-   PCA plots visually show clustering patterns by Developmental stage (aka timepoint/ hours post fertilization), Night of Spawn, and Parental cross (the later two are confounded)
+-   betadispersion results indicate significant difference in variance (dispersion) across night of spawn
+-   PERMANOVA results (blocked across Night of Spawn) indicate significant effects of Developmental stage (aka timepoint/ hours post fertilization), and non-significance for leachate and leahcate:stage interactions
 
 ## Next Steps
 
-- Differential abundance analysis (MaAslin2)
-- Conduct PERMANOVA on differentially abundant taxa
-- Functional annotation of differentially abundant taxa (picrust)
-- Differential abundance of functions (functional enrichment) (MaAslin2)
-
+-   Differential abundance analysis (MaAslin3)
+-   Conduct PERMANOVA on differentially abundant taxa
+-   Functional annotation of differentially abundant taxa (picrust)
+-   Differential abundance of functions (functional enrichment) (MaAslin3)
 
 ## Output Files
 
-All results and visualizations have been saved to the `../output/permanova` directory:
-- PCA biplots
-- PERMANOVA results tables
-
+All results and visualizations have been saved to the `../output/permanova` directory: - PCA biplots - PERMANOVA results tables
 
 # Session Info
 
