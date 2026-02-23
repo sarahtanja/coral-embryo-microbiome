@@ -571,6 +571,7 @@ sig_pvc_m3v2 <- sig_m3v2 %>%
 
 unique(sig_pvc_m3v2$feature)
 ```
+
 ::: callout-note
 4 significant taxa
 :::
@@ -621,9 +622,11 @@ sig_pvc_m4v1 <- sig_m4v1 %>%
   mutate(formula = "~ group(leachate) + hpf + reads + (1|spawn_night)")
 unique(sig_pvc_m4v1$feature)
 ```
+
 ::: callout-note
 4 significant taxa
 :::
+
 ## 4v2
 
 ```{r}
@@ -654,6 +657,7 @@ sig_pvc_m4v2 <- sig_m4v2 %>%
   mutate(formula = "~ group(leachate) + stage + reads + (1|spawn_night)")
 unique(sig_pvc_m4v2$feature)
 ```
+
 ::: callout-note
 4 significant taxa, same as above
 :::
@@ -692,6 +696,7 @@ sig_pvc_m5v1 <- sig_m5v1 %>%
   mutate(formula = "~ leachate + hpf + reads + spawn_night")
 unique(sig_pvc_m5v1$feature)
 ```
+
 ::: callout-note
 4 significant taxa, same as above
 :::
@@ -724,6 +729,7 @@ sig_pvc_m5v2 <- sig_m5v2 %>%
 
 unique(sig_pvc_m5v2$feature)
 ```
+
 ::: callout-note
 4 significant taxa ... slightly different group
 :::
@@ -756,9 +762,11 @@ sig_pvc_m5v3 <- sig_m5v3 %>%
 
 unique(sig_pvc_m5v3$feature)
 ```
+
 ::: callout-note
 3 significant taxa
 :::
+
 ## 5v4
 
 ```{r, eval=FALSE}
@@ -787,17 +795,18 @@ sig_pvc_m5v4 <- sig_m5v4 %>%
 
 unique(sig_pvc_m5v4$feature)
 ```
+
 ::: callout-note
 2 significant taxa
 :::
 
 # Model Comparison Guide
 
-| Model           | Tests                      | Advantages                                           | Limitations                                                              |
-|-----------------|----------------------------|------------------------------------------------------|--------------------------------------------------------------------------|
-| **Additive**    | Main effects only          | Simple interpretation, detects overall trends        | Cannot detect condition-specific effects, averages across other variable |
-| **Interaction** | Main + interaction effects | Identifies whether effects depend on other variables | More complex interpretation, requires more samples                       |
-| **Categorical** | Pairwise comparisons       | Shows which specific levels differ                   | Many comparisons (multiple testing), doesn't test for linear trends      |
+| Model | Tests | Advantages | Limitations |
+|----|----|----|----|
+| **Additive** | Main effects only | Simple interpretation, detects overall trends | Cannot detect condition-specific effects, averages across other variable |
+| **Interaction** | Main + interaction effects | Identifies whether effects depend on other variables | More complex interpretation, requires more samples |
+| **Categorical** | Pairwise comparisons | Shows which specific levels differ | Many comparisons (multiple testing), doesn't test for linear trends |
 
 ## Polynomial Contrasts .L, .Q, .C ?
 
@@ -939,6 +948,7 @@ ncol(mm)     # compare against number of columns
 >         and see if singularity resolves.
 
 # Compiled list
+
 ```{r}
 sig_pvc <- list(sig_pvc_m1v1, sig_pvc_m1v2, sig_pvc_m2v1, 
                 sig_pvc_m2v2, sig_pvc_m3v1, sig_pvc_m3v2, 
@@ -952,7 +962,6 @@ unique(sig_pvc_all$feature)
 ```{r}
 write_csv(sig_pvc_all, file.path(output_path,"sig_pvc_all.csv"))
 ```
-
 
 # Results Interpretation
 

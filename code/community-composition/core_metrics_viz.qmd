@@ -65,15 +65,15 @@ Core metrics include:
 
 ## Install Packages & Load Libraries
 ```{r}
-install.packages("devtools")
-devtools::install_github("jbisanz/qiime2R")
-install.packages("tidyverse")
-install.packages("ggplot2")
-install.packages("patchwork")
-install.packages("ggtext")
-install.packages("viridis")
-install.packages("stringr")
-install.packages("broom")
+#install.packages("devtools")
+#devtools::install_github("jbisanz/qiime2R")
+#install.packages("tidyverse")
+#install.packages("ggplot2")
+#install.packages("patchwork")
+#install.packages("ggtext")
+#install.packages("viridis")
+#install.packages("stringr")
+#install.packages("broom")
 ```
 
 ```{r}
@@ -97,13 +97,88 @@ core_metrics_path <- "../../salipante/241121_StonyCoral/core-metrics-results-fil
 metadata_path <- "../../metadata/metadata.csv"
 
 # Output directory for figures
-figures_dir <- "../../output/figures"
+figures_dir <- "../../output/figs"
 
 # Create figures directory if it doesn't exist
 if (!dir.exists(figures_dir)) {
   dir.create(figures_dir, recursive = TRUE)
 }
 ```
+
+## Set custom ggplot theme
+```{r}
+theme_sleek_axe <- function() {
+  theme_sleek() +
+    theme(
+      panel.border = element_rect(
+        color = "grey70",
+        fill = NA,
+        linewidth = 0.5
+      ),
+      axis.line.x  = element_line(color = "grey70"),
+      axis.line.y  = element_line(color = "grey70"),
+      
+      plot.title = element_text(
+        size  = 10,
+        color = "grey40",
+        hjust = 0.5,
+        margin = margin(b = 20)
+      ),
+      
+      strip.text = element_text(size = 8, color = "grey40"),
+      
+      plot.subtitle = element_text(
+        size   = 8,
+        color  = "grey40",
+        hjust  = 0.5,
+        margin = margin(b = 40)
+      ),
+      
+      axis.title = element_text(size = 8, color = "grey40"),
+      axis.text = element_text(size = 7, color = "grey40"),
+      legend.title = element_text(size = 8, color = "grey40"),
+      legend.text = element_text(size = 7, color = "grey40")
+    )
+}
+
+```
+
+
+
+## Set colorschemes
+```{r}
+leachate.colors <- c(control = "#AEF1FF", 
+                low = "#BBC7FF",
+                mid = "#7D8BFF", 
+                high = "#592F7D")
+
+stage.5.colors <- c(egg = "#FFE362",
+                    cleavage = "#EBA600", 
+                    morula = "#E6AA83",
+                    prawnchip = "#D9685B", 
+                    earlygastrula = "#A2223C")
+
+stage.3.colors <- c(cleavage = "#EBA600", 
+                  prawnchip = "#D9685B", 
+                  earlygastrula = "#A2223C")
+
+hpf.3.colors <- c("4" = "#EBA600", 
+                  "9" = "#D9685B", 
+                  "14" = "#A2223C")
+
+status.colors <- c(typical = "#75C165", 
+                   uncertain = "#E3FAA5", 
+                   malformed = "#8B0069")
+
+night.colors <- c(July_6th = "#E3FAA5", 
+                  July_7th = "#578B21", 
+                  July_8th = "#1E2440")
+
+night.colors.alt <- c(July_6th = "#21918C", 
+                  July_7th = "#201158", 
+                  July_8th = "#1E2440")
+```
+
 
 ## Load Metadata
 
@@ -154,8 +229,8 @@ shannon_df <- shannon$data %>%
 head(shannon_df)
 ```
 
-## Statistical tests
-### Check for normality
+### Statistical tests
+#### Check for normality
 ```{r}
 hist(shannon_df$Shannon)
 shapiro.test(shannon_df$Shannon) # normality
@@ -167,7 +242,7 @@ shapiro.test(shannon_df$Shannon) # normality
 safely use **parametric tests**
 :::
 
-### Run a two-way ANOVA
+#### Run a two-way ANOVA
 
 Tests main effects and interaction
 
@@ -203,7 +278,7 @@ summary(aov_shannon2)
 ::: callout-note
 A two-way analysis of variance (ANOVA) revealed no significant effects
 of PVC leachate concentration, developmental stage, or their interaction
-on Shannon diversity (Table X). Differences in Shannon diversity among
+on Shannon diversity. Differences in Shannon diversity among
 leachate treatments were not statistically significant (*F*₃,₄₈ = 1.25,
 *p* = 0.302), nor were differences among developmental stages (*F*₂,₄₈ =
 1.11, *p* = 0.339). Similarly, the leachate × stage interaction was not
@@ -233,7 +308,7 @@ class(shannon_df$hpf)
 ```
 
 ```{r}
-aov_shannon2.num <- aov(Shannon ~ leachate * timepoint, data = shannon_df)
+aov_shannon2.num <- aov(Shannon ~ leachate * hpf, data = shannon_df)
 summary(aov_shannon2.num)
 ```
 
@@ -249,7 +324,7 @@ continuous gradients, indicating limited sensitivity of microbial
 diversity to leachate exposure or developmental progression.
 :::
 
-## Boxplots
+### Boxplots
 
 ```{r}
 shan_aov <- broom::tidy(aov_shannon2)   # columns: term, df, statistic, p.value, ...
@@ -273,81 +348,83 @@ format_pval <- function(p) {
 ```
 
 ```{r, shannon-boxplots}
-#| fig-width: 13
-#| fig-height: 12
-#| 
 # Box plot by leachate treatment
-shan1 <- ggplot(shannon_df, aes(x = factor(leachate), y = Shannon, fill = factor(leachate))) +
+shan1 <- ggplot(shannon_df, aes(x = factor(leachate), y = Shannon, fill = factor(leachate), color = factor(leachate))) +
   geom_boxplot(alpha = 0.7, outlier.shape = NA) +
   geom_jitter(width = 0.2, size = 2, alpha = 0.6) +
-  scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+  scale_color_manual(values = leachate.colors) +
+  scale_fill_manual(values = leachate.colors) +
   labs(
     title = "Shannon Diversity by Leachate Treatment",
     x = "Leachate Level",
     y = "Shannon Diversity Index",
     fill = "Leachate",
-    subtitle = paste0("Two-way ANOVA: ", format_pval(pval_shan_pvcl))
+    #subtitle = paste0("Two-way ANOVA: ", format_pval(pval_shan_pvcl))
   ) +
-  theme_classic() +
-  theme(
-    plot.title = element_text(face = "bold", size = 14),
-    plot.subtitle = element_text(size = 10, color = "grey40"),
-    axis.title = element_text(size = 12),
-    legend.position = "none"
-  )
+  theme_sleek_axe()
 
+shan1
+```
+
+```{r}
 # Box plot by timepoint
-shan2 <- ggplot(shannon_df, aes(x = factor(timepoint), y = Shannon, fill = factor(timepoint))) +
+shan2 <- ggplot(shannon_df, aes(x = factor(hpf), y = Shannon, fill = factor(hpf), color = factor(hpf))) +
   geom_boxplot(alpha = 0.7, outlier.shape = NA) +
-  geom_jitter(width = 0.2, size = 2, alpha = 0.6) +
-  scale_fill_viridis_d(option = "mako", begin = 0.2, end = 0.9) +
+  geom_jitter(width = 0.2, size = 2, alpha = 0.6, show.legend=FALSE) +
+  scale_fill_manual(values = hpf.3.colors) +
+  scale_color_manual(values = hpf.3.colors) +
   labs(
     title = "Shannon Diversity by Developmental Timepoint",
     x = "Hours Post Fertilization",
     y = "Shannon Diversity Index",
-    fill = "Timepoint",
+    fill = "Hours Post Fertilization",
     subtitle = paste0("Two-way ANOVA: ", format_pval(pval_shan_stage))
   ) +
-  theme_classic() +
-  theme(
-    plot.title = element_text(face = "bold", size = 14),
-    plot.subtitle = element_text(size = 10, color = "grey40"),
-    axis.title = element_text(size = 12),
-    legend.position = "right"
-  )
+  theme_sleek_axe() 
 
+shan2
+```
+
+```{r}
+#| fig-width: 7
 # Box plot by leachate x timepoint interaction
-# Get mako colors for timepoints 4, 9, 14
-mako_colors <- viridis::viridis(n = 3, option = "mako", begin = 0.2, end = 0.9)
 
-shan3 <- ggplot(shannon_df, aes(x = factor(timepoint), y = Shannon, fill = factor(leachate))) +
-  geom_boxplot(alpha = 0.7, outlier.shape = NA, position = position_dodge(width = 0.8)) +
-  geom_point(position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.8), 
-             size = 1.5, alpha = 0.6) +
-  scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+shan3 <- ggplot(shannon_df, aes(
+  x = factor(hpf),
+  y = Shannon,
+  fill = factor(leachate), 
+  color = factor(leachate)
+)) +
+  geom_boxplot(
+    alpha = 0.65,
+    outlier.shape = NA,
+    position = position_dodge(width = 0.8)
+  ) +
+  geom_point(
+    position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.8),
+    size = 1.5, 
+    show.legend = FALSE
+  ) +
+  guides(color = "none")+
+  scale_color_manual(values = leachate.colors) +
+  scale_fill_manual(values = leachate.colors) +
   labs(
-    title = "Shannon Diversity by Leachate Treatment x Timepoint",
+    title = "Shannon Diversity across treatments",
     x = "Hours Post Fertilization",
     y = "Shannon Diversity Index",
-    fill = "Leachate",
-    subtitle = paste0("Interaction: ", format_pval(pval_shan_intr))
+    fill = "Leachate"
   ) +
-  theme_classic() +
-  theme(
-    plot.title = element_text(face = "bold", size = 14),
-    plot.subtitle = element_text(size = 10, color = "grey40"),
-    axis.title = element_text(size = 12),
-    legend.position = "right",
-    axis.text.x = ggtext::element_markdown(size = 11)
-  ) +
-  scale_x_discrete(labels = c(
-    "4" = paste0("<span style='background-color:", mako_colors[1], ";padding:2px 8px;border-radius:3px;'>4</span>"),
-    "9" = paste0("<span style='background-color:", mako_colors[2], ";padding:2px 8px;border-radius:3px;'>9</span>"),
-    "14" = paste0("<span style='background-color:", mako_colors[3], ";padding:2px 8px;border-radius:3px;'>14</span>")
-  ))
+  theme_sleek_axe()
 
 shan3
+```
 
+```{r}
+ggsave(filename = file.path(figures_dir, "alpha_shannon.png"), plot = shan3, width = 10, height = 6, dpi = 900)
+```
+
+
+```{r}
 # Combine plots using patchwork
 shannon_combined <- (shan1 + shan2) / shan3
 
@@ -402,7 +479,7 @@ Check normality of Faith's Phylogenetic Diversity values using Shapiro-Wilk test
 #### Using categorical variables
 
 ```{r}
-aov_faith2 <- aov(Faith ~ pvc_level * stage, data = faith_df)
+aov_faith2 <- aov(Faith ~ leachate * stage, data = faith_df)
 summary(aov_faith2)
 ```
 
@@ -413,7 +490,7 @@ Two-way ANOVA with Faith's Phylogenetic Diversity as the response variable and c
 #### Using numerical variables
 
 ```{r}
-aov_faith2.num <- aov(Faith ~ leachate * timepoint, data = faith_df)
+aov_faith2.num <- aov(Faith ~ leachate * hpf, data = faith_df)
 summary(aov_faith2.num)
 ```
 
@@ -433,7 +510,9 @@ faith_pvals <- summary(aov_faith2)[[1]]
 pval_leachate_faith <- faith_pvals["pvc_level", "Pr(>F)"]
 pval_stage_faith <- faith_pvals["stage", "Pr(>F)"]
 pval_interaction_faith <- faith_pvals["pvc_level:stage", "Pr(>F)"]
+```
 
+```{r}
 # Box plot by leachate treatment
 fait1 <- ggplot(faith_df, aes(x = factor(leachate), y = Faith, fill = factor(leachate))) +
   geom_boxplot(alpha = 0.7, outlier.shape = NA) +
@@ -453,7 +532,9 @@ fait1 <- ggplot(faith_df, aes(x = factor(leachate), y = Faith, fill = factor(lea
     axis.title = element_text(size = 12),
     legend.position = "none"
   )
+```
 
+```{r}
 # Box plot by timepoint
 fait2 <- ggplot(faith_df, aes(x = factor(timepoint), y = Faith, fill = factor(timepoint))) +
   geom_boxplot(alpha = 0.7, outlier.shape = NA) +
@@ -473,7 +554,9 @@ fait2 <- ggplot(faith_df, aes(x = factor(timepoint), y = Faith, fill = factor(ti
     axis.title = element_text(size = 12),
     legend.position = "right"
   )
+```
 
+```{r}
 # Box plot by leachate x timepoint interaction
 fait3 <- ggplot(faith_df, aes(x = factor(timepoint), y = Faith, fill = factor(leachate))) +
   geom_boxplot(alpha = 0.7, outlier.shape = NA, position = position_dodge(width = 0.8)) +
@@ -500,17 +583,21 @@ fait3 <- ggplot(faith_df, aes(x = factor(timepoint), y = Faith, fill = factor(le
     "9" = paste0("<span style='background-color:", mako_colors[2], ";padding:2px 8px;border-radius:3px;'>9</span>"),
     "14" = paste0("<span style='background-color:", mako_colors[3], ";padding:2px 8px;border-radius:3px;'>14</span>")
   ))
+```
 
+```{r}
 # Combine plots using patchwork
 faith_combined <- (fait1 + fait2) / fait3
 
+faith_combined
+```
+
+```{r}
 # Save plots
 ggsave(filename = file.path(figures_dir, "faith_by_leachate.png"), plot = fait1, width = 10, height = 6, dpi = 300)
 ggsave(filename = file.path(figures_dir, "faith_by_timepoint.png"), plot = fait2, width = 10, height = 6, dpi = 300)
 ggsave(filename = file.path(figures_dir, "faith_leachate_x_timepoint.png"), plot = fait3, width = 10, height = 6, dpi = 300)
 ggsave(filename = file.path(figures_dir, "faith_combined.png"), plot = faith_combined, width = 13, height = 12, dpi = 300)
-
-faith_combined
 ```
 
 ## Pielou's Evenness
