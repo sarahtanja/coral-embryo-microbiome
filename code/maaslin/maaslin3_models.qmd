@@ -1,6 +1,6 @@
 ---
-title: "Differential abundance of bacterial taxa analysis"
-subtitle: "Using Maaslin3"
+title: "Differential abundance of bacterial taxa"
+subtitle: "Choosing a model formula using Maaslin3"
 author: "Sarah Tanja"
 date: 2025-05-12
 date-modified: today
@@ -56,7 +56,7 @@ First read and get familiar with the: [MaAslin3 package
 README](https://github.com/biobakery/maaslin3) [MaAslin3
 tutorial](https://github.com/biobakery/biobakery/wiki/maaslin3)
 
-Here we aim to test changes in abundance (how many) and prevalence
+Here we aim to test changes in abundance (how many, relative) and prevalence
 (presence/absence) of specific taxa due to leachate, and their
 interaction with stage while controlling for spawn night and read depth.
 
@@ -66,7 +66,7 @@ fertilization as a continuous numerical variable (`hpf`), and then again
 as an ordered categorical factor (`stage`).
 
 Our PERMANOVA detected that spawn night was a significant batch effect
-and introduced nuisance variation into our data. To account for this
+and introduced nuisance variation into our microbiome data. To account for this
 `(1 | spawn_night)` adds a random intercept for each unique spawn night
 --- that is, each spawn night gets its own baseline shift in abundance,
 but the effects of `hpf`/`stage` and `leachate` is assumed to be the
@@ -254,7 +254,7 @@ meta %>%
 
 # Load Data
 
-## Feature table
+## Load L7 feature table
 
 ```{r}
 # Load feature table from QIIME2 artifact
@@ -265,31 +265,6 @@ ft_l7 <- ft_l7 %>%
   as.data.frame()
 ```
 
-**Model formula:** `Abundance ~ leachate + timepoint + (1|cross)`
-
-This tests: - Does leachate affect bacterial abundance (averaged across
-all timepoints)? - Does timepoint affect bacterial abundance (averaged
-across all leachate levels)?
-
-::: callout-note
-<<<<<<< HEAD
-I modified the metadata file such that:
-
--   `leachate_mgL` is the numerical value (previously leachate) of
-    microplastic mass in milligrams per liter of seawater
-
--   `hpf` is the numerical value (previously timepoint)
-
--   `parents` is the categorical string (previously cross) indicating
-    pooled mix of colony crosses
-=======
-I modified the metadata file such that: - `leachate_mgL` is the
-numerical value (previously leachate) of microplastic mass in milligrams
-per liter of seawater - `hpf` is the numerical value (previously
-timepoint) - `parents` is the categorical string (previously cross)
-indicating pooled mix of colony crosses
->>>>>>> d8ab1fe4f1ed50a55b3caffd5ef3377e06218bfa
-:::
 
 # Run MaAslin3
 
