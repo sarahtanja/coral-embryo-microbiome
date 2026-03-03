@@ -330,11 +330,9 @@ fit_Level7_Model1v1 <- maaslin3(
   input_metadata = meta,
   output = file.path(output_path, "Interaction/interaction_cat.con"),
   formula = ~ leachate * hpf + reads + (1|spawn_night),
-  normalization = 'TSS',
-  transform = 'LOG',
-  correction = 'BH',
   verbosity = 'ERROR',
-  cores = 3
+  cores = 3, 
+  save_models = TRUE
 )
 ```
 
@@ -358,6 +356,21 @@ unique(sig_pvc_m1v1$feature)
 15 significant taxa
 :::
 
+## 1v1.2 cat x con (don't include random intercept for spawn night)
+```{r eval=FALSE, warning=FALSE, message=FALSE}
+set.seed(1)
+fit_Level7_Model1v1.2 <- maaslin3(
+  input_data = ft_l7,
+  input_metadata = meta,
+  output = file.path(output_path, "Interaction/interaction_nospawn"),
+  formula = ~ leachate * hpf + reads,
+  normalization = 'TSS',
+  transform = 'LOG',
+  correction = 'BH',
+  verbosity = 'ERROR',
+  cores = 3
+)
+```
 ## 1v2 cat x cat
 
 Here we test for categorical leachate and categorical stage.

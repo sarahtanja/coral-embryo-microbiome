@@ -87,16 +87,18 @@ There are also a few rules of thumb to keep in mind:
     variable levels**).
 
 ```         
- -   WE have \~60 samples... so max number of terms we *should* use
-     = 6 ...
+We have 63 samples... so the maximum number of terms we should use is 6 
 ```
 :::
+
+Significant associations for MaAsLin 3 (no model fitting errors, joint
+q-value less than 0.1)
 
 # Install MaAsLin3
 
 ```{r, eval=false}
-library("devtools")
-install_github("biobakery/maaslin3")
+#library("devtools")
+#install_github("biobakery/maaslin3")
 ```
 
 # Load Libraries
@@ -128,9 +130,9 @@ library(tidyverse)
 
 ```{r}
 # Define file paths
-feature_table_path <- "../../salipante/241121_StonyCoral/270x200/collapsed-l7.qza"
+feature_table_path <- "../../salipante/241121_StonyCoral/270x200/"
 metadata_path <- "../../metadata/meta.csv"
-output_path <- "../../output/maaslin-taxa/"
+output_path <- "../../output/maaslin/"
 ```
 
 ## Load metadata
@@ -154,7 +156,7 @@ meta <- meta %>%
   )
 ```
 
-## Can I put reads per sample into the metadata?
+## Can I put read depth per sample into the metadata?
 
 > Because MaAsLin 3 identifies prevalence (presence/absence)
 > associations, sample read depth (number of reads) should be included
@@ -166,12 +168,12 @@ As a counterpoint.. this adds complexity to the model and takes away
 power.
 
 ```{r}
-reads <- read_csv("../../salipante/Sarah_StonyCoral/241121_StonyCoral_readcounts.csv")
+readepth <- read_csv("../../salipante/Sarah_StonyCoral/241121_StonyCoral_readcounts.csv")
 ```
 
 ```{r}
 meta <- meta %>% 
-  left_join(reads, by = c("sample_id" = "sample"))
+  left_join(readepth, by = c("sample_id" = "sample"))
 ```
 
 ```{r}
@@ -209,13 +211,38 @@ meta %>%
 
 # Load Data
 
-## Feature table
+## Feature tables L4-7
 
 ```{r}
-# Load feature table from QIIME2 artifact
-ft_l7 <- read_qza(feature_table_path)$data
+# L4 Order
+## Load feature table from QIIME2 artifact
+ft_l4 <- read_qza(file.path(feature_table_path, "collapsed-l4.qza"))$data
 
-# Convert to data.frame
+## Convert to data.frame
+ft_l4 <- ft_l4 %>% 
+  as.data.frame()
+
+# L5 Family
+## Load feature table from QIIME2 artifact
+ft_l5 <- read_qza(file.path(feature_table_path, "collapsed-l5.qza"))$data
+
+## Convert to data.frame
+ft_l5 <- ft_l5 %>% 
+  as.data.frame()
+
+# L6 Genus
+## Load feature table from QIIME2 artifact
+ft_l6 <- read_qza(file.path(feature_table_path, "collapsed-l6.qza"))$data
+
+## Convert to data.frame
+ft_l6 <- ft_l6 %>% 
+  as.data.frame()
+
+# L7 Species
+## Load feature table from QIIME2 artifact
+ft_l7 <- read_qza(file.path(feature_table_path, "collapsed-l7.qza"))$data
+
+## Convert to data.frame
 ft_l7 <- ft_l7 %>% 
   as.data.frame()
 ```
@@ -240,7 +267,7 @@ I modified the metadata file such that:
 
 # Run MaAslin3
 
-# Model 1: Interactive
+# Model Interactive
 
 Categorical leachate & continuous time (interactive) **Model formula:**
 `Abundance|Prevelance ~ leachate * hpf + reads + (1|spawn_night)`
@@ -281,30 +308,101 @@ This model lets you hone in on how leachate influences response patterns
 over continuous developmental time (hpf), adjusting for sequencing depth
 and blocking by spawn night.
 
-## 1v1 cat x con
-
-Here we test categorical leachate x continuous hpf
-
-leachate \* hpf (categorical x continuous): Tests whether the slope or
-rate of change of the response across the continuous variable hpf
-differs by leachate group. The interaction term indicates if the effect
-of time (hpf) on the response depends on leachate treatment. You get a
-different regression line slope for each leachate level across the
-continuous gradient of hpf. This reflects how response trajectories
-differ continuously over hpf for each leachate group. `leachate * hpf`
-models interactions as varying slopes/continuous trends modulated by
-category.
+## L4 Order
 
 ```{r eval=FALSE, warning=FALSE, message=FALSE}
-set.seed(1)
-fit_Level7_Model1v1 <- maaslin3(
-  input_data = ft_l7,
+set.seed(03022026)
+fit_Level4_Model1v1 <- maaslin3(
+  input_data = ft_l4,
   input_metadata = meta,
-  output = file.path(output_path, "Interaction/interaction_cat.con"),
+  output = file.path(output_path, "Interaction/L4_interaction_cat.con"),
   formula = ~ leachate * hpf + reads + (1|spawn_night),
-  normalization = 'TSS',
-  transform = 'LOG',
-  correction = 'BH',
+  verbosity = 'ERROR',
+  cores = 3, 
+  save_models = TRUE
+)
+```
+
+Read in the significant results
+
+```{r}
+sig_L4 <- read_tsv(file.path(output_path, "Interaction/L4_interaction_cat.con/significant_results.tsv"))
+```
+
+Filter for leachate
+
+```{r}
+sig_pvc_L4 <- sig_L4 %>% 
+  filter(metadata == "leachate") %>% 
+  mutate(formula = "~ leachate * hpf + reads + (1|spawn_night)")
+
+length(unique(sig_pvc_L4$feature))
+```
+
+::: callout-note
+3 significant Orders
+
+-   Nitrosococcales, linear = relative abundance
+
+    -   More in leachate treatments compared to control
+
+    -   ammonia-oxidizing bacteria (AOB)
+
+        -   aerobes, they need oxygen!
+        -   Elevated nitrogen waste (ammonia NH~3~/NH~4~^+^) may
+            increase presence of AOB
+
+        <!-- -->
+
+        -   Increased organic matter turnover?
+
+        <!-- -->
+
+        -   System-level stress?
+
+-   Parvibaculales, logistic = presence
+
+-   Caulobacterales, logistic = presence
+
+    -   
+:::
+
+Why might AOB increase in treatments with PVC leachate?
+
+If embryos are stressed:
+
+-   Protein turnover increases
+
+-   Catabolism increases
+
+-   Ammonia excretion increases
+
+-   Embryos excrete ammonia directly into surrounding water.
+
+So if leachate causes:
+
+-   Metabolic stress
+
+-   Oxidative stress
+
+-   Increased cell death
+
+-   Increased protein breakdown
+
+That alone can drive enrichment.
+
+This could be strongest at stages with higher metabolic rates (e.g.,
+gastrula vs cleavage).
+
+## L5 Family
+
+```{r eval=FALSE, warning=FALSE, message=FALSE}
+set.seed(03022026)
+fit_Level5_Model1v1 <- maaslin3(
+  input_data = ft_l5,
+  input_metadata = meta,
+  output = file.path(output_path, "Interaction/L5_interaction_cat.con"),
+  formula = ~ leachate * hpf + reads + (1|spawn_night),
   verbosity = 'ERROR',
   cores = 3
 )
@@ -313,19 +411,53 @@ fit_Level7_Model1v1 <- maaslin3(
 Read in the significant results
 
 ```{r}
-sig_m1v1 <- read_tsv(file.path(output_path, "Interaction/interaction_cat.con/significant_results.tsv"))
+sig_L5 <- read_tsv(file.path(output_path, "Interaction/L5_interaction_cat.con/significant_results.tsv"))
 ```
 
 Filter for leachate
 
 ```{r}
-sig_pvc_m1v1 <- sig_m1v1 %>% 
+sig_pvc_L5 <- sig_L5 %>% 
   filter(metadata == "leachate") %>% 
   mutate(formula = "~ leachate * hpf + reads + (1|spawn_night)")
 
-unique(sig_pvc_m1v1$feature)
+length(unique(sig_pvc_L5$feature))
+unique(sig_pvc_L5$feature)
 ```
 
 ::: callout-note
-15 significant taxa
+4 Families
+
+-   Rhizobiaceae, logistic
+
+-   Burkholderiaceae, logistic
+
+-   Parvibaculales PS1 clade, logistic
+
+-   Nitrosococcales Methylophagaceae, linear
+
+    -   NOT ammonia-oxidizing...
+
+    -   grow on **small one-carbon or methylated compounds**
+
+    -   Methylated dissolved organic compounds
+
+    -   Leachate is a source for a mixture of dissolved organic carbon?
+
+    -   Methylophagaceae specialize in metabolizing **C1 compounds** and
+        methylated compounds that show up in marine DOM processing.
 :::
+
+## L6 Genus
+
+```{r eval=FALSE, warning=FALSE, message=FALSE}
+set.seed(03022026)
+fit_Level6_Model1v1 <- maaslin3(
+  input_data = ft_l6,
+  input_metadata = meta,
+  output = file.path(output_path, "Interaction/L6_interaction_cat.con"),
+  formula = ~ leachate * hpf + reads + (1|spawn_night),
+  verbosity = 'ERROR',
+  cores = 3
+)
+```
