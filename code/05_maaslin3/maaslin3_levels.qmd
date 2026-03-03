@@ -45,8 +45,10 @@ knitr::opts_chunk$set(
 # Background
 
 H~o~ : "PVC Leachate does not alter microbiome trajectory over
-developmental time" H~a~ : "PVC Leachate alters microbiome trajectory
-over developmental time"
+developmental time"
+
+H~a~ : "PVC Leachate alters microbiome trajectory over developmental
+time"
 
 Microbiome Multivariable Associations with Linear Models (MaAsLin)
 
@@ -55,19 +57,21 @@ MaAslin2 by accounting for compositionality and accommodates
 cross-sectional studies (that's ours!)
 
 First read and get familiar with the: [MaAslin3 package
-README](https://github.com/biobakery/maaslin3) [MaAslin3
-tutorial](https://github.com/biobakery/biobakery/wiki/maaslin3)
+README](https://github.com/biobakery/maaslin3) & the [MaAslin3
+tutorial](https://github.com/biobakery/biobakery/wiki/maaslin3) from the
+Stanford University Huttenhower Lab.
 
-Here we aim to test changes in abundance (how many) and prevalence
-(presence/absence) of specific taxa due to leachate, and their
-interaction with stage while controlling for spawn night and read depth.
+Here we aim to test changes in relative abundance (how many) and
+prevalence (presence/absence) of specific taxa due to leachate, and the
+interaction of leachate exposure over time, while controlling for spawn
+night and read depth.
 
 Our PERMANOVA detected that spawn night was a significant batch effect
 and introduced nuisance variation into our data. To account for this
 `(1 | spawn_night)` adds a random intercept for each unique spawn night
 --- that is, each spawn night gets its own baseline shift in abundance,
-but the effects of `hpf`/`stage` and `leachate` is assumed to be the
-same across nights.
+but the effects of `hpf` and `leachate` is assumed to be the same across
+nights.
 
 [MaAsLin3 Wiki](https://github.com/biobakery/biobakery/wiki/maaslin3)
 Any significant abundance associations with a categorical variable
@@ -89,10 +93,13 @@ There are also a few rules of thumb to keep in mind:
 ```         
 We have 63 samples... so the maximum number of terms we should use is 6 
 ```
-:::
 
-Significant associations for MaAsLin 3 (no model fitting errors, joint
-q-value less than 0.1)
+-   Significant associations for MaAsLin 3 are results with no model
+    fitting errors, and joint q-value less than 0.1
+
+-   Significant abundance associations with continuous metadata should
+    be checked visually for influential outliers.
+:::
 
 # Install MaAsLin3
 
@@ -128,6 +135,77 @@ library(tidyverse)
 
 # Setup
 
+## Set custom ggplot theme
+
+```{r}
+library(ggsidekick) # theme by sean anderson
+theme_sleek_axe <- function() {
+  theme_sleek() +
+    theme(
+      panel.border = element_rect(
+        color = "grey70",
+        fill = NA,
+        linewidth = 0.5
+      ),
+      axis.line.x  = element_line(color = "grey70"),
+      axis.line.y  = element_line(color = "grey70"),
+      
+      plot.title = element_text(
+        size  = 10,
+        color = "grey40",
+        hjust = 0.5,
+        margin = margin(b = 20)
+      ),
+      
+      strip.text = element_text(size = 8, color = "grey40"),
+      
+      plot.subtitle = element_text(
+        size   = 8,
+        color  = "grey40",
+        hjust  = 0.5,
+        margin = margin(b = 40)
+      ),
+      
+      axis.title = element_text(size = 8, color = "grey40"),
+      axis.text = element_text(size = 7, color = "grey40"),
+      legend.title = element_text(size = 8, color = "grey40"),
+      legend.text = element_text(size = 7, color = "grey40")
+    )
+}
+
+```
+
+## Set colorschemes
+
+```{r}
+leachate.colors <- c(control = "#AEF1FF", 
+                     low     = "#BBC7FF",
+                     mid     = "#7D8BFF", 
+                     high    = "#592F7D")
+
+stage.5.colors <- c(egg           = "#FFE362",
+                    cleavage      = "#EBA600", 
+                    morula        = "#E6AA83",
+                    prawnchip     = "#D9685B", 
+                    earlygastrula = "#A2223C")
+
+stage.3.colors <- c(cleavage      = "#EBA600", 
+                    prawnchip     = "#D9685B", 
+                    earlygastrula = "#A2223C")
+
+status.colors <- c(typical   = "#75C165", 
+                   uncertain = "#E3FAA5", 
+                   malformed = "#8B0069")
+
+night.colors <- c(July_6th = "#E3FAA5", 
+                  July_7th = "#578B21", 
+                  July_8th = "#1E2440")
+
+night.colors.alt <- c(July_6th = "#21918C", 
+                      July_7th = "#201158", 
+                      July_8th = "#1E2440")
+```
+
 ```{r}
 # Define file paths
 feature_table_path <- "../../salipante/241121_StonyCoral/270x200/"
@@ -139,10 +217,10 @@ output_path <- "../../output/maaslin/"
 
 ```{r}
 # Load metadata
-meta <- read_csv(metadata_path)
+metadata <- read_csv(metadata_path)
 
 # set factors
-meta <- meta %>% 
+metadata <- metadata %>% 
   mutate(
     collection_date = as.Date(collection_date, format = "%d-%b-%Y"),
     stage    = factor(stage,    levels = c("cleavage", "prawnchip", "earlygastrula"), ordered = TRUE),
@@ -156,7 +234,7 @@ meta <- meta %>%
   )
 ```
 
-## Can I put read depth per sample into the metadata?
+## Put read depth per sample into the metadata
 
 > Because MaAsLin 3 identifies prevalence (presence/absence)
 > associations, sample read depth (number of reads) should be included
@@ -164,49 +242,23 @@ meta <- meta %>%
 > feature detection in a way that could spuriously correlate with
 > metadata of interest when read depth is not included in the model.
 
-As a counterpoint.. this adds complexity to the model and takes away
-power.
-
 ```{r}
 readepth <- read_csv("../../salipante/Sarah_StonyCoral/241121_StonyCoral_readcounts.csv")
 ```
 
 ```{r}
-meta <- meta %>% 
+metadata <- metadata %>% 
   left_join(readepth, by = c("sample_id" = "sample"))
 ```
 
 ```{r}
 # make samples rownames
-meta <- meta %>% 
+meta <- metadata %>% 
   column_to_rownames(var = "sample_id") %>% 
   as.data.frame()
 
 # View metadata structure
 str(meta)
-```
-
-Summarize number of samples representative of each variable of interest
-
-```{r}
-# Summarize number of samples per 'leachate' category
-meta %>%
-  group_by(leachate) %>%
-  summarize(count = n())
-```
-
-```{r}
-# Summarize number of samples per 'stage' category
-meta %>%
-  group_by(stage) %>%
-  summarize(count = n())
-```
-
-```{r}
-# Summarize number of samples per 'spawn_night' category
-meta %>%
-  group_by(spawn_night) %>%
-  summarize(count = n())
 ```
 
 # Load Data
@@ -247,66 +299,51 @@ ft_l7 <- ft_l7 %>%
   as.data.frame()
 ```
 
-**Model formula:** `Abundance ~ leachate + timepoint + (1|cross)`
-
-This tests: - Does leachate affect bacterial abundance (averaged across
-all timepoints)? - Does timepoint affect bacterial abundance (averaged
-across all leachate levels)?
-
-::: callout-note
-I modified the metadata file such that:
-
--   `leachate_mgL` is the numerical value (previously leachate) of
-    microplastic mass in milligrams per liter of seawater
-
--   `hpf` is the numerical value (previously timepoint)
-
--   `parents` is the categorical string (previously cross) indicating
-    pooled mix of colony crosses
-:::
-
 # Run MaAslin3
 
-# Model Interactive
+# Interactive model
 
-Categorical leachate & continuous time (interactive) **Model formula:**
+**Model formula:**
 `Abundance|Prevelance ~ leachate * hpf + reads + (1|spawn_night)`
 
-**This model tests:** - Main effect of leachate (categorical):
-Differences in the response between the levels of the leachate
-treatment, averaged over all hpf values.
+**This model tests:**
 
--   Main effect of hpf (continuous): The overall linear trend in the
-    response as hours post-fertilization (hpf) changes, averaged over
+-   Main effect of `leachate` (categorical, control, low, mid, high):
+    Differences in the response between the levels of the `leachate`
+    treatment, averaged over all `hpf`values.
+
+-   Main effect of `hpf` (continuous): The overall linear trend in the
+    response as hours post-fertilization (`hpf`) changes, averaged over
     all leachate groups.
 
--   Interaction between leachate and hpf: Whether the slope of the
+-   Interaction between `leachate` and `hpf`: Whether the slope of the
     response across hpf differs depending on the leachate category. This
-    tests if leachate modifies how the response changes continuously
+    tests if `leachate` modifies how the response changes continuously
     over time; e.g., some leachate levels may accelerate or slow the
-    effect of hpf.
+    effect of `hpf`.
 
--   Effect of reads (continuous covariate): Controls for the influence
+-   Effect of `reads` (continuous covariate): Controls for the influence
     of read depth on the response, adjusting other effects accordingly.
 
--   Random intercept for spawn_night: Accounts for variability and
+-   Random intercept for `spawn_night`: Accounts for variability and
     non-independence among samples collected on the same spawn night by
     allowing different baseline response levels for each spawn night.
 
 Interpretation-wise, if the interaction term is significant, it
-indicates that the "trajectory" or slope of response change with hpf
-differs by leachate group. If the interaction is not significant but
-leachate is, then leachate affects overall response level but not the
-shape of the response over time.
+indicates that the "trajectory" or slope of response change with `hpf`
+differs by `leachate` group. If the interaction is not significant but
+`leachate` is, then `leachate` affects overall response level but not
+the shape of the response over time.
 
-Graphically, imagine separate regression lines (response vs. hpf) for
-each leachate group. The interaction tests whether these lines have
+Graphically, imagine separate regression lines (response vs. `hpf`) for
+each `leachate` group. The interaction tests whether these lines have
 different slopes. The main effects test differences in intercepts and
 general trend.
 
-This model lets you hone in on how leachate influences response patterns
-over continuous developmental time (hpf), adjusting for sequencing depth
-and blocking by spawn night.
+This model lets you hone in on how `leachate` influences response
+patterns over continuous developmental time (`hpf`), adjusting for
+sequencing depth (`reads`) and including random intercepts for
+`spawn_night`.
 
 ## L4 Order
 
@@ -318,8 +355,7 @@ fit_Level4_Model1v1 <- maaslin3(
   output = file.path(output_path, "Interaction/L4_interaction_cat.con"),
   formula = ~ leachate * hpf + reads + (1|spawn_night),
   verbosity = 'ERROR',
-  cores = 3, 
-  save_models = TRUE
+  cores = 3
 )
 ```
 
@@ -333,38 +369,204 @@ Filter for leachate
 
 ```{r}
 sig_pvc_L4 <- sig_L4 %>% 
+  filter(is.na(error)) %>% 
   filter(metadata == "leachate") %>% 
-  mutate(formula = "~ leachate * hpf + reads + (1|spawn_night)")
+  mutate(formula = "~ leachate * hpf + reads + (1|spawn_night)") %>% 
+  mutate(level = "Order_L4")
+
+sig_pvc_L4 %>% group_by(feature, model) %>% summarize(mean(coef))
 
 length(unique(sig_pvc_L4$feature))
+L4_feat <- unique(sig_pvc_L4$feature)
 ```
 
-::: callout-note
-3 significant Orders
+### Plots
 
--   Nitrosococcales, linear = relative abundance
+```{r}
+extract_tax_level <- function(x, rank) {
+  # rank like "d", "p", "c", "o", "f", "g", "s"
+  str_extract(x, paste0("(?<=", rank, "__)[^;]+"))
+}
+```
+example to use funtion like: 
+df2 <- df %>%
+  mutate(
+    domain  = extract_tax_level(feature, "d"),
+    phylum  = extract_tax_level(feature, "p"),
+    class   = extract_tax_level(feature, "c"),
+    order   = extract_tax_level(feature, "o"),
+    family  = extract_tax_level(feature, "f"),
+    genus   = extract_tax_level(feature, "g"),
+    species = extract_tax_level(feature, "s")
+  )
 
-    -   More in leachate treatments compared to control
 
-    -   ammonia-oxidizing bacteria (AOB)
+Filter for Orders of interest (L4_feat)
+```{r}
+ft_l4_sig <- ft_l4 %>% 
+  rownames_to_column(var = "feature") %>% 
+  filter(feature %in% L4_feat) %>% 
+  as_tibble() %>% 
+  pivot_longer(
+    cols = 2:last_col(),
+    names_to = "sample_id",
+    values_to = "rel_abundance"
+  ) %>% 
+  left_join(metadata, by = "sample_id") %>% 
+  mutate(
+    order = extract_tax_level(feature, "o"),
+    order = factor(
+      order,
+      levels = c("Caulobacterales", "Parvibaculales", "Nitrosococcales"),
+      labels = c(
+        "A. Caulobacterales (Alphaproteobacteria)",
+        "B. Parvibaculales (Alphaproteobacteria)",
+        "C. Nitrosococcales (Gammaproteobacteria)"
+      )
+    )
+  )
+```
 
-        -   aerobes, they need oxygen!
-        -   Elevated nitrogen waste (ammonia NH~3~/NH~4~^+^) may
-            increase presence of AOB
 
-        <!-- -->
+```{r, fig.width = 10, fig.height = 4}
+## Relative abundance (normalized read counts)
+ggplot(ft_l4_sig, aes(x = factor(hpf), y = rel_abundance, color = leachate, fill = leachate)) +
+  #geom_violin(alpha = 0.1, outlier.shape = NA, position = position_dodge(width = 0.8)) +
+  geom_boxplot(width = 0.6, alpha = 0.6, outlier.shape = 8, position = position_dodge(width = 0.8)) +
+  geom_jitter(alpha = 0.8, position = position_dodge(width = 0.8)) +
+  facet_wrap(~ order, scales = "free_y") +
+  scale_fill_manual(values = leachate.colors) +
+  scale_color_manual(values = leachate.colors) +
+  labs(
+    title = "Relative Abundance of leachate responsive bacterial Orders in 14 hours of embryonic development",
+    x = "Hours Post Fertilization",
+    y = "Relative Abundance (normalized read counts)"
+  ) +
+  theme_sleek_axe()
+```
 
-        -   Increased organic matter turnover?
+```{r}
+ggsave(
+  filename = file.path(output_path, "order_abundance.png"),
+  width = 10,
+  height = 4,
+  dpi = 900
+)
+```
 
-        <!-- -->
 
-        -   System-level stress?
 
--   Parvibaculales, logistic = presence
+::: callout-important
+### Caulobacterales (Alphaproteobacteria)
 
--   Caulobacterales, logistic = presence
+**Abundance model**
 
-    -   
+**coef = +0.208**
+
+-   Positive coefficient → abundance **increases with increasing
+    leachate**
+
+-   Magnitude is modest
+
+-   Because abundance was log-transformed, this reflects a proportional
+    change
+
+-   As PVC leachate increases, *Caulobacterales* tend to increase in
+    relative abundance in samples where they are present.
+
+**Prevalence model**
+
+**coef = −0.687**
+
+-   Negative coefficient → odds of detection decrease with leachate
+
+-   Convert to odds ratio: $OR = e^{-0.687} ≈ 0.50$
+
+-   With increasing leachate, the odds of detecting Caulobacterales are
+    about 50% lower per unit increase in leachate.
+
+**Combined biological interpretation**
+
+-   When present → they increase in abundance
+
+-   But → they are detected in fewer samples overall
+
+-   That suggests **patchy enrichment**. Leachate may be selecting for
+    strong blooms in some samples while excluding them from others.
+
+-   That’s not contradictory — it’s ecological heterogeneity.
+:::
+
+::: callout-important
+### Parvibaculales (Alphaproteobacteria)
+
+**Abundance**
+
+**coef = −0.425**
+
+-   Negative → abundance decreases with leachate
+
+-   Moderate magnitude
+
+-   Parvibaculales decline in relative abundance under increasing
+    leachate exposure.
+
+**Prevalence**
+
+**coef = −0.0099**
+
+-   That is essentially zero
+
+-   Leachate does not affect whether Parvibaculales are detected or not
+
+-   Odds ratio: $OR = e^{-0.0099} ≈ 0.99$
+
+**Combined biological interpretation**
+
+-   Leachate does not meaningfully change whether Parvibaculales are
+    detected, but when present, they are less abundant as leachate
+    increases.
+
+-   That is a classic **sublethal suppression signal**.
+:::
+
+::: callout-important
+### Nitrosococcales (Gammaproteobacteria; ammonia oxidizers)
+
+**Abundance**
+
+**coef = +0.819**
+
+-   Nitrosococcales increase substantially in relative abundance with
+    increasing leachate.
+
+**Prevalence**
+
+**coef = −2.986**
+
+-   Odds ratio:\
+    $OR = e^{−2.986} ≈ 0.05$
+
+<!-- -->
+
+-   The odds of detecting Nitrosococcales decrease \~95% per unit
+    increase in leachate.
+
+**Combined biological interpretation**
+
+That looks paradoxical.
+
+So what’s going on?
+
+-   Rare in many samples?
+
+-    When present → bloom strongly under leachate
+
+-    Leachate may be creating niches that strongly favor ammonia
+    oxidizers
+
+-   But only in certain microenvironments (oxygen, nitrogen flux,
+    organic carbon gradients)
 :::
 
 Why might AOB increase in treatments with PVC leachate?
