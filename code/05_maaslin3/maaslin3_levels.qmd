@@ -206,11 +206,12 @@ night.colors.alt <- c(July_6th = "#21918C",
                       July_8th = "#1E2440")
 ```
 
+## Define file paths
 ```{r}
-# Define file paths
 feature_table_path <- "../../salipante/241121_StonyCoral/270x200/"
 metadata_path <- "../../metadata/meta.csv"
 output_path <- "../../output/maaslin/"
+fig_path <- "../../output/figs"
 ```
 
 ## Load metadata
@@ -382,12 +383,14 @@ L4_feat <- unique(sig_pvc_L4$feature)
 
 ### Plots
 
+##### Make function to extract taxa levels
 ```{r}
 extract_tax_level <- function(x, rank) {
   # rank like "d", "p", "c", "o", "f", "g", "s"
   str_extract(x, paste0("(?<=", rank, "__)[^;]+"))
 }
 ```
+
 example to use funtion like: 
 df2 <- df %>%
   mutate(
@@ -401,9 +404,9 @@ df2 <- df %>%
   )
 
 
-Filter for Orders of interest (L4_feat)
+Filter for Orders of interest (L4_feat), and prep data for plotting
 ```{r}
-ft_l4_sig <- ft_l4 %>% 
+sig_L4_long <- ft_l4 %>% 
   rownames_to_column(var = "feature") %>% 
   filter(feature %in% L4_feat) %>% 
   as_tibble() %>% 
@@ -415,7 +418,7 @@ ft_l4_sig <- ft_l4 %>%
   left_join(metadata, by = "sample_id") %>% 
   mutate(
     order = extract_tax_level(feature, "o"),
-    order = factor(
+    order_label = factor(
       order,
       levels = c("Caulobacterales", "Parvibaculales", "Nitrosococcales"),
       labels = c(
@@ -427,14 +430,15 @@ ft_l4_sig <- ft_l4 %>%
   )
 ```
 
-
+#### Abundance 
+Relative abundance plots for significant Orders across developmental time and leachate treatments
 ```{r, fig.width = 10, fig.height = 4}
 ## Relative abundance (normalized read counts)
-ggplot(ft_l4_sig, aes(x = factor(hpf), y = rel_abundance, color = leachate, fill = leachate)) +
+ggplot(sig_L4_long, aes(x = factor(hpf), y = rel_abundance, color = leachate, fill = leachate)) +
   #geom_violin(alpha = 0.1, outlier.shape = NA, position = position_dodge(width = 0.8)) +
-  geom_boxplot(width = 0.6, alpha = 0.6, outlier.shape = 8, position = position_dodge(width = 0.8)) +
+  geom_boxplot(width = 0.6, alpha = 0.6, outlier.shape = NA, position = position_dodge(width = 0.8)) +
   geom_jitter(alpha = 0.8, position = position_dodge(width = 0.8)) +
-  facet_wrap(~ order, scales = "free_y") +
+  facet_wrap(~ order_label, scales = "free_y") +
   scale_fill_manual(values = leachate.colors) +
   scale_color_manual(values = leachate.colors) +
   labs(
@@ -444,10 +448,10 @@ ggplot(ft_l4_sig, aes(x = factor(hpf), y = rel_abundance, color = leachate, fill
   ) +
   theme_sleek_axe()
 ```
-
+Save abundance plot
 ```{r}
 ggsave(
-  filename = file.path(output_path, "order_abundance.png"),
+  filename = file.path(fig_path, "order_abundance.png"),
   width = 10,
   height = 4,
   dpi = 900
@@ -455,6 +459,66 @@ ggsave(
 ```
 
 
+#### Prevalence
+Prevalence plots for significant Orders across developmental time and leachate treatments
+
+```{r}
+sig_L4_long <- sig_L4_long %>%
+  mutate(presence = ifelse(rel_abundance > 0, 1, 0))
+```
+
+```{r, fig.width = 8, fig.height = 6}
+ggplot(sig_L4_long,
+       aes(x = leachate,
+           y = as.numeric(presence),
+           color = leachate,
+           fill = leachate)) +
+    
+  geom_smooth(
+    aes(group = 1),
+    method = "glm",
+    method.args = list(family = "binomial"),
+    se = FALSE,
+    color = "grey70",
+    fill = "grey90",
+    linewidth = 0.8
+  ) +
+  
+  geom_dotplot(
+    binaxis = "y",
+    stackdir = "centerwhole",
+    alpha = 0.5,
+    shape = 1,
+    dotsize = 1.5
+  ) +
+    # mean points
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    shape = 18,
+    size = 4
+  ) +
+
+  facet_grid(order~hpf) +
+  coord_fixed(ratio = 2.8) +
+  scale_fill_manual(values = leachate.colors) +
+  scale_color_manual(values = leachate.colors) +
+  labs(
+    title = "Prevalence of leachate responsive bacterial Orders across leachate levels and developmental stages",
+    x = "Leachate Level",
+    y = "Prevalence (proportion of samples with bacteria Order present)"
+  ) +
+  theme_sleek_axe()
+```
+
+```{r}
+ggsave(
+  filename = file.path(fig_path, "order_prevalence.png"),
+  width = 8,
+  height = 6,
+  dpi = 900
+)
+```
 
 ::: callout-important
 ### Caulobacterales (Alphaproteobacteria)
@@ -544,10 +608,8 @@ ggsave(
 
 **coef = −2.986**
 
--   Odds ratio:\
+-   Odds ratio:
     $OR = e^{−2.986} ≈ 0.05$
-
-<!-- -->
 
 -   The odds of detecting Nitrosococcales decrease \~95% per unit
     increase in leachate.
@@ -620,13 +682,118 @@ Filter for leachate
 
 ```{r}
 sig_pvc_L5 <- sig_L5 %>% 
+  filter(is.na(error)) %>%
   filter(metadata == "leachate") %>% 
-  mutate(formula = "~ leachate * hpf + reads + (1|spawn_night)")
+  mutate(formula = "~ leachate * hpf + reads + (1|spawn_night)") %>% 
+  mutate(level = "Family_L5")
 
 length(unique(sig_pvc_L5$feature))
-unique(sig_pvc_L5$feature)
+L5_feat <- unique(sig_pvc_L5$feature)
+L5_feat
 ```
 
+### Plots
+
+##### Filter for Family of interest (L4_feat), and prep data for plotting
+
+```{r}
+sig_L5_long <- ft_l5 %>% 
+  rownames_to_column(var = "feature") %>% 
+  filter(feature %in% L5_feat) %>% 
+  as_tibble() %>% 
+  pivot_longer(
+    cols = 2:last_col(),
+    names_to = "sample_id",
+    values_to = "rel_abundance"
+  ) %>% 
+  left_join(metadata, by = "sample_id") %>% 
+  mutate(
+    order = extract_tax_level(feature, "o"),
+    family = extract_tax_level(feature, "f")
+  ) %>% 
+  mutate(presence = ifelse(rel_abundance > 0, 1, 0))
+
+```
+
+#### Abundance
+```{r, fig.width = 10, fig.height = 8}
+## Relative abundance (normalized read counts)
+ggplot(sig_L5_long, aes(x = factor(hpf), y = rel_abundance, color = leachate, fill = leachate)) +
+  #geom_violin(alpha = 0.1, outlier.shape = NA, position = position_dodge(width = 0.8)) +
+  geom_boxplot(width = 0.6, alpha = 0.6, outlier.shape = NA, position = position_dodge(width = 0.8)) +
+  geom_jitter(alpha = 0.8, position = position_dodge(width = 0.8)) +
+  facet_wrap(~ family, scales = "free_y") +
+  scale_fill_manual(values = leachate.colors) +
+  scale_color_manual(values = leachate.colors) +
+  labs(
+    title = "Relative Abundance of leachate responsive bacterial Families in 14 hours of embryonic development",
+    x = "Hours Post Fertilization",
+    y = "Relative Abundance (normalized read counts)"
+  ) +
+  theme_sleek_axe()
+```
+```{r}
+ggsave(
+  filename = file.path(fig_path, "family_abundance.png"),
+  width = 10,
+  height = 8,
+  dpi = 900
+)
+```
+
+#### Prevalence
+```{r, fig.width = 7, fig.height = 6}
+ggplot(sig_L5_long,
+       aes(x = leachate,
+           y = as.numeric(presence),
+           color = leachate,
+           fill = leachate)) +
+    
+  geom_smooth(
+    aes(group = 1),
+    method = "glm",
+    method.args = list(family = "binomial"),
+    se = FALSE,
+    color = "grey70",
+    fill = "grey90",
+    linewidth = 0.8
+  ) +
+  
+  geom_dotplot(
+    binaxis = "y",
+    stackdir = "centerwhole",
+    alpha = 0.5,
+    shape = 1,
+    dotsize = 1.5
+  ) +
+    # mean points
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    shape = 18,
+    size = 4
+  ) +
+
+  facet_grid(family~hpf) +
+  coord_fixed(ratio = 2.8) +
+  scale_fill_manual(values = leachate.colors) +
+  scale_color_manual(values = leachate.colors) +
+  labs(
+    title = "Prevalence of leachate responsive bacterial Families across leachate levels and developmental stages",
+    x = "Leachate Level",
+    y = "Prevalence (proportion of samples with bacteria Family present)"
+  ) +
+  theme_sleek_axe()
+```
+
+```{r}
+ggsave(
+  filename = file.path(fig_path, "family_prevalence.png"),
+  width = 7,
+  height = 6,
+  dpi = 900
+)
+```
 ::: callout-note
 4 Families
 
@@ -663,3 +830,133 @@ fit_Level6_Model1v1 <- maaslin3(
   cores = 3
 )
 ```
+
+##### Read in the significant results
+
+```{r}
+sig_L6 <- read_tsv(file.path(output_path, "Interaction/L6_interaction_cat.con/significant_results.tsv"))
+```
+
+##### Filter for leachate responsive bacteria
+
+```{r}
+sig_pvc_L6 <- sig_L6 %>% 
+  filter(is.na(error)) %>% 
+  filter(metadata == "leachate") %>% 
+  mutate(formula = "~ leachate * hpf + reads + (1|spawn_night)") %>% 
+  mutate(level = "Genus_L6")
+
+sig_pvc_L6 %>% group_by(feature, model) %>% summarize(mean(coef))
+
+length(unique(sig_pvc_L6$feature))
+L6_feat <- unique(sig_pvc_L6$feature)
+```
+
+##### Filter for Genus of interest (L6_feat), and prep data for plotting
+```{r}
+sig_L6_long <- ft_l6 %>% 
+  rownames_to_column(var = "feature") %>% 
+  filter(feature %in% L6_feat) %>% 
+  as_tibble() %>% 
+  pivot_longer(
+    cols = 2:last_col(),
+    names_to = "sample_id",
+    values_to = "rel_abundance"
+  ) %>% 
+  left_join(metadata, by = "sample_id") %>% 
+  mutate(
+    order = extract_tax_level(feature, "o"),
+    family = extract_tax_level(feature, "f"), 
+    genus = extract_tax_level(feature, "g")
+  ) %>% 
+  mutate(presence = ifelse(rel_abundance > 0, 1, 0))
+```
+
+### Plots
+#### Abundance 
+Relative abundance plots for significant Orders across developmental time and leachate treatments
+```{r, fig.width = 10, fig.height = 8}
+## Relative abundance (normalized read counts)
+ggplot(sig_L6_long, aes(x = factor(hpf), y = rel_abundance, color = leachate, fill = leachate)) +
+  #geom_violin(alpha = 0.1, outlier.shape = NA, position = position_dodge(width = 0.8)) +
+  geom_boxplot(width = 0.6, alpha = 0.6, outlier.shape = NA, position = position_dodge(width = 0.8)) +
+  geom_jitter(alpha = 0.8, position = position_dodge(width = 0.8)) +
+  facet_wrap(~ genus, scales = "free_y") +
+  scale_fill_manual(values = leachate.colors) +
+  scale_color_manual(values = leachate.colors) +
+  labs(
+    title = "Relative Abundance of leachate responsive bacterial Genus in 14 hours of embryonic development",
+    x = "Hours Post Fertilization",
+    y = "Relative Abundance (normalized read counts)"
+  ) +
+  theme_sleek_axe()
+```
+
+```{r}
+ggsave(
+  filename = file.path(fig_path, "genus_abundance.png"),
+  width = 10,
+  height = 8,
+  dpi = 900
+)
+```
+
+
+#### Prevalence
+Prevalence plots for significant Orders across developmental time and leachate treatments
+
+
+```{r, fig.width = 5, fig.height = 9}
+ggplot(sig_L6_long,
+       aes(x = leachate,
+           y = as.numeric(presence),
+           color = leachate,
+           fill = leachate)) +
+    
+  geom_smooth(
+    aes(group = 1),
+    method = "glm",
+    method.args = list(family = "binomial"),
+    se = FALSE,
+    color = "grey70",
+    fill = "grey90",
+    linewidth = 0.8
+  ) +
+  
+  geom_dotplot(
+    binaxis = "y",
+    stackdir = "centerwhole",
+    alpha = 0.5,
+    shape = 1,
+    dotsize = 1.5
+  ) +
+    # mean points
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    shape = 18,
+    size = 4
+  ) +
+
+  facet_grid(genus~hpf) +
+  coord_fixed(ratio = 2.8) +
+  scale_fill_manual(values = leachate.colors) +
+  scale_color_manual(values = leachate.colors) +
+  labs(
+    title = "Prevalence of leachate responsive bacteria Genus across leachate levels and developmental stages",
+    x = "Leachate Level",
+    y = "Prevalence (proportion of samples with bacteria Genus present)"
+  ) +
+  theme_sleek_axe()
+```
+
+```{r}
+ggsave(
+  filename = file.path(fig_path, "genus_prevalence.png"),
+  width = 5,
+  height = 9,
+  dpi = 900
+)
+```
+
+## L7 Species
