@@ -158,6 +158,7 @@ theme_sleek_axe <- function() {
       ),
       
       strip.text = element_text(size = 8, color = "grey40"),
+  
       
       plot.subtitle = element_text(
         size   = 8,
@@ -960,3 +961,259 @@ ggsave(
 ```
 
 ## L7 Species
+
+```{r eval=FALSE, warning=FALSE, message=FALSE}
+set.seed(03022026)
+fit_Level7_Model1v1 <- maaslin3(
+  input_data = ft_l7,
+  input_metadata = meta,
+  output = file.path(output_path, "Interaction/L7_interaction_cat.con"),
+  formula = ~ leachate * hpf + reads + (1|spawn_night),
+  verbosity = 'ERROR',
+  cores = 3
+)
+```
+
+
+##### Read in the significant results
+
+```{r}
+sig_L7 <- read_tsv(file.path(output_path, "Interaction/L7_interaction_cat.con/significant_results.tsv"))
+```
+
+##### Filter for leachate responsive bacteria
+
+```{r}
+sig_pvc_L7 <- sig_L7 %>% 
+  filter(is.na(error)) %>% 
+  filter(metadata == "leachate") %>% 
+  mutate(formula = "~ leachate * hpf + reads + (1|spawn_night)") %>% 
+  mutate(level = "Genus_L7")
+
+sig_pvc_L7 %>% group_by(feature, model) %>% summarize(mean(coef))
+
+length(unique(sig_pvc_L7$feature))
+L7_feat <- unique(sig_pvc_L7$feature)
+```
+
+##### Filter for Species of interest (L7_feat), and prep data for plotting
+```{r}
+sig_L7_long <- ft_l7 %>% 
+  rownames_to_column(var = "feature") %>% 
+  filter(feature %in% L7_feat) %>% 
+  as_tibble() %>% 
+  pivot_longer(
+    cols = 2:last_col(),
+    names_to = "sample_id",
+    values_to = "rel_abundance"
+  ) %>% 
+  left_join(metadata, by = "sample_id") %>% 
+  mutate(
+    order = extract_tax_level(feature, "o"),
+    family = extract_tax_level(feature, "f"), 
+    genus = extract_tax_level(feature, "g"),
+    species = extract_tax_level(feature, "s"), 
+    genus_species = paste0(genus, " ", species)
+  ) %>% 
+  mutate(presence = ifelse(rel_abundance > 0, 1, 0))
+```
+
+### Plots
+#### Abundance 
+Relative abundance plots for significant Orders across developmental time and leachate treatments
+```{r, fig.width = 10, fig.height = 8}
+## Relative abundance (normalized read counts)
+ggplot(sig_L7_long, aes(x = factor(hpf), y = rel_abundance, color = leachate, fill = leachate)) +
+  #geom_violin(alpha = 0.1, outlier.shape = NA, position = position_dodge(width = 0.8)) +
+geom_boxplot(width = 0.6, alpha = 0.6, outlier.shape = NA, position = position_dodge(width = 0.8)) +
+
+geom_jitter(alpha = 0.8, position = position_dodge(width = 0.8)) +
+  
+facet_wrap(~genus_species, scales = "free_y") +
+  
+scale_fill_manual(values = leachate.colors) +
+  
+scale_color_manual(values = leachate.colors) +
+  
+labs(
+    title = "Relative Abundance of leachate responsive bacterial Species in 14 hours of embryonic development",
+    x = "Hours Post Fertilization",
+    y = "Relative Abundance (normalized read counts)"
+  ) +
+  
+theme_sleek_axe()
+```
+```{r}
+ggsave(
+  filename = file.path(fig_path, "species_abundance.png"),
+  width = 10,
+  height = 8,
+  dpi = 900
+)
+```
+
+#### Prevalence
+Prevalence plots for significant Orders across developmental time and leachate treatments
+
+
+```{r, fig.width = 10, fig.height = 20}
+ggplot(sig_L7_long,
+       aes(x = leachate_mgL,
+           y = as.numeric(presence),
+           color = leachate,
+           fill = leachate)) +
+    
+  geom_smooth(
+    aes(group = 1),
+    method = "glm",
+    method.args = list(family = "binomial"),
+    se = FALSE,
+    color = "grey40",
+    fill = "grey70",
+    linewidth = 0.8
+  ) +
+  geom_rug(
+    aes(x = leachate_mgL),
+    sides = "bt",
+    color = "grey70",
+    alpha = 0.5
+  ) +
+  geom_dotplot(
+    binaxis = "y",
+    stackdir = "centerwhole",
+    alpha = 0.5,
+    shape = 1,
+    dotsize = 1.5
+  ) +
+    # mean points
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    shape = 18,
+    size = 4
+  ) +
+
+  facet_grid(genus_species~hpf) +
+  coord_fixed(ratio = 2.8) +
+  scale_fill_manual(values = leachate.colors) +
+  scale_color_manual(values = leachate.colors) +
+  labs(
+    title = "Prevalence of leachate responsive bacteria Species across leachate levels and developmental stages",
+    x = "Leachate Level",
+    y = "Prevalence (proportion of samples with bacteria Species present)"
+  ) +
+  theme_sleek_axe()+ 
+  theme(
+  strip.text.y = element_text(size = 8, color = "grey40", angle = 0, hjust = 0)
+)
+```
+
+```{r}
+ggsave(
+  filename = file.path(fig_path, "species_prevalence.png"),
+  width = 10,
+  height = 20,
+  dpi = 900
+)
+```
+
+
+# Summary 
+MaAsLin 3 identified 3 Orders, 4 Families, 9 Genera, and 16 Species that show significant associations (either linear or logistic) with PVC leachate exposure across dose and time.
+
+
+What if we look only for the main effect of leachate and the interaction between leachate and time, but exclude the coefficient for hpf itself? That would let us focus on features that show significant differences due either to leachate or the interaction between leachate and time, without requiring a significant linear trend with time itself. That might capture features that respond to leachate in a non-linear way across development.
+```{r eval=FALSE, warning=FALSE, message=FALSE}
+set.seed(03132026)
+fit_Level7 <- maaslin3(
+  input_data = ft_l7,
+  input_metadata = meta,
+  output = file.path(output_path, "Interaction/L7_coef_cat.con"),
+  formula = ~ leachate + leachate:hpf + reads + (1|spawn_night),
+  verbosity = 'ERROR',
+  cores = 3, 
+  plot_associations = FALSE
+)
+```
+
+```{r}
+sig_L7 <- read_tsv(file.path(output_path, "Interaction/L7_leachatehpf_cat.con/significant_results.tsv"))
+
+dn_L7 <- read_tsv(file.path(output_path, "Interaction/L7_leachatehpf_cat.con/features/data_norm.tsv"))
+
+dt_L7 <- read_tsv(file.path(output_path, "Interaction/L7_leachatehpf_cat.con/features/data_transformed.tsv"))
+
+fd_L7 <- read_tsv(file.path(output_path, "Interaction/L7_leachatehpf_cat.con/features/filtered_data.tsv"))
+```
+
+```{r}
+sig_pvc_L7 <- sig_L7 %>% 
+  filter(is.na(error)) %>% 
+  mutate(
+    CI_lwr = coef - 1.98 * stderr,
+    CI_upr = coef + 1.98 * stderr
+  ) %>% 
+  filter(is.na(error)) %>% 
+  filter(metadata != "reads")
+
+L7_feat <- unique(sig_pvc_L7$feature)
+```
+
+There are 57 unique features
+
+```{r}
+sig_pvc_L7 %>% 
+  group_by(model) %>%
+  summarise(n = n_distinct(feature))
+```
+
+> In abundance models, a one-unit change in the metadatum variable corresponds to a 2coef
+ fold change in the relative abundance of the feature.
+ 
+> In prevalence models, a one-unit change in the metadatum variable corresponds to a coef
+ change in the log-odds of a feature being present.
+ 
+```{r}
+sig_L7_long <- fd_L7 %>% 
+  as_tibble() %>% 
+  rename(sample_id = feature) %>% 
+  pivot_longer(
+    cols = 2:last_col(),
+    names_to = "feature",
+    values_to = "norm_abundance"
+  ) %>% 
+  filter(feature %in% L7_feat) %>%
+  replace_na(list(norm_abundance = 0)) %>%
+  left_join(metadata, by = "sample_id") %>% 
+  mutate(
+    order = extract_tax_level(feature, "o"),
+    family = extract_tax_level(feature, "f"), 
+    genus = extract_tax_level(feature, "g"),
+    species = extract_tax_level(feature, "s"), 
+    genus_species = paste0(genus, " ", species)
+  ) %>% 
+  mutate(presence = ifelse(norm_abundance > 0, 1, 0))
+
+taxa <- (unique(sig_L7_long$genus_species))
+```
+
+```{r, fig.width = 35, fig.height = 30}
+## Relative abundance (normalized read counts)
+sig_L7_long %>% 
+ggplot(., aes(x = factor(hpf), y = norm_abundance, color = leachate, fill = leachate)) +
+  geom_boxplot(width = 0.6, alpha = 0.6, outlier.shape = NA, position = position_dodge(width = 0.8)) +
+  geom_jitter(alpha = 0.8, position = position_dodge(width = 0.8)) +
+  facet_wrap(~genus_species, scales = "free_y") +
+  scale_fill_manual(values = leachate.colors) +
+  scale_color_manual(values = leachate.colors) +
+  labs(
+      title = "Relative Abundance of leachate responsive bacterial Species in 14 hours of embryonic development",
+      x = "Hours Post Fertilization",
+      y = "Relative Abundance (normalized read counts)"
+    ) +
+  theme_sleek_axe()
+```
+```{r}
+
+```
+
