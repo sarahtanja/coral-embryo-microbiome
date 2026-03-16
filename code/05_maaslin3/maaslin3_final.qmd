@@ -502,7 +502,7 @@ ggplot(., aes(x = factor(hpf), y = norm_abundance, color = leachate, fill = leac
   scale_fill_manual(values = leachate.colors) +
   scale_color_manual(values = leachate.colors) +
   labs(
-      title = "Relative Abundance of leachate responsive bacterial Species in 14 hours of embryonic development",
+      title = "Relative Abundance of leachate responsive bacterial Famiy in 14 hours of embryonic development",
       x = "Hours Post Fertilization",
       y = "Relative Abundance (normalized read counts)"
     ) +
@@ -521,7 +521,7 @@ ggplot(., aes(x = factor(hpf), y = norm_abundance, color = leachate, fill = leac
   scale_fill_manual(values = leachate.colors) +
   scale_color_manual(values = leachate.colors) +
   labs(
-      title = "Relative Abundance of leachate responsive bacterial Species in 14 hours of embryonic development",
+      title = "Relative Abundance of leachate responsive bacterial Order in 14 hours of embryonic development",
       x = "Hours Post Fertilization",
       y = "Relative Abundance (normalized read counts)"
     ) +
