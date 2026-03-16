@@ -124,8 +124,8 @@ library(tidyverse)
 -   This file is tab-delimited.
 -   Formatted with features as columns and samples as rows.
 -   The transpose of this format is also okay.
--   Possible features in this file include microbes, genes, pathways,
-    etc.
+-   Possible features in this file include **microbes**, genes,
+    pathways, etc.
 
 2.  Metadata file
 
@@ -208,6 +208,7 @@ night.colors.alt <- c(July_6th = "#21918C",
 ```
 
 ## Define file paths
+
 ```{r}
 feature_table_path <- "../../salipante/241121_StonyCoral/270x200/"
 metadata_path <- "../../metadata/meta.csv"
@@ -385,6 +386,7 @@ L4_feat <- unique(sig_pvc_L4$feature)
 ### Plots
 
 ##### Make function to extract taxa levels
+
 ```{r}
 extract_tax_level <- function(x, rank) {
   # rank like "d", "p", "c", "o", "f", "g", "s"
@@ -392,20 +394,15 @@ extract_tax_level <- function(x, rank) {
 }
 ```
 
-example to use funtion like: 
-df2 <- df %>%
-  mutate(
-    domain  = extract_tax_level(feature, "d"),
-    phylum  = extract_tax_level(feature, "p"),
-    class   = extract_tax_level(feature, "c"),
-    order   = extract_tax_level(feature, "o"),
-    family  = extract_tax_level(feature, "f"),
-    genus   = extract_tax_level(feature, "g"),
-    species = extract_tax_level(feature, "s")
-  )
-
+example to use funtion like: df2 \<- df %\>% mutate( domain =
+extract_tax_level(feature, "d"), phylum = extract_tax_level(feature,
+"p"), class = extract_tax_level(feature, "c"), order =
+extract_tax_level(feature, "o"), family = extract_tax_level(feature,
+"f"), genus = extract_tax_level(feature, "g"), species =
+extract_tax_level(feature, "s") )
 
 Filter for Orders of interest (L4_feat), and prep data for plotting
+
 ```{r}
 sig_L4_long <- ft_l4 %>% 
   rownames_to_column(var = "feature") %>% 
@@ -431,8 +428,11 @@ sig_L4_long <- ft_l4 %>%
   )
 ```
 
-#### Abundance 
-Relative abundance plots for significant Orders across developmental time and leachate treatments
+#### Abundance
+
+Relative abundance plots for significant Orders across developmental
+time and leachate treatments
+
 ```{r, fig.width = 10, fig.height = 4}
 ## Relative abundance (normalized read counts)
 ggplot(sig_L4_long, aes(x = factor(hpf), y = rel_abundance, color = leachate, fill = leachate)) +
@@ -449,7 +449,9 @@ ggplot(sig_L4_long, aes(x = factor(hpf), y = rel_abundance, color = leachate, fi
   ) +
   theme_sleek_axe()
 ```
+
 Save abundance plot
+
 ```{r}
 ggsave(
   filename = file.path(fig_path, "order_abundance.png"),
@@ -459,9 +461,10 @@ ggsave(
 )
 ```
 
-
 #### Prevalence
-Prevalence plots for significant Orders across developmental time and leachate treatments
+
+Prevalence plots for significant Orders across developmental time and
+leachate treatments
 
 ```{r}
 sig_L4_long <- sig_L4_long %>%
@@ -609,8 +612,7 @@ ggsave(
 
 **coef = −2.986**
 
--   Odds ratio:
-    $OR = e^{−2.986} ≈ 0.05$
+-   Odds ratio: $OR = e^{−2.986} ≈ 0.05$
 
 -   The odds of detecting Nitrosococcales decrease \~95% per unit
     increase in leachate.
@@ -623,9 +625,9 @@ So what’s going on?
 
 -   Rare in many samples?
 
--    When present → bloom strongly under leachate
+-   When present → bloom strongly under leachate
 
--    Leachate may be creating niches that strongly favor ammonia
+-   Leachate may be creating niches that strongly favor ammonia
     oxidizers
 
 -   But only in certain microenvironments (oxygen, nitrogen flux,
@@ -717,6 +719,7 @@ sig_L5_long <- ft_l5 %>%
 ```
 
 #### Abundance
+
 ```{r, fig.width = 10, fig.height = 8}
 ## Relative abundance (normalized read counts)
 ggplot(sig_L5_long, aes(x = factor(hpf), y = rel_abundance, color = leachate, fill = leachate)) +
@@ -733,6 +736,7 @@ ggplot(sig_L5_long, aes(x = factor(hpf), y = rel_abundance, color = leachate, fi
   ) +
   theme_sleek_axe()
 ```
+
 ```{r}
 ggsave(
   filename = file.path(fig_path, "family_abundance.png"),
@@ -743,6 +747,7 @@ ggsave(
 ```
 
 #### Prevalence
+
 ```{r, fig.width = 7, fig.height = 6}
 ggplot(sig_L5_long,
        aes(x = leachate,
@@ -795,6 +800,7 @@ ggsave(
   dpi = 900
 )
 ```
+
 ::: callout-note
 4 Families
 
@@ -854,6 +860,7 @@ L6_feat <- unique(sig_pvc_L6$feature)
 ```
 
 ##### Filter for Genus of interest (L6_feat), and prep data for plotting
+
 ```{r}
 sig_L6_long <- ft_l6 %>% 
   rownames_to_column(var = "feature") %>% 
@@ -874,8 +881,12 @@ sig_L6_long <- ft_l6 %>%
 ```
 
 ### Plots
-#### Abundance 
-Relative abundance plots for significant Orders across developmental time and leachate treatments
+
+#### Abundance
+
+Relative abundance plots for significant Orders across developmental
+time and leachate treatments
+
 ```{r, fig.width = 10, fig.height = 8}
 ## Relative abundance (normalized read counts)
 ggplot(sig_L6_long, aes(x = factor(hpf), y = rel_abundance, color = leachate, fill = leachate)) +
@@ -902,10 +913,10 @@ ggsave(
 )
 ```
 
-
 #### Prevalence
-Prevalence plots for significant Orders across developmental time and leachate treatments
 
+Prevalence plots for significant Orders across developmental time and
+leachate treatments
 
 ```{r, fig.width = 5, fig.height = 9}
 ggplot(sig_L6_long,
@@ -974,7 +985,6 @@ fit_Level7_Model1v1 <- maaslin3(
 )
 ```
 
-
 ##### Read in the significant results
 
 ```{r}
@@ -997,6 +1007,7 @@ L7_feat <- unique(sig_pvc_L7$feature)
 ```
 
 ##### Filter for Species of interest (L7_feat), and prep data for plotting
+
 ```{r}
 sig_L7_long <- ft_l7 %>% 
   rownames_to_column(var = "feature") %>% 
@@ -1019,8 +1030,12 @@ sig_L7_long <- ft_l7 %>%
 ```
 
 ### Plots
-#### Abundance 
-Relative abundance plots for significant Orders across developmental time and leachate treatments
+
+#### Abundance
+
+Relative abundance plots for significant Orders across developmental
+time and leachate treatments
+
 ```{r, fig.width = 10, fig.height = 8}
 ## Relative abundance (normalized read counts)
 ggplot(sig_L7_long, aes(x = factor(hpf), y = rel_abundance, color = leachate, fill = leachate)) +
@@ -1043,6 +1058,7 @@ labs(
   
 theme_sleek_axe()
 ```
+
 ```{r}
 ggsave(
   filename = file.path(fig_path, "species_abundance.png"),
@@ -1053,8 +1069,9 @@ ggsave(
 ```
 
 #### Prevalence
-Prevalence plots for significant Orders across developmental time and leachate treatments
 
+Prevalence plots for significant Orders across developmental time and
+leachate treatments
 
 ```{r, fig.width = 10, fig.height = 20}
 ggplot(sig_L7_long,
@@ -1117,12 +1134,20 @@ ggsave(
 )
 ```
 
+# Summary
 
-# Summary 
-MaAsLin 3 identified 3 Orders, 4 Families, 9 Genera, and 16 Species that show significant associations (either linear or logistic) with PVC leachate exposure across dose and time.
+MaAsLin 3 identified 3 Orders, 4 Families, 9 Genera, and 16 Species that
+show significant associations (either linear or logistic) with PVC
+leachate exposure across dose and time.
 
+What if we look only for the main effect of leachate and the interaction
+between leachate and time, but exclude the coefficient for hpf itself?
+That would let us focus on features that show significant differences
+due either to leachate or the interaction between leachate and time,
+without requiring a significant linear trend with time itself. That
+might capture features that respond to leachate in a non-linear way
+across development.
 
-What if we look only for the main effect of leachate and the interaction between leachate and time, but exclude the coefficient for hpf itself? That would let us focus on features that show significant differences due either to leachate or the interaction between leachate and time, without requiring a significant linear trend with time itself. That might capture features that respond to leachate in a non-linear way across development.
 ```{r eval=FALSE, warning=FALSE, message=FALSE}
 set.seed(03132026)
 fit_Level7 <- maaslin3(
@@ -1167,12 +1192,14 @@ sig_pvc_L7 %>%
   summarise(n = n_distinct(feature))
 ```
 
-> In abundance models, a one-unit change in the metadatum variable corresponds to a 2coef
- fold change in the relative abundance of the feature.
- 
-> In prevalence models, a one-unit change in the metadatum variable corresponds to a coef
- change in the log-odds of a feature being present.
- 
+> In abundance models, a one-unit change in the metadatum variable
+> corresponds to a 2coef fold change in the relative abundance of the
+> feature.
+
+> In prevalence models, a one-unit change in the metadatum variable
+> corresponds to a coef change in the log-odds of a feature being
+> present.
+
 ```{r}
 sig_L7_long <- fd_L7 %>% 
   as_tibble() %>% 
@@ -1213,7 +1240,7 @@ ggplot(., aes(x = factor(hpf), y = norm_abundance, color = leachate, fill = leac
     ) +
   theme_sleek_axe()
 ```
+
 ```{r}
 
 ```
-

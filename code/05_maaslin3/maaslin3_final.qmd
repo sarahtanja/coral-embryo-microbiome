@@ -1,0 +1,534 @@
+---
+title: "Differential abundance of bacterial taxa at various taxonomic levels"
+subtitle: "Using Maaslin3"
+author: "Sarah Tanja"
+date: 2026-03-02
+date-modified: today
+format:
+  gfm: 
+    toc: true
+    number-sections: true
+  html:
+    theme: journal
+    highlight-style: github
+    page-layout: article
+    code-background: true
+    code-tools: 
+      source: true
+      toggle: true
+    toc: true
+    toc-depth: 2
+    toc-location: left
+    number-sections: true
+    df-print: kable
+    smooth-scroll: true
+    link-external-icon: true
+    link-external-newwindow: true
+    reference-location: margin
+    citation-location: margin
+bibliography: "../microbiome_bibtex.bib"
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE, # Display code chunks
+  eval = TRUE, # Evaluate code chunks
+  warning = FALSE, # Hide warnings
+  message = FALSE, # Hide messages
+  comment = "" # Prevents appending '##' to beginning of lines in code output
+)        
+```
+
+# Background
+
+H~o~ : "PVC Leachate does not alter microbiome trajectory over
+developmental time"
+
+H~a~ : "PVC Leachate alters microbiome trajectory over developmental
+time"
+
+Microbiome Multivariable Associations with Linear Models (MaAsLin)
+
+[MaAslin3](https://huttenhower.sph.harvard.edu/MaAsLin3) improves on
+MaAslin2 by accounting for compositionality and accommodates
+cross-sectional studies (that's ours!)
+
+First read and get familiar with the: [MaAslin3 package
+README](https://github.com/biobakery/maaslin3) & the [MaAslin3
+tutorial](https://github.com/biobakery/biobakery/wiki/maaslin3) from the
+Stanford University Huttenhower Lab.
+
+Here we aim to test changes in relative abundance (how many) and
+prevalence (presence/absence) of specific taxa due to leachate, and the
+interaction of leachate exposure over time, while controlling for spawn
+night and read depth.
+
+Our PERMANOVA detected that spawn night was a significant batch effect
+and introduced nuisance variation into our data. To account for this
+`(1 | spawn_night)` adds a random intercept for each unique spawn night
+--- that is, each spawn night gets its own baseline shift in abundance,
+but the effects of `hpf` and `leachate` is assumed to be the same across
+nights.
+
+[MaAsLin3 Wiki](https://github.com/biobakery/biobakery/wiki/maaslin3)
+Any significant abundance associations with a categorical variable
+should usually have at least 10 observations in each category.
+Significant prevalence associations with categorical variables should
+also have at least 10 samples in which the feature was present and at
+least 10 samples in which it was absent for each significant category.
+Significant abundance associations with continuous metadata should be
+checked visually for influential outliers.
+
+::: callout-important
+There are also a few rules of thumb to keep in mind:
+
+-   Models should ideally have about **10 times as many samples** (all
+    samples for logistic fits, non-zero samples for linear fits) **as
+    covariate terms** (**all continuous variables plus all categorical
+    variable levels**).
+
+```         
+We have 63 samples... so the maximum number of terms we should use is 6 
+```
+
+-   Significant associations for MaAsLin 3 are results with no model
+    fitting errors, and joint q-value less than 0.1
+
+-   Significant abundance associations with continuous metadata should
+    be checked visually for influential outliers.
+:::
+
+# Install MaAsLin3
+
+```{r, eval=false}
+#library("devtools")
+#install_github("biobakery/maaslin3")
+```
+
+# Load Libraries
+
+```{r}
+library(maaslin3)
+library(qiime2R)
+library(tidyverse)
+```
+
+> MaAsLin3 requires two input files, one for taxonomic or functional
+> feature abundances, and one for sample metadata.
+
+1.  Data (or features) file
+
+-   This file is tab-delimited.
+-   Formatted with features as columns and samples as rows.
+-   The transpose of this format is also okay.
+-   Possible features in this file include **microbes**, genes,
+    pathways, etc.
+
+2.  Metadata file
+
+-   Formatted with metadata as columns and samples as rownames
+-   Is a data.frame object
+-   Includes per sample read counts
+
+# Setup
+
+## Set custom ggplot theme
+
+```{r}
+library(ggsidekick) # theme by sean anderson
+theme_sleek_axe <- function() {
+  theme_sleek() +
+    theme(
+      panel.border = element_rect(
+        color = "grey70",
+        fill = NA,
+        linewidth = 0.5
+      ),
+      axis.line.x  = element_line(color = "grey70"),
+      axis.line.y  = element_line(color = "grey70"),
+      
+      plot.title = element_text(
+        size  = 10,
+        color = "grey40",
+        hjust = 0.5,
+        margin = margin(b = 20)
+      ),
+      
+      strip.text = element_text(size = 8, color = "grey40"),
+  
+      
+      plot.subtitle = element_text(
+        size   = 8,
+        color  = "grey40",
+        hjust  = 0.5,
+        margin = margin(b = 40)
+      ),
+      
+      axis.title = element_text(size = 8, color = "grey40"),
+      axis.text = element_text(size = 7, color = "grey40"),
+      legend.title = element_text(size = 8, color = "grey40"),
+      legend.text = element_text(size = 7, color = "grey40")
+    )
+}
+
+```
+
+## Set colorschemes
+
+```{r}
+leachate.colors <- c(control = "#AEF1FF", 
+                     low     = "#BBC7FF",
+                     mid     = "#7D8BFF", 
+                     high    = "#592F7D")
+
+stage.5.colors <- c(egg           = "#FFE362",
+                    cleavage      = "#EBA600", 
+                    morula        = "#E6AA83",
+                    prawnchip     = "#D9685B", 
+                    earlygastrula = "#A2223C")
+
+stage.3.colors <- c(cleavage      = "#EBA600", 
+                    prawnchip     = "#D9685B", 
+                    earlygastrula = "#A2223C")
+
+status.colors <- c(typical   = "#75C165", 
+                   uncertain = "#E3FAA5", 
+                   malformed = "#8B0069")
+
+night.colors <- c(July_6th = "#E3FAA5", 
+                  July_7th = "#578B21", 
+                  July_8th = "#1E2440")
+
+night.colors.alt <- c(July_6th = "#21918C", 
+                      July_7th = "#201158", 
+                      July_8th = "#1E2440")
+```
+
+## Define file paths
+
+```{r}
+feature_table_path <- "../../salipante/241121_StonyCoral/270x200/"
+metadata_path <- "../../metadata/meta.csv"
+output_path <- "../../output/maaslin/"
+fig_path <- "../../output/figs"
+```
+
+## Load metadata
+
+```{r}
+# Load metadata
+metadata <- read_csv(metadata_path)
+
+# set factors
+metadata <- metadata %>% 
+  mutate(
+    collection_date = as.Date(collection_date, format = "%d-%b-%Y"),
+    stage    = factor(stage,    levels = c("cleavage", "prawnchip", "earlygastrula"), ordered = TRUE),
+    leachate = factor(leachate, levels = c("control", "low", "mid", "high"),        ordered = TRUE),
+    spawn_night = factor(
+      collection_date,
+      levels  = as.Date(c("06-Jul-2024", "07-Jul-2024", "08-Jul-2024"), format = "%d-%b-%Y"),
+      labels  = c("July 6th", "July 7th", "July 8th"),
+      ordered = TRUE
+    )
+  )
+```
+
+## Put read depth per sample into the metadata
+
+> Because MaAsLin 3 identifies prevalence (presence/absence)
+> associations, sample read depth (number of reads) should be included
+> as a covariate if available. Deeper sequencing will likely increase
+> feature detection in a way that could spuriously correlate with
+> metadata of interest when read depth is not included in the model.
+
+```{r}
+readepth <- read_csv("../../salipante/Sarah_StonyCoral/241121_StonyCoral_readcounts.csv")
+```
+
+```{r}
+metadata <- metadata %>% 
+  left_join(readepth, by = c("sample_id" = "sample"))
+```
+
+```{r}
+# make samples rownames
+meta <- metadata %>% 
+  column_to_rownames(var = "sample_id") %>% 
+  as.data.frame()
+
+# View metadata structure
+str(meta)
+```
+
+# Load Data
+
+## Feature tables L4-7
+
+```{r}
+# L4 Order
+## Load feature table from QIIME2 artifact
+ft_l4 <- read_qza(file.path(feature_table_path, "collapsed-l4.qza"))$data
+
+## Convert to data.frame
+ft_l4 <- ft_l4 %>% 
+  as.data.frame()
+
+# L5 Family
+## Load feature table from QIIME2 artifact
+ft_l5 <- read_qza(file.path(feature_table_path, "collapsed-l5.qza"))$data
+
+## Convert to data.frame
+ft_l5 <- ft_l5 %>% 
+  as.data.frame()
+
+# L6 Genus
+## Load feature table from QIIME2 artifact
+ft_l6 <- read_qza(file.path(feature_table_path, "collapsed-l6.qza"))$data
+
+## Convert to data.frame
+ft_l6 <- ft_l6 %>% 
+  as.data.frame()
+
+# L7 Species
+## Load feature table from QIIME2 artifact
+ft_l7 <- read_qza(file.path(feature_table_path, "collapsed-l7.qza"))$data
+
+## Convert to data.frame
+ft_l7 <- ft_l7 %>% 
+  as.data.frame()
+```
+
+# Run MaAslin3
+
+> What if we look only for the main effect of leachate and the interaction
+between leachate and time, but exclude the coefficient for hpf itself?
+That would let us focus on features that show significant differences
+due either to leachate or the interaction between leachate and time,
+without requiring a significant linear trend with time itself. That
+might best capture features that respond to leachate in a non-linear way
+across development, while filtering out the features that are only responding to time.
+
+**Model formula:**
+`Abundance|Prevelance ~ leachate + leachate:hpf + reads + (1|spawn_night)`
+
+**This model tests:**
+
+-   Main effect of `leachate` (categorical; control, low, mid, high):
+    Differences in the response between the levels of the `leachate`
+    treatment, averaged over all `hpf`values. We choose to represent leachate     categorically instead of a continuous variable here because we do not assume that response to increasing leachate levels is linear, and we want to capture any non-linear patterns of response across the different leachate treatments.
+
+-   Interaction between `leachate` and `hpf`: Whether the slope of the
+    response across hpf differs depending on the leachate category. This
+    tests if `leachate` modifies how the response changes continuously
+    over time; e.g., some leachate levels may accelerate or slow the
+    effect of `hpf`.
+
+-   Effect of `reads` (continuous covariate): Controls for the influence
+    of read depth on the response, adjusting other effects accordingly.
+
+-   Random intercept for `spawn_night`: Accounts for variability and
+    non-independence among samples collected on the same spawn night by
+    allowing different baseline response levels for each spawn night.
+
+Interpretation-wise, if the interaction term is significant, it
+indicates that the "trajectory" or slope of response change with `hpf`
+differs by `leachate` group. If the interaction is not significant but
+`leachate` is, then `leachate` affects overall response level but not
+the shape of the response over time.
+
+Graphically, imagine separate regression lines (response vs. `hpf`) for
+each `leachate` group. The interaction tests whether these lines have
+different slopes. The main effects test differences in intercepts and
+general trend.
+
+This model lets you hone in on how `leachate` influences response
+patterns over continuous developmental time (`hpf`), adjusting for
+sequencing depth (`reads`) and including random intercepts for
+`spawn_night`.
+
+
+```{r eval=FALSE, warning=FALSE, message=FALSE}
+#set.seed(03132026)
+#fit_Level7 <- maaslin3(
+#  input_data = ft_l7,
+#  input_metadata = meta,
+#  output = file.path(output_path, "Interaction/L7_leachatehpf_cat.con"),
+#  formula = ~ leachate + leachate:hpf + reads + (1|spawn_night),
+#  verbosity = 'ERROR',
+#  cores = 3, 
+#  plot_associations = FALSE
+#)
+```
+
+```{r, message=FALSE, warning=FALSE}
+L7_sig <- read_tsv(file.path(output_path, "Interaction/L7_leachatehpf_cat.con/significant_results.tsv"))
+
+L7_normalized<- read_tsv(file.path(output_path, "Interaction/L7_leachatehpf_cat.con/features/data_norm.tsv"))
+
+L7_transformed <- read_tsv(file.path(output_path, "Interaction/L7_leachatehpf_cat.con/features/data_transformed.tsv"))
+
+L7_filtered <- read_tsv(file.path(output_path, "Interaction/L7_leachatehpf_cat.con/features/filtered_data.tsv"))
+```
+
+```{r}
+L7_sig <- L7_sig %>% 
+  mutate(
+    CI_lwr = coef - 1.98 * stderr,
+    CI_upr = coef + 1.98 * stderr
+  ) %>% 
+  filter(is.na(error)) %>% 
+  filter(metadata != "reads")
+
+L7_feat <- unique(L7_sig$feature)
+```
+
+There are 57 unique features
+
+```{r}
+L7_sig %>% 
+  group_by(model) %>%
+  summarise(n = n_distinct(feature))
+```
+
+```{r}
+# Extract only unique features to a character vector for prevalence and abundance models 
+feat_prev <- L7_sig %>% 
+  filter(model == "prevalence") %>% 
+  distinct(feature) %>% 
+  pull(feature)
+
+feat_abun <- L7_sig %>% 
+  filter(model == "abundance") %>% 
+  distinct(feature) %>% 
+  pull(feature)
+
+# Which overlap?
+feat_overlap <- intersect(feat_prev, feat_abun)
+
+# How many unique features are in each model?
+# Only in prevalence model
+paste0("There are ", length(feat_prev), " total and ", length(setdiff(feat_prev, feat_abun)), " unique significant features in prevalence model")
+# Only in abundance model
+paste0("There are ", length(feat_abun), " total and ", length(setdiff(feat_abun, feat_prev)), " unique significant features in abundance model" )
+# In both models
+paste0("There are ", length(feat_overlap), " significant features in both")
+```
+::: callout-important
+ALL taxa that are significant in the prevalence model are also significant in the abundance model, but there are some taxa that are only significant in the abundance model and not the prevalence model. This suggests that some taxa show significant changes in relative abundance across leachate and time, but do not show significant changes in presence/absence. In other words, these taxa may be consistently present across samples but vary in how abundant they are, rather than being present in some samples and absent in others. Meanwhile, all taxa that show significant changes in presence/absence also show significant changes in relative abundance, which makes sense because if a taxon is present in some samples and absent in others, it is likely to also show differences in how abundant it is across those samples.
+:::
+
+
+> In abundance models, a one-unit change in the metadatum variable
+> corresponds to a 2coef fold change in the relative abundance of the
+> feature.
+
+> In prevalence models, a one-unit change in the metadatum variable
+> corresponds to a coef change in the log-odds of a feature being
+> present.
+
+# Pivot data longer for plotting
+
+##### Make function to extract taxa levels
+```{r}
+extract_tax_level <- function(x, rank) {
+  # rank like "d", "p", "c", "o", "f", "g", "s"
+  str_extract(x, paste0("(?<=", rank, "__)[^;]+"))
+}
+```
+
+example to use funtion like: df2 \<- df %\>% mutate( domain =
+extract_tax_level(feature, "d"), phylum = extract_tax_level(feature,
+"p"), class = extract_tax_level(feature, "c"), order =
+extract_tax_level(feature, "o"), family = extract_tax_level(feature,
+"f"), genus = extract_tax_level(feature, "g"), species =
+extract_tax_level(feature, "s") )
+
+```{r}
+L7_sig_long <- L7_normalized %>% 
+  as_tibble() %>% 
+  rename(sample_id = feature) %>% 
+  pivot_longer(
+    cols = 2:last_col(),
+    names_to = "feature",
+    values_to = "norm_abundance"
+  ) %>% 
+  filter(feature %in% L7_feat) %>%
+  replace_na(list(norm_abundance = 0)) %>%
+  left_join(metadata, by = "sample_id") %>% 
+  mutate(
+    order = extract_tax_level(feature, "o"),
+    family = extract_tax_level(feature, "f"), 
+    genus = extract_tax_level(feature, "g"),
+    species = extract_tax_level(feature, "s"), 
+    genus_species = paste0(genus, " ", species)
+  ) %>% 
+  mutate(presence = ifelse(norm_abundance > 0, 1, 0))
+
+L7_feat_all <- unique(L7_sig_long$genus_species)
+```
+
+# Abundance
+
+## Species level (L7)
+```{r, fig.width = 35, fig.height = 30}
+## Relative abundance (normalized read counts)
+L7_sig_long %>% 
+ggplot(., aes(x = factor(hpf), y = norm_abundance, color = leachate, fill = leachate)) +
+  geom_boxplot(width = 0.6, alpha = 0.6, outlier.shape = NA, position = position_dodge(width = 0.8)) +
+  geom_jitter(alpha = 0.8, position = position_dodge(width = 0.8)) +
+  facet_wrap(~genus_species, scales = "free_y") +
+  scale_fill_manual(values = leachate.colors) +
+  scale_color_manual(values = leachate.colors) +
+  labs(
+      title = "Relative Abundance of leachate responsive bacterial Species in 14 hours of embryonic development",
+      x = "Hours Post Fertilization",
+      y = "Relative Abundance (normalized read counts)"
+    ) +
+  theme_sleek_axe()
+```
+
+## Family (L5)
+```{r, fig.width = 12, fig.height = 12}
+## Relative abundance (normalized read counts)
+L7_sig_long %>% 
+ggplot(., aes(x = factor(hpf), y = norm_abundance, color = leachate, fill = leachate)) +
+  geom_boxplot(width = 0.6, alpha = 0.6, outlier.shape = NA, position = position_dodge(width = 0.8)) +
+  geom_jitter(alpha = 0.8, position = position_dodge(width = 0.8)) +
+  facet_wrap(~family, scales = "free_y") +
+  scale_fill_manual(values = leachate.colors) +
+  scale_color_manual(values = leachate.colors) +
+  labs(
+      title = "Relative Abundance of leachate responsive bacterial Species in 14 hours of embryonic development",
+      x = "Hours Post Fertilization",
+      y = "Relative Abundance (normalized read counts)"
+    ) +
+  theme_sleek_axe()
+```
+
+
+## Order (L4)
+```{r, fig.width = 12, fig.height = 12}
+## Relative abundance (normalized read counts)
+L7_sig_long %>% 
+ggplot(., aes(x = factor(hpf), y = norm_abundance, color = leachate, fill = leachate)) +
+  geom_boxplot(width = 0.6, alpha = 0.6, outlier.shape = NA, position = position_dodge(width = 0.8)) +
+  geom_jitter(alpha = 0.8, position = position_dodge(width = 0.8)) +
+  facet_wrap(~order, scales = "free_y") +
+  scale_fill_manual(values = leachate.colors) +
+  scale_color_manual(values = leachate.colors) +
+  labs(
+      title = "Relative Abundance of leachate responsive bacterial Species in 14 hours of embryonic development",
+      x = "Hours Post Fertilization",
+      y = "Relative Abundance (normalized read counts)"
+    ) +
+  theme_sleek_axe()
+```
+
+# Prevalence
+```{r}
+
+```
