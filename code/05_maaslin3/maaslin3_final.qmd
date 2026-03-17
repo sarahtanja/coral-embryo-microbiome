@@ -2,7 +2,7 @@
 title: "Differential abundance of bacterial taxa at various taxonomic levels"
 subtitle: "Using Maaslin3"
 author: "Sarah Tanja"
-date: 2026-03-02
+date: 2026-03-16
 date-modified: today
 format:
   gfm: 
@@ -26,7 +26,6 @@ format:
     link-external-newwindow: true
     reference-location: margin
     citation-location: margin
-bibliography: "../microbiome_bibtex.bib"
 editor: 
   markdown: 
     wrap: 72
@@ -58,8 +57,9 @@ cross-sectional studies (that's ours!)
 
 First read and get familiar with the: [MaAslin3 package
 README](https://github.com/biobakery/maaslin3) & the [MaAslin3
-tutorial](https://github.com/biobakery/biobakery/wiki/maaslin3) from the
-Stanford University Huttenhower Lab.
+tutorial](https://github.com/biobakery/biobakery/wiki/maaslin3) from the Stanford University Huttenhower Lab.
+
+> William A. Nickols, Thomas Kuntz, Jiaxian Shen, Sagun Maharjan, Himel Mallick, Eric A. Franzosa, Kelsey N. Thompson, Jacob T. Nearing, Curtis Huttenhower. MaAsLin 3: Refining and extending generalized multivariable linear models for meta-omic association discovery. bioRxiv 2024.12.13.628459; doi: https://doi.org/10.1101/2024.12.13.628459
 
 Here we aim to test changes in relative abundance (how many) and
 prevalence (presence/absence) of specific taxa due to leachate, and the
@@ -103,7 +103,7 @@ We have 63 samples... so the maximum number of terms we should use is 6
 
 # Install MaAsLin3
 
-```{r, eval=false}
+```{r, eval=FALSE}
 #library("devtools")
 #install_github("biobakery/maaslin3")
 ```
@@ -304,35 +304,24 @@ ft_l7 <- ft_l7 %>%
 
 # Run MaAslin3
 
-> What if we look only for the main effect of leachate and the interaction
-between leachate and time, but exclude the coefficient for hpf itself?
-That would let us focus on features that show significant differences
-due either to leachate or the interaction between leachate and time,
-without requiring a significant linear trend with time itself. That
-might best capture features that respond to leachate in a non-linear way
-across development, while filtering out the features that are only responding to time.
+- many taxa vary with time alone
+- some taxa vary with leachate
+- some taxa vary with leachate differently across time
 
 **Model formula:**
-`Abundance|Prevelance ~ leachate + leachate:hpf + reads + (1|spawn_night)`
+`Abundance|Prevelance ~ leachate * hpf + reads + (1|spawn_night)`
 
 **This model tests:**
 
--   Main effect of `leachate` (categorical; control, low, mid, high):
-    Differences in the response between the levels of the `leachate`
-    treatment, averaged over all `hpf`values. We choose to represent leachate     categorically instead of a continuous variable here because we do not assume that response to increasing leachate levels is linear, and we want to capture any non-linear patterns of response across the different leachate treatments.
+-   Main effect of `leachate` (ordered categorical predictor; control, low, mid, high): Differences in the response between the levels of the `leachate` treatment, averaged over all `hpf`values. We choose to represent leachate categorically instead of a continuous variable here because we do not assume that response to increasing leachate levels is linear, and we want to capture any non-linear patterns of response across the different leachate treatments.
 
--   Interaction between `leachate` and `hpf`: Whether the slope of the
-    response across hpf differs depending on the leachate category. This
-    tests if `leachate` modifies how the response changes continuously
-    over time; e.g., some leachate levels may accelerate or slow the
-    effect of `hpf`.
+- Main effect of `hpf` (continuous): Overall change in the response across developmental time, averaged over all leachate levels. This tests if there is a general trend of response change with time regardless of leachate treatment.    
 
--   Effect of `reads` (continuous covariate): Controls for the influence
-    of read depth on the response, adjusting other effects accordingly.
+-   Interaction between `leachate` and `hpf`: Whether the slope of the response across hpf differs depending on the leachate category. This tests if `leachate` modifies how the response changes continuously over time; e.g., some leachate levels may accelerate or slow the effect of `hpf`.
 
--   Random intercept for `spawn_night`: Accounts for variability and
-    non-independence among samples collected on the same spawn night by
-    allowing different baseline response levels for each spawn night.
+-   Effect of `reads` (continuous covariate): Controls for the influence of read depth on the response, adjusting other effects accordingly.
+
+-   Random intercept for `spawn_night`: Accounts for variability and non-independence among samples collected on the same spawn night by allowing different baseline response levels for each spawn night.
 
 Interpretation-wise, if the interaction term is significant, it
 indicates that the "trajectory" or slope of response change with `hpf`
@@ -350,18 +339,22 @@ patterns over continuous developmental time (`hpf`), adjusting for
 sequencing depth (`reads`) and including random intercepts for
 `spawn_night`.
 
+- ordered_effects: A factored categorical variable to be included. Consecutive levels will be tested for significance against each other with contrast tests, and the resulting associations will correspond to effect sizes, standard errors, and significances of each level versus the previous.
+Contrast tests are performed with multcomp::glht (fixed effects and logistic mixed effects) and lmerTest::contest (linear mixed effects).
 
+## Ordered
 ```{r eval=FALSE, warning=FALSE, message=FALSE}
-#set.seed(03132026)
-#fit_Level7 <- maaslin3(
-#  input_data = ft_l7,
-#  input_metadata = meta,
-#  output = file.path(output_path, "Interaction/L7_leachatehpf_cat.con"),
-#  formula = ~ leachate + leachate:hpf + reads + (1|spawn_night),
-#  verbosity = 'ERROR',
-#  cores = 3, 
-#  plot_associations = FALSE
-#)
+set.seed(03172026)
+maaslin_fit <- maaslin3(
+  input_data = ft_l7,
+  input_metadata = meta,
+  output = file.path(output_path, "ordered"),
+  formula = ~ leachate*hpf + reads + (1|spawn_night),
+  verbosity = 'ERROR',
+  cores = 3, 
+  plot_associations = FALSE, 
+  save_models = TRUE
+)
 ```
 
 ```{r, message=FALSE, warning=FALSE}
@@ -466,7 +459,10 @@ L7_sig_long <- L7_normalized %>%
     species = extract_tax_level(feature, "s"), 
     genus_species = paste0(genus, " ", species)
   ) %>% 
-  mutate(presence = ifelse(norm_abundance > 0, 1, 0))
+  mutate(presence = ifelse(norm_abundance > 0, 1, 0),
+    prevalence = if_else(feature %in% feat_prev, "yes", "no"),
+    abundance  = if_else(feature %in% feat_abun, "yes", "no")
+  )
 
 L7_feat_all <- unique(L7_sig_long$genus_species)
 ```
@@ -490,8 +486,73 @@ ggplot(., aes(x = factor(hpf), y = norm_abundance, color = leachate, fill = leac
     ) +
   theme_sleek_axe()
 ```
+```{r}
+L7_sig_long %>%
+  group_split(genus_species) %>%
+  walk(function(df) {
+
+    p <- ggplot(df, aes(x = factor(hpf), y = norm_abundance,
+                        color = leachate, fill = leachate)) +
+      geom_boxplot(width = 0.6, alpha = 0.6, outlier.shape = NA,
+                   position = position_dodge(width = 0.8)) +
+      geom_jitter(alpha = 0.8,
+                  position = position_dodge(width = 0.8)) +
+      scale_fill_manual(values = leachate.colors) +
+      scale_color_manual(values = leachate.colors) +
+      labs(
+        title = paste("Relative abundance of", unique(df$genus_species)),
+        x = "Hours Post Fertilization",
+        y = "Relative Abundance (normalized read counts)"
+      ) +
+      theme_sleek_axe()
+
+    ggsave(
+      filename = file.path(fig_path, paste0("species_abundance_boxplots/L7_", unique(df$genus_species), ".png")),
+      plot = p,
+      width = 6,
+      height = 4,
+      dpi = 900
+    )
+    
+    print(p)
+
+  })
+```
 
 ## Family (L5)
+```{r}
+L7_sig_long %>%
+  group_split(family) %>%
+  walk(function(df) {
+
+    p <- ggplot(df, aes(x = factor(hpf), y = norm_abundance,
+                        color = leachate, fill = leachate)) +
+      geom_boxplot(width = 0.6, alpha = 0.6, outlier.shape = NA,
+                   position = position_dodge(width = 0.8)) +
+      geom_jitter(alpha = 0.8,
+                  position = position_dodge(width = 0.8)) +
+      scale_fill_manual(values = leachate.colors) +
+      scale_color_manual(values = leachate.colors) +
+      labs(
+        title = paste("Relative abundance of", unique(df$family)),
+        x = "Hours Post Fertilization",
+        y = "Relative Abundance (normalized read counts)"
+      ) +
+      theme_sleek_axe()
+
+    ggsave(
+      filename = file.path(fig_path, paste0("family_abundance_boxplots/L7_", unique(df$family), ".png")),
+      plot = p,
+      width = 6,
+      height = 4,
+      dpi = 900
+    )
+    
+    print(p)
+
+  })
+```
+
 ```{r, fig.width = 12, fig.height = 12}
 ## Relative abundance (normalized read counts)
 L7_sig_long %>% 
@@ -508,9 +569,48 @@ ggplot(., aes(x = factor(hpf), y = norm_abundance, color = leachate, fill = leac
     ) +
   theme_sleek_axe()
 ```
-
+```{r}
+ggsave(
+  filename = file.path(fig_path, "family_abundance.png"),
+  width = 12,
+  height = 12,
+  dpi = 900
+)
+```
 
 ## Order (L4)
+```{r}
+L7_sig_long %>%
+  group_split(order) %>%
+  walk(function(df) {
+
+    p <- ggplot(df, aes(x = factor(hpf), y = norm_abundance,
+                        color = leachate, fill = leachate)) +
+      geom_boxplot(width = 0.6, alpha = 0.6, outlier.shape = NA,
+                   position = position_dodge(width = 0.8)) +
+      geom_jitter(alpha = 0.8,
+                  position = position_dodge(width = 0.8)) +
+      scale_fill_manual(values = leachate.colors) +
+      scale_color_manual(values = leachate.colors) +
+      labs(
+        title = paste("Relative abundance of", unique(df$order)),
+        y = "Relative Abundance (normalized read counts)",
+      ) +
+      theme_sleek_axe()
+
+    ggsave(
+      filename = file.path(fig_path, paste0("order_abundance_boxplots/L7_", unique(df$order), ".png")),
+      plot = p,
+      width = 6,
+      height = 4,
+      dpi = 900
+    )
+    
+    print(p)
+
+  })
+```
+
 ```{r, fig.width = 12, fig.height = 12}
 ## Relative abundance (normalized read counts)
 L7_sig_long %>% 
@@ -527,8 +627,288 @@ ggplot(., aes(x = factor(hpf), y = norm_abundance, color = leachate, fill = leac
     ) +
   theme_sleek_axe()
 ```
+```{r}
+ggsave(
+  filename = file.path(fig_path, "order_abundance.png"),
+  width = 12,
+  height = 12,
+  dpi = 900
+)
+```
 
 # Prevalence
+
+## Species (L7)
+```{r, fig.width = 14, fig.height = 30}
+L7_sig_long %>% filter(feature %in% feat_prev) %>%
+ggplot(.,
+       aes(x = leachate,
+           y = as.numeric(presence),
+           color = leachate,
+           fill = leachate)) +
+    
+  geom_smooth(
+    aes(group = 1),
+    method = "glm",
+    method.args = list(family = "binomial"),
+    se = FALSE,
+    color = "grey40",
+    fill = "grey70",
+    linewidth = 0.8
+  ) +
+  geom_rug(
+    aes(x = leachate_mgL),
+    sides = "bt",
+    color = "grey70",
+    alpha = 0.5
+  ) +
+  geom_dotplot(
+    binaxis = "y",
+    stackdir = "centerwhole",
+    alpha = 0.5,
+    shape = 1,
+    dotsize = 1.5
+  ) +
+    # mean points
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    shape = 18,
+    size = 4
+  ) +
+
+  facet_grid(genus_species~hpf) +
+  coord_fixed(ratio = 2.8) +
+  scale_fill_manual(values = leachate.colors) +
+  scale_color_manual(values = leachate.colors) +
+  labs(
+    title = "Prevalence of leachate responsive bacteria Species across leachate levels and developmental stages",
+    x = "Leachate Level",
+    y = "Prevalence (proportion of samples with bacteria Species present)"
+  ) +
+  theme_sleek_axe()+ 
+  theme(
+  strip.text.y = element_text(size = 8, color = "grey40", angle = 0, hjust = 0)
+)
+```
+
 ```{r}
+ggsave(
+  filename = file.path(fig_path, "species_prevalence.png"),
+  width = 12,
+  height = 12,
+  dpi = 900
+)
+```
+
+## Family (L5)
+```{r, fig.width = 14, fig.height = 30}
+L7_sig_long %>% filter(feature %in% feat_prev) %>%
+ggplot(.,
+       aes(x = leachate,
+           y = as.numeric(presence),
+           color = leachate,
+           fill = leachate)) +
+    
+  geom_smooth(
+    aes(group = 1),
+    method = "glm",
+    method.args = list(family = "binomial"),
+    se = FALSE,
+    color = "grey40",
+    fill = "grey70",
+    linewidth = 0.8
+  ) +
+  geom_rug(
+    aes(x = leachate_mgL),
+    sides = "bt",
+    color = "grey70",
+    alpha = 0.5
+  ) +
+  geom_dotplot(
+    binaxis = "y",
+    stackdir = "centerwhole",
+    alpha = 0.5,
+    shape = 1,
+    dotsize = 1.5
+  ) +
+    # mean points
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    shape = 18,
+    size = 4
+  ) +
+
+  facet_grid(family~hpf) +
+  coord_fixed(ratio = 2.8) +
+  scale_fill_manual(values = leachate.colors) +
+  scale_color_manual(values = leachate.colors) +
+  labs(
+    title = "Prevalence of leachate responsive bacteria Family across leachate levels and developmental stages",
+    x = "Leachate Level",
+    y = "Prevalence (proportion of samples with bacteria Species present)"
+  ) +
+  theme_sleek_axe()+ 
+  theme(
+  strip.text.y = element_text(size = 8, color = "grey40", angle = 0, hjust = 0)
+)
+```
+
+
+```{r}
+ggsave(
+  filename = file.path(fig_path, "family_prevalence.png"),
+  width = 14,
+  height = 30,
+  dpi = 900)
 
 ```
+
+## Order (L4)
+```{r, fig.width = 12, fig.height = 18}
+L7_sig_long %>% filter(feature %in% feat_prev) %>%
+ggplot(.,
+       aes(x = leachate,
+           y = as.numeric(presence),
+           color = leachate,
+           fill = leachate)) +
+    
+  geom_smooth(
+    aes(group = 1),
+    method = "glm",
+    method.args = list(family = "binomial"),
+    se = FALSE,
+    color = "grey40",
+    fill = "grey70",
+    linewidth = 0.8
+  ) +
+  geom_rug(
+    aes(x = leachate_mgL),
+    sides = "bt",
+    color = "grey70",
+    alpha = 0.5
+  ) +
+  geom_dotplot(
+    binaxis = "y",
+    stackdir = "centerwhole",
+    alpha = 0.5,
+    shape = 1,
+    dotsize = 1.5
+  ) +
+    # mean points
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    shape = 18,
+    size = 4
+  ) +
+
+  facet_grid(order~hpf) +
+  coord_fixed(ratio = 2.8) +
+  scale_fill_manual(values = leachate.colors) +
+  scale_color_manual(values = leachate.colors) +
+  labs(
+    title = "Prevalence of leachate responsive bacteria Order across leachate levels and developmental stages",
+    x = "Leachate Level",
+    y = "Prevalence (proportion of samples with bacteria Species present)"
+  ) +
+  theme_sleek_axe()+ 
+  theme(
+  strip.text.y = element_text(size = 8, color = "grey40", angle = 0, hjust = 0)
+)
+```
+
+```{r}
+ggsave(
+  filename = file.path(fig_path, "order_prevalence.png"),
+  width = 12,
+  height = 18,
+  dpi = 900
+)
+```
+
+# Plot fitted models
+
+- pull one fitted model for one taxon
+- make a prediction grid from your metadata
+- predict fitted probabilities
+- plot observed presence + fitted curve/lines
+- loop over taxa and save plots
+
+```{r}
+names(maaslin_fit$fit_data_prevalence$fits)[1:10]
+```
+
+I only want to plot the statistically significant taxa (those which are differentially prevalent). This list is a character vector named `feat_prev`
+
+Subset list of model fits to `feat_prev`
+```{r}
+prev_fit_list <- maaslin_fit$fit_data_prevalence$fits
+
+prev_fit_list_sig <- fit_list[feat_prev]
+```
+
+
+# Plot fitted prevalence model 
+```{r}
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+
+plot_maaslin_prev_fit <- function(feature_name, fit_obj, data_long) {
+  
+  # subset observed data for this feature
+  df_feat <- data_long %>%
+    filter(feature == feature_name)
+  
+  # create prediction grid
+  newdata <- expand_grid(
+    leachate = levels(factor(df_feat$leachate, ordered = is.ordered(df_feat$leachate))),
+    hpf = unique(df_feat$hpf)
+  ) %>%
+    mutate(
+      reads = median(df_feat$reads, na.rm = TRUE),
+      spawn_night = df_feat$spawn_night[1]
+    )
+  
+  # predict on response scale
+  newdata <- newdata %>%
+    mutate(
+      pred = predict(fit_obj, newdata = newdata, type = "response", re.form = NA)
+    )
+  
+  # plot
+  ggplot(df_feat, aes(x = leachate, y = presence)) +
+    geom_jitter(width = 0.1, height = 0.05, alpha = 0.5) +
+    geom_line(
+      data = newdata,
+      aes(x = leachate, y = pred, group = hpf),
+      inherit.aes = FALSE
+    ) +
+    geom_point(
+      data = newdata,
+      aes(x = leachate, y = pred),
+      inherit.aes = FALSE,
+      size = 2
+    ) +
+    facet_wrap(~ hpf) +
+    labs(
+      title = feature_name,
+      x = "Leachate",
+      y = "Presence probability"
+    ) +
+    theme_minimal()
+}
+```
+
+# Summary 
+```{r}
+write_csv(L7_sig_long, file.path(output_path, "L7_significant_features_long.csv"))
+```
+
+
+```{r}
+sessionInfo()
+```
+

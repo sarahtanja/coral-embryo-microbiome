@@ -1,0 +1,107 @@
+---
+title: "Modeling prevalence of bacterial ASVs"
+subtitle: "Using GAMs"
+author: "Sarah Tanja"
+date: 2026-03-17
+date-modified: today
+format:
+  gfm: 
+    toc: true
+    number-sections: true
+  html:
+    theme: journal
+    highlight-style: github
+    page-layout: article
+    code-background: true
+    code-tools: 
+      source: true
+      toggle: true
+    toc: true
+    toc-depth: 2
+    toc-location: left
+    number-sections: true
+    df-print: kable
+    smooth-scroll: true
+    link-external-icon: true
+    link-external-newwindow: true
+    reference-location: margin
+    citation-location: margin
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+
+# Background
+
+> The repo you're looking for is: https://github.com/MMARINeDNA/zDistribution. You can find the scripts in the Scripts folder, and specifically you want to look at:
+02_Model_with_GAMs_Q1.R (model m1.2)
+02.1_Plot_H1_models.R (plots for model m1.2)
+02.2_m1.2_performance.R
+Note that these aren't microbiome specific models or plots. Since your data are binomial you can use the same model structure as this one to model your relationship and predict binomial probability outcomes. Or, if you'd simply like to add rug plots to your ggplot object, you can see code for that in the plotting script. -- Amy Van Cise
+
+# Question
+
+## Which taxa show leachate-associated changes beyond expected developmental change through time?
+
+## Does the probability of detecting an ASV vary with leachate pollution level and across exposure/developmental time?
+
+H~o~: Probability of detection does not vary across leachate or time
+H~a~1: Probability of detection varies across leachate and time by ASV feature
+
+# Load packages
+```{r}
+library(tidyverse)
+library(mgcv)
+```
+
+# Set paths
+```{r}
+input_path <- "../output/maaslin"
+```
+
+
+# Load data
+```{r}
+L7_sig_feat_long <- read_csv(file.path(input_path, "L7_significant_features_long.csv"))
+```
+
+# Wrangle data
+
+Here we select only the columns of interest, where:
+- sample_id is one of 63 samples
+- feature is the taxonomy string for the ASV feature
+- leachate is the categorical leachate variable (control, low, mid, high)
+- leachate_mgL is the continuous leachate variable in mg/L (0, 0.01, 0.1, 1)
+- hpf is the continuous hours post fertilization variable (4, 9, 14)
+- prevalence is the categorical variable whether or not the feature was significantly differentially prevalent according to maaslin3 analysis (yes, no)
+- presence is the binary variable whether or not the feature was present in the sample (1 = present, 0 = absent)
+```{r}
+L7_sig_prev <- L7_sig_feat_long %>% 
+  select(sample_id, feature, leachate, leachate_mgL, hpf, prevalence, presence) %>% 
+  filter(prevalence == "yes") %>% # only keep the features that are significantly differentially prevalent according to maaslin3 analysis
+  distinct() # only keep distinct rows
+```
+
+
+# Fit GAMs
+assumptions
+- many taxa vary with time alone
+- some taxa vary with leachate
+- some taxa vary with leachate differently across time
+
+- leachate_mgL and hpf are continuous variables that may have a non-linear relationship with the probability of detection of the ASV feature
+- different taxa respond differntly to leachate
+
+
+```{r}
+m1 <- gam(
+  presence ~ 
+    s(leachate_mgL, feature, hpf, bs = "fs", k = 4),
+  data = L7_sig_prev,
+  family = binomial(link = "logit"),
+  method = "REML"
+)
+```
+
+
