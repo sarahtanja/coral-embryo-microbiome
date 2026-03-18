@@ -1,6 +1,7 @@
 ---
 title: "Running PICRUSt2"
 author: "Sarah Tanja"
+date: 2026-03-16
 date-modified: today
 format:
   gfm: 
@@ -24,7 +25,6 @@ format:
     link-external-newwindow: true
     reference-location: margin
     citation-location: margin
-bibliography: "../microbiome_bibtex.bib"
 ---
 
 ```{r setup, include=FALSE}
@@ -33,15 +33,23 @@ knitr::opts_chunk$set(
   eval = FALSE, # Evaluate code chunks
   warning = FALSE, # Hide warnings
   message = FALSE, # Hide messages
-  comment = "", # Prevents appending '##' to beginning of lines in code output
-  dev = "jpeg",
-  dpi = 600,
-  fig.retina = 2)        
+  comment = "") # Prevents appending '##' to beginning of lines in code output)        
 ```
 
-# Goals
+# Background
 
-> Yes it is reasonable to look at picrust output and see if there are functional shifts, but it is not clear how adequate picrust libraries are to allow metabolic inference of these particular populations.  I would recommend that the actual analysis of metabolic shifts be conducted in Maaslin, as before, to account for covariates.
+[How does PICRUSt2 work? What does it do?](https://github.com/picrust/picrust2/wiki/How-does-PICRUSt2-work%3F-What-does-it-do%3F)
+
+> PICRUSt2 aims to predict the functional content of microbial communities based on amplicon/marker gene sequences. Very simply, PICRUSt2 takes information about which microbes are present in a sample and predicts what these microbes might be doing. PICRUSt2 compares the marker gene sequences from a sample to known genomes from similar microbes in order to predict the genes that are likely present and what functions they might perform.
+
+-   fasta formatted representative sequences (ASVs)
+
+-   feature table (tab-delimited) containing abundance of ASVs within samples
+
+::: callout-note
+Some advice from Dr. Steve Salipante
+
+>  Yes it is reasonable to look at picrust output and see if there are functional shifts, but it is not clear how adequate picrust libraries are to allow metabolic inference of these particular populations.  I would recommend that the actual analysis of metabolic shifts be conducted in Maaslin, as before, to account for covariates.
 >
 > it is possible to give sarah the input files she would need for the analysis. \[see [https://forum.qiime2.org/t/picrust2-input-files-for-bacteria/27968](https://urldefense.com/v3/__https://forum.qiime2.org/t/picrust2-input-files-for-bacteria/27968__;!!K-Hz7m0Vt54!iZIXAiB2i2QtliEgrFMztEKZHQZuAILNAY54WW_klnDOn0rCNia6tnE-GrFq0efQ8IeJkkAwEJWtIM0$)\]. For the record, you could isolate the ASV table from DADA2 in qiime (these are stored in rep-seqs-dada2.qza, according to [https://forum.qiime2.org/t/how-to-generate-an-asv-table-from-dada2-output/9973](https://urldefense.com/v3/__https://forum.qiime2.org/t/how-to-generate-an-asv-table-from-dada2-output/9973__;!!K-Hz7m0Vt54!iZIXAiB2i2QtliEgrFMztEKZHQZuAILNAY54WW_klnDOn0rCNia6tnE-GrFq0efQ8IeJkkAwpWyxhvY$)), and convert it to biom format \[[https://forum.qiime2.org/t/how-to-generate-an-asv-table-from-dada2-output/9973/2](https://urldefense.com/v3/__https://forum.qiime2.org/t/how-to-generate-an-asv-table-from-dada2-output/9973/2__;!!K-Hz7m0Vt54!iZIXAiB2i2QtliEgrFMztEKZHQZuAILNAY54WW_klnDOn0rCNia6tnE-GrFq0efQ8IeJkkAwc-L0gtk$)\]. 
 >
@@ -52,6 +60,7 @@ knitr::opts_chunk$set(
 > [https://github.com/picrust/picrust2/wiki/Manually-install-QIIME-2-plugin](https://urldefense.com/v3/__https://github.com/picrust/picrust2/wiki/Manually-install-QIIME-2-plugin__;!!K-Hz7m0Vt54!iZIXAiB2i2QtliEgrFMztEKZHQZuAILNAY54WW_klnDOn0rCNia6tnE-GrFq0efQ8IeJkkAwAif4ef0$)\
 > \
 > id say generate those outputs and then run them through maaslin to look for significant feature abundances. -- S.S.
+:::
 
 # Setup
 
@@ -65,50 +74,56 @@ library(reticulate)
 
 # Install miniconda
 
-Installation instruction for miniconda are [here](https://www.anaconda.com/docs/getting-started/miniconda/install#linux) - create a new directory named "miniconda3" in your home directory. 
-- download the Linux Miniconda installation script for your chosen chip architecture and save the script as miniconda.sh in the miniconda3 directory. 
-- run the miniconda.sh installation script in silent mode using bash. 
-- remove the miniconda.sh installation script file after installation is complete.
+Installation instruction for miniconda are [here](https://www.anaconda.com/docs/getting-started/miniconda/install#linux) - create a new directory named "miniconda3" in your home directory. - download the Linux Miniconda installation script for your chosen chip architecture and save the script as miniconda.sh in the miniconda3 directory. - run the miniconda.sh installation script in silent mode using bash. - remove the miniconda.sh installation script file after installation is complete.
 
 Run in terminal:
-```
+
+```         
 mkdir -p ~/miniconda3
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
 bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
 rm ~/miniconda3/miniconda.sh
 ```
+
 Verify the location of miniconda3
-```
+
+```         
 ls -ld ~/miniconda3
 ```
+
 Check the version
-```
+
+```         
 $HOME/miniconda3/bin/conda --version
 ```
 
 After installing Miniconda, you have to initialize conda for bash
-```
+
+```         
 $HOME/miniconda3/bin/conda init bash
 ```
+
 Close terminal and re-open
 
-```
+```         
 source ~/.bashrc
 ```
+
 make sure you're running the latest version of `conda`.
 
-```
+```         
 conda update conda
 ```
-accept terms of service 
+
+accept terms of service
 
 # Install QIIME2 as a conda environment
 
-picrust needs python 3.9 
+picrust needs python 3.9
 
 ## 2025.7
 
-```
+```         
 conda env create \
   --name qiime2-amplicon-2025.7 \
   --file https://raw.githubusercontent.com/qiime2/distributions/refs/heads/dev/2025.7/amplicon/released/qiime2-amplicon-ubuntu-latest-conda.yml
@@ -294,7 +309,7 @@ Stopping - all 7182 input sequences aligned poorly to reference sequences (--min
 OK this likely indicates that input sequences were originally on the positive strand, and the seqtk reverse compliment we made is the negative strand.. the number of input sequences that failed to align increased from 1169/7182 (16%) to 7182/7182 (100%)
 :::
 
-> can also consider lowering the \--min_align flag so reads have a better chance of matching poorly characterized taxa.
+> can also consider lowering the --min_align flag so reads have a better chance of matching poorly characterized taxa.
 
 --p-min-align PROPORTION Range(0.0, 1.0) Proportion of the total length of an input query sequence that must align with reference sequences. Any sequences with lengths below this value after making an alignment with reference sequences will be excluded from the placement and all subsequent steps. \[default: 0.8\]
 
@@ -391,3 +406,35 @@ qiime picrust2 full-pipeline \
 ::: callout-warning
 Warning - 661 input sequences aligned poorly to reference sequences (--min_align option specified a minimum proportion of 0.1 aligning to reference sequences). These input sequences will not be placed and will be excluded from downstream steps. 287 of 6521 ASVs were above the max NSTI cut-off of 2.0 and were removed from the downstream analyses.
 :::
+
+# Next up ..
+
+## [**Analysis of PICRUSt2 output**](https://github.com/picrust/picrust2/wiki/How-does-PICRUSt2-work%3F-What-does-it-do%3F#:~:text=pipeline%20here.-,Analysis%20of%20PICRUSt2%20output,-You%20can%20essentially)
+
+You can essentially treat these as you would any other microbiome feature table (like your results based on taxonomy within the samples), but this remains a bit of an open question. Some things that users are often interested in are:
+
+-   Which taxa are predicted to contribute to a function within different samples
+
+-   Whether predicted functional abundance profiles differ between samples from different treatments
+
+-   Whether the predicted abundance of certain functions differs between samples from different treatments
+
+Some potentially useful tools for this further analysis are (note that we are not involved in the development/maintenance of these tools unless noted):
+
+-   [ggpicrust2](https://github.com/cafferychen777/ggpicrust2) - a comprehensive package for analysing PICRUSt2 output
+
+-   [JarrVis](https://github.com/dhwanidesai/JarrVis) - for making sankey diagrams to visualise the taxa that contribute to different functions within different sample groupings (you can see an example of it being used for analysis of PICRUSt2 output [here](https://github.com/dhwanidesai/JarrVis/wiki/Reanalysis-of-functions-predicted-from-16S-amplicon-sequence-data-in-a-time-series-%E2%80%93-sea-water-samples-(Raes-et-al.,-2022)) (developed/maintained by a past member of the Langille lab)
+
+-   [FuncDiv](https://academic.oup.com/bioinformatics/article/39/1/btac809/6909011?login=true) - R package for calculating the diversity of taxa that contribute to different functions (developed/maintained by Gavin Douglas, main developer of PICRUSt2 - although no longer involved in development/maintenance - and a past member of the Langille lab)
+
+-   [Microbiome Helper 2](https://github.com/LangilleLab/microbiome_helper/wiki/Home-%E2%80%90-Microbiome-Helper-2) - this is currently a work in progress, but we plan to have some complete tutorials for the bioinformatic and statistical analysis of microbiome data, including PICRUSt2 output (developed/maintained by us in the Langille lab)
+
+-   [WHAM!](https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-018-4870-z) - designed for visualisation of taxa/functions within metagenomic data but could also be used with taxa within samples along with PICRUSt2 output
+
+-   [BURRITO](https://borenstein-lab.github.io/burrito/) - visualisation tool for exploring links between taxonomy and function within microbiome data
+
+-   [MetaViz](https://epiviz.github.io/metaviz/) - another tool designed for visualisation and analysis of metagenomic sequencing data, but may work for PICRUSt2 output
+
+```{r}
+sessionInfo()
+```

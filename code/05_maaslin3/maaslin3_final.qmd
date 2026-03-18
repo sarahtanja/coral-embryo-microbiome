@@ -57,9 +57,15 @@ cross-sectional studies (that's ours!)
 
 First read and get familiar with the: [MaAslin3 package
 README](https://github.com/biobakery/maaslin3) & the [MaAslin3
-tutorial](https://github.com/biobakery/biobakery/wiki/maaslin3) from the Stanford University Huttenhower Lab.
+tutorial](https://github.com/biobakery/biobakery/wiki/maaslin3) from the
+Stanford University Huttenhower Lab.
 
-> William A. Nickols, Thomas Kuntz, Jiaxian Shen, Sagun Maharjan, Himel Mallick, Eric A. Franzosa, Kelsey N. Thompson, Jacob T. Nearing, Curtis Huttenhower. MaAsLin 3: Refining and extending generalized multivariable linear models for meta-omic association discovery. bioRxiv 2024.12.13.628459; doi: https://doi.org/10.1101/2024.12.13.628459
+> William A. Nickols, Thomas Kuntz, Jiaxian Shen, Sagun Maharjan, Himel
+> Mallick, Eric A. Franzosa, Kelsey N. Thompson, Jacob T. Nearing,
+> Curtis Huttenhower. MaAsLin 3: Refining and extending generalized
+> multivariable linear models for meta-omic association discovery.
+> bioRxiv 2024.12.13.628459; doi:
+> https://doi.org/10.1101/2024.12.13.628459
 
 Here we aim to test changes in relative abundance (how many) and
 prevalence (presence/absence) of specific taxa due to leachate, and the
@@ -304,24 +310,40 @@ ft_l7 <- ft_l7 %>%
 
 # Run MaAslin3
 
-- many taxa vary with time alone
-- some taxa vary with leachate
-- some taxa vary with leachate differently across time
+-   many taxa vary with time alone
+-   some taxa vary with leachate
+-   some taxa vary with leachate differently across time
 
 **Model formula:**
 `Abundance|Prevelance ~ leachate * hpf + reads + (1|spawn_night)`
 
 **This model tests:**
 
--   Main effect of `leachate` (ordered categorical predictor; control, low, mid, high): Differences in the response between the levels of the `leachate` treatment, averaged over all `hpf`values. We choose to represent leachate categorically instead of a continuous variable here because we do not assume that response to increasing leachate levels is linear, and we want to capture any non-linear patterns of response across the different leachate treatments.
+-   Main effect of `leachate` (ordered categorical predictor; control,
+    low, mid, high): Differences in the response between the levels of
+    the `leachate` treatment, averaged over all `hpf`values. We choose
+    to represent leachate categorically instead of a continuous variable
+    here because we do not assume that response to increasing leachate
+    levels is linear, and we want to capture any non-linear patterns of
+    response across the different leachate treatments.
 
-- Main effect of `hpf` (continuous): Overall change in the response across developmental time, averaged over all leachate levels. This tests if there is a general trend of response change with time regardless of leachate treatment.    
+-   Main effect of `hpf` (continuous): Overall change in the response
+    across developmental time, averaged over all leachate levels. This
+    tests if there is a general trend of response change with time
+    regardless of leachate treatment.
 
--   Interaction between `leachate` and `hpf`: Whether the slope of the response across hpf differs depending on the leachate category. This tests if `leachate` modifies how the response changes continuously over time; e.g., some leachate levels may accelerate or slow the effect of `hpf`.
+-   Interaction between `leachate` and `hpf`: Whether the slope of the
+    response across hpf differs depending on the leachate category. This
+    tests if `leachate` modifies how the response changes continuously
+    over time; e.g., some leachate levels may accelerate or slow the
+    effect of `hpf`.
 
--   Effect of `reads` (continuous covariate): Controls for the influence of read depth on the response, adjusting other effects accordingly.
+-   Effect of `reads` (continuous covariate): Controls for the influence
+    of read depth on the response, adjusting other effects accordingly.
 
--   Random intercept for `spawn_night`: Accounts for variability and non-independence among samples collected on the same spawn night by allowing different baseline response levels for each spawn night.
+-   Random intercept for `spawn_night`: Accounts for variability and
+    non-independence among samples collected on the same spawn night by
+    allowing different baseline response levels for each spawn night.
 
 Interpretation-wise, if the interaction term is significant, it
 indicates that the "trajectory" or slope of response change with `hpf`
@@ -339,16 +361,22 @@ patterns over continuous developmental time (`hpf`), adjusting for
 sequencing depth (`reads`) and including random intercepts for
 `spawn_night`.
 
-- ordered_effects: A factored categorical variable to be included. Consecutive levels will be tested for significance against each other with contrast tests, and the resulting associations will correspond to effect sizes, standard errors, and significances of each level versus the previous.
-Contrast tests are performed with multcomp::glht (fixed effects and logistic mixed effects) and lmerTest::contest (linear mixed effects).
+-   ordered_effects: A factored categorical variable to be included.
+    Consecutive levels will be tested for significance against each
+    other with contrast tests, and the resulting associations will
+    correspond to effect sizes, standard errors, and significances of
+    each level versus the previous. Contrast tests are performed with
+    multcomp::glht (fixed effects and logistic mixed effects) and
+    lmerTest::contest (linear mixed effects).
 
-## Ordered
-```{r eval=FALSE, warning=FALSE, message=FALSE}
+## leachate\*hpf
+
+```{r}
 set.seed(03172026)
-maaslin_fit <- maaslin3(
+m1_fit <- maaslin3(
   input_data = ft_l7,
   input_metadata = meta,
-  output = file.path(output_path, "ordered"),
+  output = file.path(output_path, "m1"),
   formula = ~ leachate*hpf + reads + (1|spawn_night),
   verbosity = 'ERROR',
   cores = 3, 
@@ -357,10 +385,40 @@ maaslin_fit <- maaslin3(
 )
 ```
 
+## leachate_mgL\*hpf
+
+```{r eval=FALSE, warning=FALSE, message=FALSE}
+set.seed(03172026)
+m2_fit <- maaslin3(
+  input_data = ft_l7,
+  input_metadata = meta,
+  output = file.path(output_path, "m2"),
+  formula = ~ leachate_mgL*hpf + reads + (1|spawn_night),
+  verbosity = 'ERROR',
+  cores = 3, 
+  plot_associations = FALSE, 
+  save_models = TRUE
+)
+```
+
+![](images/maaslin_model_fit.png)
+
+The resulting object `m2_fit` is a list of length 9 that contains the
+feature table data in `data`, the subsequently TSS `normalized_data`,
+then it's `filtered_data` (note columns represent ASVs and they drop
+from 1397 to 758) and then `transformed_data` ... The model outputs are
+in `fit_data_abundance` and `fit_data_prevalence`
+
+-   **Fitted values** = “what happened in my experiment”
+
+<!-- -->
+
+-   **Predicted grid** = “what the model says the pattern is”
+
 ```{r, message=FALSE, warning=FALSE}
 L7_sig <- read_tsv(file.path(output_path, "Interaction/L7_leachatehpf_cat.con/significant_results.tsv"))
 
-L7_normalized<- read_tsv(file.path(output_path, "Interaction/L7_leachatehpf_cat.con/features/data_norm.tsv"))
+L7_normalized <- read_tsv(file.path(output_path, "Interaction/L7_leachatehpf_cat.con/features/data_norm.tsv"))
 
 L7_transformed <- read_tsv(file.path(output_path, "Interaction/L7_leachatehpf_cat.con/features/data_transformed.tsv"))
 
@@ -410,10 +468,21 @@ paste0("There are ", length(feat_abun), " total and ", length(setdiff(feat_abun,
 # In both models
 paste0("There are ", length(feat_overlap), " significant features in both")
 ```
-::: callout-important
-ALL taxa that are significant in the prevalence model are also significant in the abundance model, but there are some taxa that are only significant in the abundance model and not the prevalence model. This suggests that some taxa show significant changes in relative abundance across leachate and time, but do not show significant changes in presence/absence. In other words, these taxa may be consistently present across samples but vary in how abundant they are, rather than being present in some samples and absent in others. Meanwhile, all taxa that show significant changes in presence/absence also show significant changes in relative abundance, which makes sense because if a taxon is present in some samples and absent in others, it is likely to also show differences in how abundant it is across those samples.
-:::
 
+::: callout-important
+ALL taxa that are significant in the prevalence model are also
+significant in the abundance model, but there are some taxa that are
+only significant in the abundance model and not the prevalence model.
+This suggests that some taxa show significant changes in relative
+abundance across leachate and time, but do not show significant changes
+in presence/absence. In other words, these taxa may be consistently
+present across samples but vary in how abundant they are, rather than
+being present in some samples and absent in others. Meanwhile, all taxa
+that show significant changes in presence/absence also show significant
+changes in relative abundance, which makes sense because if a taxon is
+present in some samples and absent in others, it is likely to also show
+differences in how abundant it is across those samples.
+:::
 
 > In abundance models, a one-unit change in the metadatum variable
 > corresponds to a 2coef fold change in the relative abundance of the
@@ -426,6 +495,7 @@ ALL taxa that are significant in the prevalence model are also significant in th
 # Pivot data longer for plotting
 
 ##### Make function to extract taxa levels
+
 ```{r}
 extract_tax_level <- function(x, rank) {
   # rank like "d", "p", "c", "o", "f", "g", "s"
@@ -470,6 +540,7 @@ L7_feat_all <- unique(L7_sig_long$genus_species)
 # Abundance
 
 ## Species level (L7)
+
 ```{r, fig.width = 35, fig.height = 30}
 ## Relative abundance (normalized read counts)
 L7_sig_long %>% 
@@ -486,6 +557,7 @@ ggplot(., aes(x = factor(hpf), y = norm_abundance, color = leachate, fill = leac
     ) +
   theme_sleek_axe()
 ```
+
 ```{r}
 L7_sig_long %>%
   group_split(genus_species) %>%
@@ -520,6 +592,7 @@ L7_sig_long %>%
 ```
 
 ## Family (L5)
+
 ```{r}
 L7_sig_long %>%
   group_split(family) %>%
@@ -569,6 +642,7 @@ ggplot(., aes(x = factor(hpf), y = norm_abundance, color = leachate, fill = leac
     ) +
   theme_sleek_axe()
 ```
+
 ```{r}
 ggsave(
   filename = file.path(fig_path, "family_abundance.png"),
@@ -579,6 +653,7 @@ ggsave(
 ```
 
 ## Order (L4)
+
 ```{r}
 L7_sig_long %>%
   group_split(order) %>%
@@ -627,6 +702,7 @@ ggplot(., aes(x = factor(hpf), y = norm_abundance, color = leachate, fill = leac
     ) +
   theme_sleek_axe()
 ```
+
 ```{r}
 ggsave(
   filename = file.path(fig_path, "order_abundance.png"),
@@ -639,6 +715,7 @@ ggsave(
 # Prevalence
 
 ## Species (L7)
+
 ```{r, fig.width = 14, fig.height = 30}
 L7_sig_long %>% filter(feature %in% feat_prev) %>%
 ggplot(.,
@@ -702,6 +779,7 @@ ggsave(
 ```
 
 ## Family (L5)
+
 ```{r, fig.width = 14, fig.height = 30}
 L7_sig_long %>% filter(feature %in% feat_prev) %>%
 ggplot(.,
@@ -755,7 +833,6 @@ ggplot(.,
 )
 ```
 
-
 ```{r}
 ggsave(
   filename = file.path(fig_path, "family_prevalence.png"),
@@ -766,6 +843,7 @@ ggsave(
 ```
 
 ## Order (L4)
+
 ```{r, fig.width = 12, fig.height = 18}
 L7_sig_long %>% filter(feature %in% feat_prev) %>%
 ggplot(.,
@@ -828,33 +906,42 @@ ggsave(
 )
 ```
 
-# Plot fitted models
+# Plot model predictions
 
-- pull one fitted model for one taxon
-- make a prediction grid from your metadata
-- predict fitted probabilities
-- plot observed presence + fitted curve/lines
-- loop over taxa and save plots
+-   pull one fitted model for one taxon
+-   make a prediction grid from your metadata
+-   predict fitted probabilities
+-   plot probability of detection (y) vs observed presence (x)
+    (geom_rug) + smooth fitted predictions + CI
+-   loop over taxa and save plots
 
 ```{r}
 names(maaslin_fit$fit_data_prevalence$fits)[1:10]
 ```
 
-I only want to plot the statistically significant taxa (those which are differentially prevalent). This list is a character vector named `feat_prev`
+There is 1 model fit for each ASV. I only want to plot the statistically
+significant features... (those which are differentially prevalent). This
+list is a character vector named `feat_prev`
 
 Subset list of model fits to `feat_prev`
+
 ```{r}
 prev_fit_list <- maaslin_fit$fit_data_prevalence$fits
 
-prev_fit_list_sig <- fit_list[feat_prev]
+prev_fit_list_sig <- prev_fit_list[feat_prev]
 ```
 
+Of our list of 24 significant features, let's start with 1
 
-# Plot fitted prevalence model 
 ```{r}
-library(dplyr)
-library(ggplot2)
-library(tidyr)
+
+```
+
+CI stuff... `zval <- 1.96` \# 95% = 1.96 \# 90% = 1.645 \# 75% = 1.15
+
+# Plot fitted prevalence model
+
+```{r, eval=FALSE}
 
 plot_maaslin_prev_fit <- function(feature_name, fit_obj, data_long) {
   
@@ -902,13 +989,12 @@ plot_maaslin_prev_fit <- function(feature_name, fit_obj, data_long) {
 }
 ```
 
-# Summary 
+# Summary
+
 ```{r}
 write_csv(L7_sig_long, file.path(output_path, "L7_significant_features_long.csv"))
 ```
 
-
 ```{r}
 sessionInfo()
 ```
-
