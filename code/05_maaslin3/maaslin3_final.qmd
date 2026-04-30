@@ -110,8 +110,8 @@ We have 63 samples... so the maximum number of terms we should use is 6
 # Install MaAsLin3
 
 ```{r, eval=FALSE}
-#library("devtools")
-#install_github("biobakery/maaslin3")
+library("devtools")
+install_github("biobakery/maaslin3")
 ```
 
 # Load Libraries

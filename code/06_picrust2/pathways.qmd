@@ -1,0 +1,118 @@
+---
+title: "PICRUSt2 pathway resulst"
+author: "Sarah Tanja"
+date: 2026-04-30
+date-modified: today
+format:
+  gfm: 
+    toc: true
+    number-sections: true
+  html:
+    theme: journal
+    highlight-style: github
+    page-layout: article
+    code-background: true
+    code-tools: 
+      source: true
+      toggle: true
+    toc: true
+    toc-depth: 2
+    toc-location: left
+    number-sections: true
+    df-print: kable
+    smooth-scroll: true
+    link-external-icon: true
+    link-external-newwindow: true
+    reference-location: margin
+    citation-location: margin
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE, # Display code chunks
+  eval = FALSE, # Evaluate code chunks
+  warning = FALSE, # Hide warnings
+  message = FALSE, # Hide messages
+  comment = "") # Prevents appending '##' to beginning of lines in code output)        
+```
+
+# Background
+> Predicted pathway abundances were inferred from ASV sequences using PICRUSt2 and compared among taxa associated with PVC leachate exposure
+# Load libraries
+
+```{r, eval=TRUE}
+library(reticulate)
+library(tidyverse)
+library(qiime2R)
+library(maaslin3)
+```
+
+```{r, engine='bash'}
+qiime feature-table summarize \
+  --i-table ../../output/picrust2/pathway_abundance.qza \
+  --o-visualization ../../output/picrust2/pathway_abundance.qzv
+```
+```{r}
+path <- read_qza("../../output/picrust2/pathway_abundance.qza")$data
+```
+
+## Define file paths
+
+```{r}
+metadata_path <- "../../metadata/meta.csv"
+output_path <- "../../output/pathways/"
+fig_path <- "../../output/figs"
+```
+
+## Load metadata
+
+```{r}
+# Load metadata
+metadata <- read_csv(metadata_path)
+
+# set factors
+metadata <- metadata %>% 
+  mutate(
+    collection_date = as.Date(collection_date, format = "%d-%b-%Y"),
+    stage    = factor(stage,    levels = c("cleavage", "prawnchip", "earlygastrula"), ordered = TRUE),
+    leachate = factor(leachate, levels = c("control", "low", "mid", "high"),        ordered = TRUE),
+    spawn_night = factor(
+      collection_date,
+      levels  = as.Date(c("06-Jul-2024", "07-Jul-2024", "08-Jul-2024"), format = "%d-%b-%Y"),
+      labels  = c("July 6th", "July 7th", "July 8th"),
+      ordered = TRUE
+    )
+  )
+```
+
+```{r}
+# make samples rownames
+meta <- metadata %>% 
+  column_to_rownames(var = "sample_id") %>% 
+  as.data.frame()
+
+# View metadata structure
+str(meta)
+```
+
+# Transpose so rownames are samples and columns are pathways
+```{r}
+path <- t(path)
+```
+
+#  Run MaAsLin3
+```{r}
+set.seed(04302026)
+mp <- maaslin3(
+  input_data = path,
+  input_metadata = meta,
+  output = file.path(output_path, "maaslin_path"),
+  formula = ~ leachate*hpf + (1|spawn_night),
+  verbosity = 'ERROR',
+  cores = 3, 
+  plot_associations = FALSE, 
+  save_models = TRUE
+)
+```
+
+
+ 

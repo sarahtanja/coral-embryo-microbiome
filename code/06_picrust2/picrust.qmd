@@ -383,7 +383,7 @@ Filter representative sequences
 
 ```{r, engine='bash'}
 qiime feature-table filter-seqs \
-  --i-data rep-seqs.qza \
+  --i-data ../../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_representative-sequences.qza \
   --m-metadata-file sig_asv_ids.tsv \
   --o-filtered-data sig_repseqs.qza
 ```
@@ -392,9 +392,9 @@ qiime feature-table filter-seqs \
 
 ```{r, engine='bash'}
 qiime picrust2 full-pipeline \
-   --i-table ../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza \
-   --i-seq ../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_representative-sequences.qza \
-   --output-dir ../output/picrust2 \
+   --i-table sig_featuretable.qza \
+   --i-seq sig_repseqs.qza \
+   --output-dir ../../output/picrust2 \
    --p-placement-tool sepp \
    --p-threads 4 \
    --p-hsp-method pic \
