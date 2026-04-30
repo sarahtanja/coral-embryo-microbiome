@@ -43,10 +43,10 @@ knitr::opts_chunk$set(
 
 # Background
 
-H~o~ : "PVC Leachate does not alter microbiome trajectory over
+H~o~ : "PVC Leachate does not alter specific bacterial taxa trajectory over
 developmental time"
 
-H~a~ : "PVC Leachate alters microbiome trajectory over developmental
+H~a~ : "PVC Leachate alters specific bacterial taxa trajectory over developmental
 time"
 
 Microbiome Multivariable Associations with Linear Models (MaAsLin)
@@ -369,7 +369,7 @@ sequencing depth (`reads`) and including random intercepts for
     multcomp::glht (fixed effects and logistic mixed effects) and
     lmerTest::contest (linear mixed effects).
 
-## leachate\*hpf
+## m1 : leachate*hpf
 
 ```{r}
 set.seed(03172026)
@@ -385,14 +385,13 @@ m1_fit <- maaslin3(
 )
 ```
 
-## leachate_mgL\*hpf
-
-```{r eval=FALSE, warning=FALSE, message=FALSE}
+## m2 : leachate_mgL*hpf
+```{r}
 set.seed(03172026)
 m2_fit <- maaslin3(
   input_data = ft_l7,
   input_metadata = meta,
-  output = file.path(output_path, "m2"),
+  output = file.path(output_path, "m1"),
   formula = ~ leachate_mgL*hpf + reads + (1|spawn_night),
   verbosity = 'ERROR',
   cores = 3, 
@@ -403,15 +402,16 @@ m2_fit <- maaslin3(
 
 ![](images/maaslin_model_fit.png)
 
-The resulting object `m2_fit` is a list of length 9 that contains the
+The resulting object `m1/2_fit` is a list of length 9 that contains the
 feature table data in `data`, the subsequently TSS `normalized_data`,
 then it's `filtered_data` (note columns represent ASVs and they drop
 from 1397 to 758) and then `transformed_data` ... The model outputs are
 in `fit_data_abundance` and `fit_data_prevalence`
 
--   **Fitted values** = “what happened in my experiment”
+Probability of Detection
+Predicted Abundance 
 
-<!-- -->
+-   **Fitted values** = “what happened in my experiment”
 
 -   **Predicted grid** = “what the model says the pattern is”
 
@@ -934,59 +934,115 @@ prev_fit_list_sig <- prev_fit_list[feat_prev]
 Of our list of 24 significant features, let's start with 1
 
 ```{r}
+# pull out one model from the list
+mod1 <- prev_fit_list_sig[[1]]
 
+# inspect the variables in the model formula
+formula(mod1)
+names(model.frame(mod1))
 ```
+
+## Make prediction grid
+
+Fixed effects predictions
+
+```{r}
+dat1 <- model.frame(mod1) %>% 
+  mutate(
+    hpf = as.numeric(hpf), 
+    reads = as.numeric(reads)
+  )
+
+str(dat1)
+```
+Your fitted model expects:
+- leachate as ordered factor
+- hpf as nmatrix.1
+- reads as nmatrix.1
+- spawn_night as ordered factor
+
+```{r}
+dat_pred <- expand_grid(
+  leachate = levels(dat1$leachate),
+  hpf = seq(min(dat1$hpf), max(dat1$hpf), length.out = 100),
+  reads = mean(dat1$reads),
+  spawn_night = levels(dat1$spawn_night)[1]
+) %>%
+  mutate(
+    hpf   = I(matrix(hpf, ncol = 1)),
+    reads = I(matrix(reads, ncol = 1)),
+    spawn_night = factor(
+      spawn_night,
+      levels = levels(dat1$spawn_night),
+      ordered = is.ordered(dat1$spawn_night)
+    ),
+    leachate = factor(
+      leachate,
+      levels = levels(dat1$leachate),
+      ordered = is.ordered(dat1$leachate)
+    )
+  )
+```
+
+```{r}
+mod1_preds <- predict(mod1, newdata = dat_pred, type = "response", re.form = NA, se.fit = TRUE)
+```
+
+zval <- 1.96
+ 95% = 1.96
+ 90% = 1.645
+ 75% = 1.15
+
+```{r}
+zval <- 1.96
+
+mod1_sePreds_link <-  data.frame(dat_pred,
+                          mu = binomial()$linkinv((mod1_preds$fit)),
+                          low95  = binomial()$linkinv((mod1_preds$fit - zval * mod1_preds$se.fit)),
+                          high95 = binomial()$linkinv(mod1_preds$fit + zval * mod1_preds$se.fit),
+                          low75  = binomial()$linkinv((mod1_preds$fit - 1.15 * mod1_preds$se.fit)),
+                          high75 = binomial()$linkinv(mod1_preds$fit + 1.15 * mod1_preds$se.fit),
+                          low50  = binomial()$linkinv((mod1_preds$fit - 0.674 * mod1_preds$se.fit)),
+                          high50 = binomial()$linkinv(mod1_preds$fit + 0.674 * mod1_preds$se.fit)
+                          ) %>% 
+  mutate(
+    leachate_mgL = recode(leachate,
+      "control" = 0,
+      "low"     = 0.01,
+      "mid"     = 0.1,
+      "high"    = 1 
+    )
+  )
+```
+
 
 CI stuff... `zval <- 1.96` \# 95% = 1.96 \# 90% = 1.645 \# 75% = 1.15
 
 # Plot fitted prevalence model
+```{r}
+library(PNWColors)
+```
 
-```{r, eval=FALSE}
 
-plot_maaslin_prev_fit <- function(feature_name, fit_obj, data_long) {
-  
-  # subset observed data for this feature
-  df_feat <- data_long %>%
-    filter(feature == feature_name)
-  
-  # create prediction grid
-  newdata <- expand_grid(
-    leachate = levels(factor(df_feat$leachate, ordered = is.ordered(df_feat$leachate))),
-    hpf = unique(df_feat$hpf)
-  ) %>%
-    mutate(
-      reads = median(df_feat$reads, na.rm = TRUE),
-      spawn_night = df_feat$spawn_night[1]
-    )
-  
-  # predict on response scale
-  newdata <- newdata %>%
-    mutate(
-      pred = predict(fit_obj, newdata = newdata, type = "response", re.form = NA)
-    )
-  
-  # plot
-  ggplot(df_feat, aes(x = leachate, y = presence)) +
-    geom_jitter(width = 0.1, height = 0.05, alpha = 0.5) +
-    geom_line(
-      data = newdata,
-      aes(x = leachate, y = pred, group = hpf),
-      inherit.aes = FALSE
-    ) +
-    geom_point(
-      data = newdata,
-      aes(x = leachate, y = pred),
-      inherit.aes = FALSE,
-      size = 2
-    ) +
-    facet_wrap(~ hpf) +
-    labs(
-      title = feature_name,
-      x = "Leachate",
-      y = "Presence probability"
-    ) +
-    theme_minimal()
-}
+```{r}
+mod1POD <- ggplot(mod1_sePreds_link, aes(x = leachate_mgL, y = mu)) +
+  geom_ribbon(aes(ymin = low95, ymax = high95), stat = "identity", alpha = 0.3, color = NA) +
+  geom_ribbon(aes(ymin = low75, ymax = high75), stat = "identity", alpha = 0.3, color = NA) +
+  geom_ribbon(aes(ymin = low50, ymax = high50), stat = "identity", alpha = 0.3, color = NA) +
+  geom_line(aes(y = mu)) +
+  scale_fill_manual(values = c(pnw_palette("Cascades",5, type = "continuous")[4:5],
+                               pnw_palette("Sunset",1, type = "continuous"))) +
+  scale_color_manual(values = c(pnw_palette("Cascades",5, type = "continuous")[4:5],
+                                pnw_palette("Sunset",1, type = "continuous"))) +
+  scale_y_continuous(name = "Probability of Detection")+
+  scale_x_log10()+
+  theme_minimal() +
+  theme(legend.position = "bottom", 
+        legend.title = element_blank(),
+        axis.text.y.right = element_blank()) +
+  xlab("Leachate")
+
+mod1POD
 ```
 
 # Summary

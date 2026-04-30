@@ -49,7 +49,7 @@ knitr::opts_chunk$set(
 ::: callout-note
 Some advice from Dr. Steve Salipante
 
->  Yes it is reasonable to look at picrust output and see if there are functional shifts, but it is not clear how adequate picrust libraries are to allow metabolic inference of these particular populations.  I would recommend that the actual analysis of metabolic shifts be conducted in Maaslin, as before, to account for covariates.
+> Yes it is reasonable to look at picrust output and see if there are functional shifts, but it is not clear how adequate picrust libraries are to allow metabolic inference of these particular populations.  I would recommend that the actual analysis of metabolic shifts be conducted in Maaslin, as before, to account for covariates.
 >
 > it is possible to give sarah the input files she would need for the analysis. \[see [https://forum.qiime2.org/t/picrust2-input-files-for-bacteria/27968](https://urldefense.com/v3/__https://forum.qiime2.org/t/picrust2-input-files-for-bacteria/27968__;!!K-Hz7m0Vt54!iZIXAiB2i2QtliEgrFMztEKZHQZuAILNAY54WW_klnDOn0rCNia6tnE-GrFq0efQ8IeJkkAwEJWtIM0$)\]. For the record, you could isolate the ASV table from DADA2 in qiime (these are stored in rep-seqs-dada2.qza, according to [https://forum.qiime2.org/t/how-to-generate-an-asv-table-from-dada2-output/9973](https://urldefense.com/v3/__https://forum.qiime2.org/t/how-to-generate-an-asv-table-from-dada2-output/9973__;!!K-Hz7m0Vt54!iZIXAiB2i2QtliEgrFMztEKZHQZuAILNAY54WW_klnDOn0rCNia6tnE-GrFq0efQ8IeJkkAwpWyxhvY$)), and convert it to biom format \[[https://forum.qiime2.org/t/how-to-generate-an-asv-table-from-dada2-output/9973/2](https://urldefense.com/v3/__https://forum.qiime2.org/t/how-to-generate-an-asv-table-from-dada2-output/9973/2__;!!K-Hz7m0Vt54!iZIXAiB2i2QtliEgrFMztEKZHQZuAILNAY54WW_klnDOn0rCNia6tnE-GrFq0efQ8IeJkkAwc-L0gtk$)\]. 
 >
@@ -435,6 +435,6 @@ Some potentially useful tools for this further analysis are (note that we are no
 
 -   [MetaViz](https://epiviz.github.io/metaviz/) - another tool designed for visualisation and analysis of metagenomic sequencing data, but may work for PICRUSt2 output
 
-```{r}
+```{r sessionInfo}
 sessionInfo()
 ```
