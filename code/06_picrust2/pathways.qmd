@@ -37,6 +37,10 @@ knitr::opts_chunk$set(
 
 # Background
 > Predicted pathway abundances were inferred from ASV sequences using PICRUSt2 and compared among taxa associated with PVC leachate exposure
+> You are modeling predicted function from taxonomy, so you are not directly measuring function but rather inferring it based on the taxonomy of the microbes present. This is a common approach in microbiome studies when direct functional measurements (like metagenomics or metatranscriptomics) are not available.
+>“Predicted microbial functional potential shifted…”
+
+note to self.. can't use qiime2R on windows so go to raven but can't update raven r version (needed for maaslin) so head back to minerva to run maaslin3 
 # Load libraries
 
 ```{r, eval=TRUE}
@@ -51,9 +55,15 @@ qiime feature-table summarize \
   --i-table ../../output/picrust2/pathway_abundance.qza \
   --o-visualization ../../output/picrust2/pathway_abundance.qzv
 ```
+
 ```{r}
 path <- read_qza("../../output/picrust2/pathway_abundance.qza")$data
 ```
+
+```{r}
+ko <- read_qza("../../output/picrust2/ko_metagenome.qza")$data
+```
+
 
 ## Define file paths
 
@@ -94,12 +104,13 @@ meta <- metadata %>%
 str(meta)
 ```
 
-# Transpose so rownames are samples and columns are pathways
+# Pathways
+## Transpose so rownames are samples and columns are pathways
 ```{r}
 path <- t(path)
 ```
 
-#  Run MaAsLin3
+##  Run MaAsLin3
 ```{r}
 set.seed(04302026)
 mp <- maaslin3(
@@ -114,5 +125,52 @@ mp <- maaslin3(
 )
 ```
 
+```{r}
+sig_paths <- read_tsv(file.path(output_path, "maaslin_path/significant_results.tsv"))
+```
 
+.L Does the response rise steadily?
+.Q Does it peak in middle doses?
+.C Does it show a more complex non-monotonic pattern?
+
+leachate 
+```{r}
+sig_leachate <- sig_paths %>% 
+  filter(metadata == "leachate") %>% 
+  arrange(qval_joint)
+
+unique(sig_leachate$feature) 
+```
+
+Lipid metabolism pathways → membrane stress responses
+Aromatic degradation pathways → breakdown of plastic-derived organics
+Redox / respiration pathways → oxidative stress handling
  
+- PWY-5179
+Likely aromatic compound degradation
+Breaks down organic compounds
+
+```{r}
+
+```
+
+# KOs
+
+```{r}
+ko <- t(ko)
+```
+
+##  Run MaAsLin3
+```{r}
+set.seed(04302026)
+ko <- maaslin3(
+  input_data = ko,
+  input_metadata = meta,
+  output = file.path(output_path, "ko"),
+  formula = ~ leachate*hpf + (1|spawn_night),
+  verbosity = 'ERROR',
+  cores = 3, 
+  plot_associations = FALSE, 
+  save_models = TRUE
+)
+```
