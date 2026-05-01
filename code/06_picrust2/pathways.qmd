@@ -50,11 +50,6 @@ library(qiime2R)
 library(maaslin3)
 ```
 
-```{r, engine='bash'}
-qiime feature-table summarize \
-  --i-table ../../output/picrust2/pathway_abundance.qza \
-  --o-visualization ../../output/picrust2/pathway_abundance.qzv
-```
 
 ```{r}
 path <- read_qza("../../output/picrust2/pathway_abundance.qza")$data
@@ -64,12 +59,11 @@ path <- read_qza("../../output/picrust2/pathway_abundance.qza")$data
 ko <- read_qza("../../output/picrust2/ko_metagenome.qza")$data
 ```
 
-
 ## Define file paths
 
 ```{r}
 metadata_path <- "../../metadata/meta.csv"
-output_path <- "../../output/pathways/"
+output_path <- "../../output/picrust2/"
 fig_path <- "../../output/figs"
 ```
 
@@ -150,10 +144,6 @@ Redox / respiration pathways → oxidative stress handling
 Likely aromatic compound degradation
 Breaks down organic compounds
 
-```{r}
-
-```
-
 # KOs
 
 ```{r}
@@ -166,7 +156,7 @@ set.seed(04302026)
 ko <- maaslin3(
   input_data = ko,
   input_metadata = meta,
-  output = file.path(output_path, "ko"),
+  output = file.path(output_path, "maaslin_ko"),
   formula = ~ leachate*hpf + (1|spawn_night),
   verbosity = 'ERROR',
   cores = 3, 
@@ -174,3 +164,60 @@ ko <- maaslin3(
   save_models = TRUE
 )
 ```
+
+# ggpicrust2 package for visualizing results
+```{r}
+library(ggpicrust2)
+```
+
+# PCA of pathway matrix 
+> Goal: Perform PCA analysis on pathway abundance data and create an informative visualization that includes a scatter plot of the first two principal components (PC1 vs PC2) with density plots for both PCs. The plot helps to visualize the clustering patterns and distribution of samples across different groups.
+
+```{r}
+# Perform PCA on pathway abundance data
+pca_comp <- prcomp(path, scale. = TRUE)
+
+# Create a data frame for plotting
+pca_df <- as.data.frame(pca_comp$x)
+
+# Add metadata to the PCA data frame
+pca_df <- cbind(pca_df, meta)
+
+# Set factors 
+pca_df <- pca_df %>% 
+  mutate(stage = factor(stage, levels = c("cleavage", "prawnchip", "earlygastrula")),
+         leachate = factor(leachate, levels = c("control", "low", "mid", "high")))
+
+# Calculate %Var in PC1 and PC2
+percentVar <- (pca_comp$sdev^2) / sum(pca_comp$sdev^2) * 100
+
+pc1_var <- round(percentVar[1], 1)
+pc2_var <- round(percentVar[2], 1)
+```
+
+Labels for grouping variables
+```{r}
+labs_leachate <- c(control = "0 mg/L (control)",
+                   low = "0.01 mg/L (low)",
+                   mid = "0.1 mg/L (mid)",
+                   high = "1 mg/L (high)")
+
+labs_stage <- c(cleavage = "Cleavage", prawnchip = "Prawn chip", earlygastrula = "Early gastrula")
+```
+
+
+```{r}
+# Create a scatter plot of PC1 vs PC2 with density plots
+ggplot(pca_df, aes(x = PC1, y = PC2, color = leachate)) +
+  geom_point(size = 3) +
+  geom_density_2d() +
+  labs(title = "PCA of Pathway Abundance Data",
+       x = "Principal Component 1",
+       y = "Principal Component 2") +
+  theme_minimal() +
+  theme(legend.title = element_blank())
+```
+
+
+
+
