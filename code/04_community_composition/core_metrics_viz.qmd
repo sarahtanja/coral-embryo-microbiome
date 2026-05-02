@@ -87,6 +87,7 @@ library(stringr)
 library(ggtext)
 library(viridis)
 library(broom)
+library(ggsidekick)
 ```
 
 ## Set Paths
@@ -232,7 +233,6 @@ head(shannon_df)
 ### Statistical tests
 #### Check for normality
 ```{r}
-hist(shannon_df$Shannon)
 shapiro.test(shannon_df$Shannon) # normality
 ```
 
@@ -285,13 +285,9 @@ leachate treatments were not statistically significant (*F*₃,₄₈ = 1.25,
 significant (*F*₆,₄₈ = 0.33, *p* = 0.919), indicating that the effect of
 leachate on microbial alpha diversity did not differ among stages.
 
-----
-
 Two-way ANOVA indicated no significant effects of leachate
 concentration, developmental stage, or their interaction on Shannon
 diversity (*p* \> 0.3 for all factors).
-
----
 
 A two-way analysis of variance (ANOVA) was conducted to test the effects
 of categorical factors — **PVC leachate concentration** (control, low,
@@ -466,12 +462,11 @@ faith_df <- faith_df %>%
 ### Check for normality
 
 ```{r}
-hist(faith_df$Faith)
 shapiro.test(faith_df$Faith) # normality
 ```
 
 ::: callout-note
-Check normality of Faith's Phylogenetic Diversity values using Shapiro-Wilk test.
+Check normality of Faith's Phylogenetic Diversity values using Shapiro-Wilk test. Since p > 0.05, we fail to reject the null hypothesis of normality, suggesting that Faith's PD values are approximately normally distributed and suitable for parametric testing.
 :::
 
 ### Run a two-way ANOVA
@@ -484,7 +479,7 @@ summary(aov_faith2)
 ```
 
 ::: callout-note
-Two-way ANOVA with Faith's Phylogenetic Diversity as the response variable and categorical factors (PVC leachate level and developmental stage).
+Two-way ANOVA with Faith's Phylogenetic Diversity as the response variable and categorical factors (PVC leachate level and developmental stage) show that leachate concentration did not effect Faith's PD (*F*₃,₄₈ = 1.31, *p* = 0.280), while developmental stage did (*F*₂,₄₈ = 3.63, *p* = 0.034). However, the interaction between leachate and stage was not significant (*F*₆,₄₈ = 0.238, *p* = 0.962), indicating that the effect of leachate on Faith's PD did not differ across developmental stages.
 :::
 
 #### Using numerical variables
@@ -495,7 +490,7 @@ summary(aov_faith2.num)
 ```
 
 ::: callout-note
-Two-way ANOVA with Faith's Phylogenetic Diversity treating leachate concentration and timepoint as continuous variables.
+Two-way ANOVA with Faith's Phylogenetic Diversity treating timepoint as a continuous variable showed similar results as categorical factors.
 :::
 
 ## Boxplots
@@ -523,7 +518,7 @@ fait1 <- ggplot(faith_df, aes(x = factor(leachate), y = Faith, fill = factor(lea
     x = "Leachate Level",
     y = "Faith's Phylogenetic Diversity Metric",
     fill = "Leachate",
-    subtitle = paste0("Two-way ANOVA: ", format_pval(pval_leachate_faith))
+    #subtitle = paste0("Two-way ANOVA: ", format_pval(pval_leachate_faith))
   ) +
   theme_classic() +
   theme(
@@ -535,8 +530,8 @@ fait1 <- ggplot(faith_df, aes(x = factor(leachate), y = Faith, fill = factor(lea
 ```
 
 ```{r}
-# Box plot by timepoint
-fait2 <- ggplot(faith_df, aes(x = factor(timepoint), y = Faith, fill = factor(timepoint))) +
+# Box plot by hpf
+fait2 <- ggplot(faith_df, aes(x = factor(hpf), y = Faith, fill = factor(hpf))) +
   geom_boxplot(alpha = 0.7, outlier.shape = NA) +
   geom_jitter(width = 0.2, size = 2, alpha = 0.6) +
   scale_fill_viridis_d(option = "mako", begin = 0.2, end = 0.9) +
@@ -554,11 +549,12 @@ fait2 <- ggplot(faith_df, aes(x = factor(timepoint), y = Faith, fill = factor(ti
     axis.title = element_text(size = 12),
     legend.position = "right"
   )
+fait2
 ```
 
 ```{r}
 # Box plot by leachate x timepoint interaction
-fait3 <- ggplot(faith_df, aes(x = factor(timepoint), y = Faith, fill = factor(leachate))) +
+fait3 <- ggplot(faith_df, aes(x = factor(hpf), y = Faith, fill = factor(leachate))) +
   geom_boxplot(alpha = 0.7, outlier.shape = NA, position = position_dodge(width = 0.8)) +
   geom_point(position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.8), 
              size = 1.5, alpha = 0.6) +
@@ -568,7 +564,7 @@ fait3 <- ggplot(faith_df, aes(x = factor(timepoint), y = Faith, fill = factor(le
     x = "Hours Post Fertilization",
     y = "Faith's Phylogenetic Diversity Metric",
     fill = "Leachate",
-    subtitle = paste0("Interaction: ", format_pval(pval_interaction_faith))
+    #subtitle = paste0("Interaction: ", format_pval(pval_interaction_faith))
   ) +
   theme_classic() +
   theme(
@@ -583,6 +579,7 @@ fait3 <- ggplot(faith_df, aes(x = factor(timepoint), y = Faith, fill = factor(le
     "9" = paste0("<span style='background-color:", mako_colors[2], ";padding:2px 8px;border-radius:3px;'>9</span>"),
     "14" = paste0("<span style='background-color:", mako_colors[3], ";padding:2px 8px;border-radius:3px;'>14</span>")
   ))
+fait3
 ```
 
 ```{r}

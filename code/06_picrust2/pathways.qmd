@@ -146,6 +146,7 @@ Breaks down organic compounds
 
 # KOs
 
+Transpose so rownames are samples and KOs are columns
 ```{r}
 ko <- t(ko)
 ```
@@ -172,6 +173,13 @@ library(ggpicrust2)
 
 # PCA of pathway matrix 
 > Goal: Perform PCA analysis on pathway abundance data and create an informative visualization that includes a scatter plot of the first two principal components (PC1 vs PC2) with density plots for both PCs. The plot helps to visualize the clustering patterns and distribution of samples across different groups.
+
+## Filter down to sig paths
+```{r}
+
+```
+
+
 
 ```{r}
 # Perform PCA on pathway abundance data
@@ -210,7 +218,7 @@ labs_stage <- c(cleavage = "Cleavage", prawnchip = "Prawn chip", earlygastrula =
 # Create a scatter plot of PC1 vs PC2 with density plots
 ggplot(pca_df, aes(x = PC1, y = PC2, color = leachate)) +
   geom_point(size = 3) +
-  geom_density_2d() +
+  #geom_density_2d() +
   labs(title = "PCA of Pathway Abundance Data",
        x = "Principal Component 1",
        y = "Principal Component 2") +
