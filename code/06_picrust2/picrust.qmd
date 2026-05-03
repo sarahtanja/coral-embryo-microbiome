@@ -214,160 +214,13 @@ qiime tools peek ../../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270
 
 ```
 
-I want to subset the feature table to only the taxa that were found to be differentially abundant/prevalent in the maaslin3 analysis.
+::: callout-important
+DO NOT SUBSET YOUR ASVs! 
+Once we pass the full set of ASVs and their relative abundance counts to PICRUSt2, the software will use the full set of ASVs to predict the functional content of the microbial communities for every sample! If you subset your ASVs to only those that map to the taxa that were found to be differentially abundant/prevalent in the maaslin3 analysis, the follow-up maaslin3 analysis (after running PICRUSt2) will be biased because the functional predictions will have been made based on a subset of the ASVs that were present in the samples. This would lead to an unfair comparison between the taxa-level maaslin3 results and the function-level maaslin3 results, because the function-level results would be based on a biased subset of the data.
+:::
 
 ```{r}
 feat_tbl <- read_qza("../../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza")$data
-```
-
-Load in significant maaslin results
-
-```{r}
-sig_res <- read_tsv("../../output/maaslin/m1/significant_results.tsv")
-```
-
-Pull out only the unique features
-
-```{r}
-sig_feat <- sig_res %>% 
-  distinct(., feature)
-```
-
-Load in the taxonomy to ASV dataframe
-
-```{r}
-tax <- read_qza("../../salipante/241121_StonyCoral/270x200/250414_270x200_representative-sequences_taxonomy.qza")$data
-```
-
-Make sure strings are formatted the same
-
-```{r}
-tax2 <- tax %>%
-  mutate(
-    feature = str_replace_all(Taxon, ";\\s+", ";")
-  )
-```
-
-```{r}
-sig_asvs <- tax2%>%
-  filter(feature %in% sig_feat$feature)
-
-sig_ids <- sig_asvs %>%
-  pull(`Feature.ID`) %>%
-  unique()
-```
-
-returns **all ASVs assigned to those 82 collapsed taxa**
-
-So 82 significant taxa → 432 ASVs.
-
-That means, on average, each significant collapsed taxon maps to about:
-
-```         
-432 / 82
-```
-
-≈ **5.3 ASVs per taxon**.
-
-```{r}
-sig_asv_map <- tax2 %>%
-  filter(feature %in% sig_feat$feature)
-
-sig_asv_map %>%
-  count(feature, name = "n_asvs") %>%
-  arrange(desc(n_asvs))
-```
-
-```{r}
-sig_feat %>%
-  distinct(feature) %>%
-  anti_join(tax2 %>% distinct(feature), by = "feature")
-```
-
-```{r}
-missing_sig <- sig_feat %>%
-  distinct(feature) %>%
-  anti_join(tax2 %>% distinct(feature), by = "feature")
-
-missing_sig$feature[1:10]
-```
-
-Use a function that:
-
-removes spaces after ;
-
-splits taxonomy ranks
-
-finds the first rank containing uncultured / uncultured_bacterium
-
-replaces that rank and all lower ranks with \_\_
-
-pastes it back together
-
-```{r}
-
-format_tax <- function(x){
-
-  x %>%
-    str_replace_all(";\\s+", ";") %>%
-    map_chr(function(tax_string){
-
-      ranks <- str_split(tax_string, ";")[[1]]
-
-      length(ranks) <- 7
-      ranks[is.na(ranks)] <- "__"
-
-      hit <- which(str_detect(
-        ranks,
-        regex("uncultured", ignore_case = TRUE)
-      ))
-
-      if(length(hit) > 0){
-        ranks[hit[1]:7] <- "__"
-      }
-
-      paste(ranks, collapse=";")
-    })
-}
-```
-
-```{r}
-tax2 <- tax %>%
-  mutate(feature_clean = format_tax(Taxon))
-
-sig_feat2 <- sig_feat %>% 
-  mutate(feature_clean = format_tax(feature))
-```
-
-Check matching
-
-```{r}
-sig_feat2 %>%
-  distinct(feature_clean) %>%
-  anti_join(tax2 %>% distinct(feature_clean))
-```
-
-Filter the ASV feature table to the 83 unique taxa in maaslin sig results
-
-```{r}
-sig_asvs <- tax2 %>%
-  filter(feature_clean %in% sig_feat2$feature_clean)
-
-tibble(`feature-id` = sig_ids) %>%
-  write_tsv("sig_asv_ids.tsv")
-
-
-```
-
-This gives 1942 ASVs! Those 1,942 ASVs are all sequence variants belonging to taxa implicated by your MaAsLin3 model. They are not all individually significant ASVs. Taxa-level significance came from collapsed abundance modeling.
-
-## Filter features in QIIME to ASVs that contributed to sig taxa
-
-```{r, engine='bash'}
-qiime feature-table filter-features \
-  --i-table ../../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza \
-  --m-metadata-file sig_asv_ids.tsv \
-  --o-filtered-table sig_featuretable.qza
 ```
 
 ## Sequence file
@@ -382,18 +235,15 @@ qiime tools peek ../../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270
 Filter representative sequences
 
 ```{r, engine='bash'}
-qiime feature-table filter-seqs \
-  --i-data ../../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_representative-sequences.qza \
-  --m-metadata-file sig_asv_ids.tsv \
-  --o-filtered-data sig_repseqs.qza
+rep_seqs = read_qza("../../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_representative-sequences.qza")$data
 ```
 
 ## Run `qiime picrust2 full-pipeline`
 
 ```{r, engine='bash'}
 qiime picrust2 full-pipeline \
-   --i-table sig_featuretable.qza \
-   --i-seq sig_repseqs.qza \
+   --i-table deat_table.qza \
+   --i-seq rep_seqs.qza \
    --output-dir ../../output/picrust2 \
    --p-placement-tool sepp \
    --p-threads 4 \
