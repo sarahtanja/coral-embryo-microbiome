@@ -43,11 +43,11 @@ knitr::opts_chunk$set(
 
 # Background
 
-H~o~ : "PVC Leachate does not alter specific bacterial taxa trajectory over
-developmental time"
+H~o~ : "PVC Leachate does not alter specific bacterial taxa trajectory
+over developmental time"
 
-H~a~ : "PVC Leachate alters specific bacterial taxa trajectory over developmental
-time"
+H~a~ : "PVC Leachate alters specific bacterial taxa trajectory over
+developmental time"
 
 Microbiome Multivariable Associations with Linear Models (MaAsLin)
 
@@ -110,8 +110,8 @@ We have 63 samples... so the maximum number of terms we should use is 6
 # Install MaAsLin3
 
 ```{r, eval=FALSE}
-library("devtools")
-install_github("biobakery/maaslin3")
+#library("devtools")
+#install_github("biobakery/maaslin3")
 ```
 
 # Load Libraries
@@ -218,8 +218,8 @@ night.colors.alt <- c(July_6th = "#21918C",
 ```{r}
 feature_table_path <- "../../salipante/241121_StonyCoral/270x200/"
 metadata_path <- "../../metadata/meta.csv"
-output_path <- "../../output/maaslin/"
-fig_path <- "../../output/figs"
+output_path <- "../../output/maaslin_taxa/"
+fig_path <- "../../figs"
 ```
 
 ## Load metadata
@@ -272,39 +272,15 @@ str(meta)
 
 # Load Data
 
-## Feature tables L4-7
+## Feature table L6 Genus
 
 ```{r}
-# L4 Order
-## Load feature table from QIIME2 artifact
-ft_l4 <- read_qza(file.path(feature_table_path, "collapsed-l4.qza"))$data
-
-## Convert to data.frame
-ft_l4 <- ft_l4 %>% 
-  as.data.frame()
-
-# L5 Family
-## Load feature table from QIIME2 artifact
-ft_l5 <- read_qza(file.path(feature_table_path, "collapsed-l5.qza"))$data
-
-## Convert to data.frame
-ft_l5 <- ft_l5 %>% 
-  as.data.frame()
-
 # L6 Genus
 ## Load feature table from QIIME2 artifact
 ft_l6 <- read_qza(file.path(feature_table_path, "collapsed-l6.qza"))$data
 
 ## Convert to data.frame
 ft_l6 <- ft_l6 %>% 
-  as.data.frame()
-
-# L7 Species
-## Load feature table from QIIME2 artifact
-ft_l7 <- read_qza(file.path(feature_table_path, "collapsed-l7.qza"))$data
-
-## Convert to data.frame
-ft_l7 <- ft_l7 %>% 
   as.data.frame()
 ```
 
@@ -369,14 +345,14 @@ sequencing depth (`reads`) and including random intercepts for
     multcomp::glht (fixed effects and logistic mixed effects) and
     lmerTest::contest (linear mixed effects).
 
-## m1 : leachate*hpf
+## m1 : leachate\*hpf
 
 ```{r}
-set.seed(03172026)
-m1_fit <- maaslin3(
-  input_data = ft_l7,
+set.seed(05032026)
+m1_l6 <- maaslin3(
+  input_data = ft_l6,
   input_metadata = meta,
-  output = file.path(output_path, "m1"),
+  output = file.path(output_path, "m1_l6"),
   formula = ~ leachate*hpf + reads + (1|spawn_night),
   verbosity = 'ERROR',
   cores = 3, 
@@ -385,13 +361,14 @@ m1_fit <- maaslin3(
 )
 ```
 
-## m2 : leachate_mgL*hpf
+## m2 : leachate_mgL\*hpf
+
 ```{r}
-set.seed(03172026)
+set.seed(05032026)
 m2_fit <- maaslin3(
   input_data = ft_l7,
   input_metadata = meta,
-  output = file.path(output_path, "m1"),
+  output = file.path(output_path, "m2"),
   formula = ~ leachate_mgL*hpf + reads + (1|spawn_night),
   verbosity = 'ERROR',
   cores = 3, 
@@ -408,25 +385,18 @@ then it's `filtered_data` (note columns represent ASVs and they drop
 from 1397 to 758) and then `transformed_data` ... The model outputs are
 in `fit_data_abundance` and `fit_data_prevalence`
 
-Probability of Detection
-Predicted Abundance 
+Probability of Detection Predicted Abundance
 
 -   **Fitted values** = “what happened in my experiment”
 
 -   **Predicted grid** = “what the model says the pattern is”
 
 ```{r, message=FALSE, warning=FALSE}
-L7_sig <- read_tsv(file.path(output_path, "Interaction/L7_leachatehpf_cat.con/significant_results.tsv"))
-
-L7_normalized <- read_tsv(file.path(output_path, "Interaction/L7_leachatehpf_cat.con/features/data_norm.tsv"))
-
-L7_transformed <- read_tsv(file.path(output_path, "Interaction/L7_leachatehpf_cat.con/features/data_transformed.tsv"))
-
-L7_filtered <- read_tsv(file.path(output_path, "Interaction/L7_leachatehpf_cat.con/features/filtered_data.tsv"))
+L6_sig <- read_tsv(file.path(output_path, "m1_l6/significant_results.tsv"))
 ```
 
 ```{r}
-L7_sig <- L7_sig %>% 
+L6_sig <- L6_sig %>% 
   mutate(
     CI_lwr = coef - 1.98 * stderr,
     CI_upr = coef + 1.98 * stderr
@@ -434,25 +404,25 @@ L7_sig <- L7_sig %>%
   filter(is.na(error)) %>% 
   filter(metadata != "reads")
 
-L7_feat <- unique(L7_sig$feature)
+L6_sigfeat <- unique(L6_sig$feature)
 ```
 
 There are 57 unique features
 
 ```{r}
-L7_sig %>% 
+L6_sig %>% 
   group_by(model) %>%
   summarise(n = n_distinct(feature))
 ```
 
 ```{r}
 # Extract only unique features to a character vector for prevalence and abundance models 
-feat_prev <- L7_sig %>% 
+feat_prev <- L6_sig %>% 
   filter(model == "prevalence") %>% 
   distinct(feature) %>% 
   pull(feature)
 
-feat_abun <- L7_sig %>% 
+feat_abun <- L6_sig %>% 
   filter(model == "abundance") %>% 
   distinct(feature) %>% 
   pull(feature)
@@ -511,7 +481,7 @@ extract_tax_level(feature, "o"), family = extract_tax_level(feature,
 extract_tax_level(feature, "s") )
 
 ```{r}
-L7_sig_long <- L7_normalized %>% 
+L6_sig_long <- L6_normalized %>% 
   as_tibble() %>% 
   rename(sample_id = feature) %>% 
   pivot_longer(
@@ -519,7 +489,7 @@ L7_sig_long <- L7_normalized %>%
     names_to = "feature",
     values_to = "norm_abundance"
   ) %>% 
-  filter(feature %in% L7_feat) %>%
+  filter(feature %in% L6_sigfeat) %>%
   replace_na(list(norm_abundance = 0)) %>%
   left_join(metadata, by = "sample_id") %>% 
   mutate(
@@ -534,7 +504,7 @@ L7_sig_long <- L7_normalized %>%
     abundance  = if_else(feature %in% feat_abun, "yes", "no")
   )
 
-L7_feat_all <- unique(L7_sig_long$genus_species)
+L6_feat_all <- unique(L6_sig_long$genus_species)
 ```
 
 # Abundance
@@ -590,6 +560,8 @@ L7_sig_long %>%
 
   })
 ```
+
+## Genus (L6)
 
 ## Family (L5)
 
@@ -955,11 +927,9 @@ dat1 <- model.frame(mod1) %>%
 
 str(dat1)
 ```
-Your fitted model expects:
-- leachate as ordered factor
-- hpf as nmatrix.1
-- reads as nmatrix.1
-- spawn_night as ordered factor
+
+Your fitted model expects: - leachate as ordered factor - hpf as
+nmatrix.1 - reads as nmatrix.1 - spawn_night as ordered factor
 
 ```{r}
 dat_pred <- expand_grid(
@@ -988,10 +958,7 @@ dat_pred <- expand_grid(
 mod1_preds <- predict(mod1, newdata = dat_pred, type = "response", re.form = NA, se.fit = TRUE)
 ```
 
-zval <- 1.96
- 95% = 1.96
- 90% = 1.645
- 75% = 1.15
+zval \<- 1.96 95% = 1.96 90% = 1.645 75% = 1.15
 
 ```{r}
 zval <- 1.96
@@ -1015,14 +982,13 @@ mod1_sePreds_link <-  data.frame(dat_pred,
   )
 ```
 
-
 CI stuff... `zval <- 1.96` \# 95% = 1.96 \# 90% = 1.645 \# 75% = 1.15
 
 # Plot fitted prevalence model
+
 ```{r}
 library(PNWColors)
 ```
-
 
 ```{r}
 mod1POD <- ggplot(mod1_sePreds_link, aes(x = leachate_mgL, y = mu)) +

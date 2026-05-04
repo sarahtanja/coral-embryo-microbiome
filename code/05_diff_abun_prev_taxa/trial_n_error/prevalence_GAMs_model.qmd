@@ -1,0 +1,111 @@
+---
+title: "Modeling predictions of bacterial taxa prevalence across leachate and time"
+subtitle: "Can leachate predict the presence of taxa using GAMs?"
+author: "Sarah Tanja"
+date: 2026-03-17
+date-modified: today
+format:
+  gfm: 
+    toc: true
+    number-sections: true
+  html:
+    theme: journal
+    highlight-style: github
+    page-layout: article
+    code-background: true
+    code-tools: 
+      source: true
+      toggle: true
+    toc: true
+    toc-depth: 2
+    toc-location: left
+    number-sections: true
+    df-print: kable
+    smooth-scroll: true
+    link-external-icon: true
+    link-external-newwindow: true
+    reference-location: margin
+    citation-location: margin
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+# Background
+
+Trying to model the prevalence of features across leachate and time is a
+bit more complex than modeling abundance, but it can be done using the
+same general approach. You can use generalized additive models (GAMs) to
+model the probability of detection of a feature as a function of
+leachate and time, while accounting for the non-linear relationships
+between these variables and the response variable.
+
+This was a suggestion by Amy Van Cise, she did something similar here:
+
+> The repo you're looking for is:
+> <https://github.com/MMARINeDNA/zDistribution>.
+>
+> You can find the scripts in the Scripts folder, and specifically you
+> want to look at:
+>
+> -   02_Model_with_GAMs_Q1.R (model m1.2)
+>
+> <!-- -->
+>
+> -   02.1_Plot_H1_models.R (plots for model m1.2)
+>
+> <!-- -->
+>
+> -   02.2_m1.2_performance.R
+>
+>     Note that these aren't microbiome specific models or plots. Since
+>     your data are binomial you can use the same model structure as
+>     this one to model your relationship and predict binomial
+>     probability outcomes. Or, if you'd simply like to add rug plots to
+>     your ggplot object, you can see code for that in the plotting
+>     script. -- Amy Van Cise
+
+MaAsLin3 already ran a model , we just have to use it to make
+predictions and then visualize the probability of detection on the Y
+axis for our differentially prevalent taxa (features).
+
+## What model is MaAsLin3 using for prevalence?
+
+For **prevalence (presence/absence)**, MaAsLin3 fits a **generalized
+linear mixed model (GLMM)**:
+
+-    **Family:** binomial
+
+-    **Link:** logit
+
+-    **Form:** logistic regression (with optional random effects)
+
+# Questions
+
+#### Which taxa show leachate-associated changes beyond expected developmental change through time?
+
+#### Does the probability of detection (POD) of a feature vary with leachate pollution level and across exposure/developmental time?
+
+H~o~: Probability of detection does not vary across leachate or time
+
+H~a~1: Probability of detection varies across leachate and time by ASV
+feature
+
+# Load packages
+
+```{r}
+library(tidyverse)
+library(mgcv)
+```
+
+# Set paths
+
+```{r}
+input_path <- "../output/maaslin"
+```
+
+# Load data
+
+```{r}
+L7_sig_feat_long <- read_csv(file.path(input_path, "L7_significant_features_long.csv"))
+```
