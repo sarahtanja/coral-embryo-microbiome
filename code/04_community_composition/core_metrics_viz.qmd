@@ -358,17 +358,16 @@ shan1
 
 ```{r}
 # Box plot by timepoint
-shan2 <- ggplot(shannon_df, aes(x = factor(hpf), y = Shannon, fill = factor(hpf), color = factor(hpf))) +
-  geom_boxplot(alpha = 0.7, outlier.shape = NA) +
-  geom_jitter(width = 0.2, size = 2, alpha = 0.6, show.legend=FALSE) +
-  scale_fill_manual(values = hpf.3.colors, name="Hours Post-Fertilization") +
-  scale_color_manual(values = hpf.3.colors, name="Hours Post-Fertilization") +
+shan2 <- ggplot(shannon_df, aes(x = factor(hpf), y = Shannon, 
+                                fill = factor(hpf), color = factor(hpf))) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA, show.legend=FALSE) +
+  geom_beeswarm(size = 2, alpha = 1, show.legend=FALSE) +
+  scale_fill_manual(values = hpf.3.colors) +
+  scale_color_manual(values = hpf.3.colors) +
   labs(
-    title = "Shannon Diversity by Developmental Timepoint",
-    x = "Hours Post Fertilization",
-    y = "Shannon Diversity Index",
-    fill = "Hours Post Fertilization",
-    subtitle = paste0("Two-way ANOVA: ", format_pval(pval_shan_stage))
+    title = "Shannon",
+    x = "",
+    y = ""
   ) +
   theme_sleek_axe() 
 
@@ -376,7 +375,6 @@ shan2
 ```
 
 ```{r}
-#| fig-width: 7
 # Box plot by leachate x timepoint interaction
 
 shan3 <- ggplot(shannon_df, aes(
@@ -384,26 +382,27 @@ shan3 <- ggplot(shannon_df, aes(
   y = Shannon,
   fill = factor(leachate), 
   color = factor(leachate)
-)) +
-  geom_boxplot(
-    alpha = 0.65,
-    outlier.shape = NA,
-    position = position_dodge(width = 0.8)
-  ) +
-  geom_point(
-    position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.8),
-    size = 1.5, 
+  )) +
+  geom_violin(
+    position = position_dodge(width = 0.8), 
+    alpha = 0.5, 
     show.legend = FALSE
-  ) +
-  guides(color = "none")+
+              )+
+  
+  geom_boxplot(
+    alpha = 0.8,
+    outlier.shape = NA,
+    position = position_dodge(width = 0.8), 
+    show.legend=FALSE
+               )+
+  
   scale_color_manual(values = leachate.colors) +
   scale_fill_manual(values = leachate.colors) +
   labs(
-    title = "Shannon Diversity across treatments and time",
-    x = "Hours Post Fertilization",
-    y = "Shannon Diversity Index",
-    fill = "Leachate"
-  ) +
+    title = "Shannon",
+    x = "",
+    y = ""
+      )+
   theme_sleek_axe()
 
 shan3
@@ -517,14 +516,6 @@ cleavage and early gastrula stages (*p* = 0.04)
 
 ### Boxplots
 
-```{r, faith-boxplots}
-# Extract p-values from ANOVA for annotations
-faith_pvals <- summary(aov_faith2)[[1]]
-pval_leachate_faith <- faith_pvals["leachate", "Pr(>F)"]
-pval_stage_faith <- faith_pvals["stage", "Pr(>F)"]
-pval_interaction_faith <- faith_pvals["leachate:stage", "Pr(>F)"]
-```
-
 ```{r}
 # Box plot by leachate treatment
 fait1 <- ggplot(faith_df, aes(
@@ -533,19 +524,18 @@ fait1 <- ggplot(faith_df, aes(
   fill = factor(leachate), 
   color=factor(leachate))
   ) +
-  geom_boxplot(alpha = 0.7, outlier.shape = NA, show.legend = FALSE) +
-  geom_jitter(width = 0.2,
+  geom_boxplot(alpha = 0.7, 
+               outlier.shape = NA, 
+               show.legend = FALSE) +
+  geom_beeswarm(width = 0.2,
               size = 2,
               alpha = 0.6, 
               show.legend=FALSE) +   
   scale_fill_manual(values=leachate.colors) +
   scale_color_manual(values=leachate.colors)+
-  labs(title = "Faith's Phylogenetic Diversity by Leachate Treatment",
-       x = "Leachate Level",
-       y = "Faith's Phylogenetic Diversity Metric",
-       fill = "Leachate",
-       color="Leachate",
-       subtitle = paste0("Two-way ANOVA leachate: ", format_pval(pval_leachate_faith))
+  labs(title = "Faith's",
+       x = "",
+       y = ""
        )+
   theme_sleek_axe()
   
@@ -555,17 +545,18 @@ fait1
 ```{r}
 # Box plot by hpf
 fait2 <- ggplot(faith_df, aes(x = factor(hpf), y = Faith, fill = factor(hpf), color=factor(hpf))) +
-  geom_boxplot(alpha = 0.7, outlier.shape = NA, show.legend = FALSE) +
-  geom_beeswarm(size = 2, alpha = 0.6, show.legend = FALSE) +
-  #geom_jitter(width = 0.1, size = 2, alpha = 0.6, show.legend = FALSE) +
+  geom_boxplot(alpha = 0.7, 
+               outlier.shape = NA, 
+               show.legend = FALSE) +
+  geom_beeswarm(size = 2, 
+                alpha = 0.6, 
+                show.legend = FALSE) +
   scale_fill_manual(values = hpf.3.colors) +
   scale_color_manual(values = hpf.3.colors)+
   labs(
-    title = "Faith's Phylogenetic Diversity by Developmental Timepoint",
-    x = "Hours Post Fertilization",
-    y = "Faith's Phlyogenetic Diversity Metric",
-    fill = "Timepoint",
-    subtitle = paste0("Two-way ANOVA hpf: ", format_pval(pval_stage_faith))
+    title = "Faith's",
+    x = "",
+    y = ""
   ) +
   theme_sleek_axe()
 
@@ -678,31 +669,23 @@ timepoint as continuous variables showed similar results as categorical treatmen
 
 ### Boxplots
 
-```{r, pielou-plots}
-#| fig-width: 13
-#| fig-height: 12
-
-# Extract p-values from ANOVA for annotations
-evenness_pvals <- summary(aov_evenness2)[[1]]
-pval_leachate_evenness <- evenness_pvals["leachate", "Pr(>F)"]
-pval_stage_evenness <- evenness_pvals["stage", "Pr(>F)"]
-pval_interaction_evenness <- evenness_pvals["leachate:stage", "Pr(>F)"]
-```
-
 ```{r}
 # Box plot by stage
 piel1 <- ggplot(evenness_df, aes(x = factor(hpf), y = Evenness, 
                                  fill = factor(hpf), color=factor(hpf))
                 )+
-  geom_boxplot(alpha = 0.7, outlier.shape = NA, show.legend=FALSE) +
-  geom_jitter(width = 0.2, size = 2, alpha = 0.6, show.legend=FALSE) +
+  geom_boxplot(alpha = 0.7, 
+               outlier.shape = NA, 
+               show.legend=FALSE) +
+  geom_beeswarm(size = 2, 
+                alpha = 1, 
+                show.legend=FALSE) +
   scale_fill_manual(values = hpf.3.colors) +
   scale_color_manual(values = hpf.3.colors)+
   labs(
-    title = "Pielou's Evenness by Developmental Timepoint",
-    x = "Hours Post Fertilization",
-    y = "Pielou's Evenness",
-    subtitle = paste0("Two-way ANOVA hpf: ", format_pval(pval_stage_evenness))
+    title = "Pielou's",
+    x = "",
+    y = ""
   ) +
   theme_sleek_axe()
 
@@ -713,15 +696,14 @@ piel1
 # Box plot by timepoint
 piel2 <- ggplot(evenness_df, aes(x = factor(leachate), y = Evenness, fill = factor(leachate), color=factor(leachate))) +
   geom_boxplot(alpha = 0.7, outlier.shape = NA, show.legend = FALSE) +
-  geom_jitter(width = 0.2, size = 2, alpha = 0.6, show.legend = FALSE) +
+  geom_beeswarm(size = 2, alpha = 1, show.legend = FALSE) +
   scale_fill_manual(values = leachate.colors) +
   scale_color_manual(values = leachate.colors)+
   
   labs(
-    title = "Pielou's Evenness by Leachate Treatment",
-    x = "Leachate",
-    y = "Pielou's Evenness",
-    #subtitle = paste0("Two-way ANOVA leachate: ", format_pval(pval_leachate_evenness))
+    title = "Pielou's",
+    x = "",
+    y = ""
   ) +
   theme_sleek_axe()
 
@@ -730,31 +712,24 @@ piel2
 
 ```{r}
 # Box plot by leachate x timepoint interaction
-piel3 <- ggplot(evenness_df, aes(x = factor(timepoint), y = Evenness, fill = factor(leachate))) +
+piel3 <- ggplot(evenness_df, aes(x = factor(hpf), y = Evenness, fill = leachate, color=leachate)) +
+  geom_violin(alpha = 0.5, position = position_dodge(width = 0.8), show.legend = FALSE) +
   geom_boxplot(alpha = 0.7, outlier.shape = NA, position = position_dodge(width = 0.8)) +
-  geom_point(position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.8), 
-             size = 1.5, alpha = 0.6) +
-  scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+  ggbeeswarm::geom_quasirandom(
+  aes(group = interaction(leachate, hpf)),  # change names to your variables
+  dodge.width = 0.8,
+  width = 0.1,
+  size = 1.5,
+  alpha = 0.6
+) +
+  scale_color_manual(values = leachate.colors) +
+  scale_fill_manual(values = leachate.colors)+
   labs(
-    title = "Pielou's Evenness by Leachate Treatment x Timepoint",
-    x = "Hours Post Fertilization",
-    y = "Pielou's Evenness",
-    fill = "Leachate",
-    subtitle = paste0("Interaction: ", format_pval(pval_interaction_evenness))
+    title = "Pielou's",
+    x = "",
+    y = ""
   ) +
-  theme_classic() +
-  theme(
-    plot.title = element_text(face = "bold", size = 14),
-    plot.subtitle = element_text(size = 10, color = "grey40"),
-    axis.title = element_text(size = 12),
-    legend.position = "right",
-    axis.text.x = ggtext::element_markdown(size = 11)
-  ) +
-  scale_x_discrete(labels = c(
-    "4" = paste0("<span style='background-color:", mako_colors[1], ";padding:2px 8px;border-radius:3px;'>4</span>"),
-    "9" = paste0("<span style='background-color:", mako_colors[2], ";padding:2px 8px;border-radius:3px;'>9</span>"),
-    "14" = paste0("<span style='background-color:", mako_colors[3], ";padding:2px 8px;border-radius:3px;'>14</span>")
-  ))
+  theme_sleek_axe()
 
 piel3
 ```
@@ -772,6 +747,7 @@ ggsave(filename = file.path(figures_dir, "pielou_by_timepoint.png"), plot = piel
 ggsave(filename = file.path(figures_dir, "pielou_leachate_x_timepoint.png"), plot = piel3, width = 10, height = 6, dpi = 900)
 ggsave(filename = file.path(figures_dir, "pielou_combined.png"), plot = pielou_combined, width = 13, height = 12, dpi = 900)
 ```
+
 ## Observed Features (ASV Richness)
 
 The number of unique amplicon sequence variants (ASVs) observed in each
@@ -800,12 +776,14 @@ observed_df <- observed_df %>%
 ### Check for normality
 
 ```{r}
-hist(observed_df$ObservedFeatures)
+ggplot(observed_df, aes(x=ObservedFeatures))+
+  geom_density()+
+  theme_sleek_axe()
 shapiro.test(observed_df$ObservedFeatures) # normality
 ```
 
 ::: callout-note
-Check normality of Observed Features values using Shapiro-Wilk test.
+Check normality of Observed Features values using Shapiro-Wilk test.. since *p* = 0.12, we can reject the null hypothesis and conclude that Observed Features values are approximately normally distributed, allowing for parametric testing.
 :::
 
 ### Run a two-way ANOVA
@@ -813,106 +791,93 @@ Check normality of Observed Features values using Shapiro-Wilk test.
 #### Using categorical variables
 
 ```{r}
-aov_observed2 <- aov(ObservedFeatures ~ pvc_level * stage, data = observed_df)
+aov_observed2 <- aov(ObservedFeatures ~ leachate * stage, data = observed_df)
 summary(aov_observed2)
 ```
 
 ::: callout-note
 Two-way ANOVA with Observed Features as the response variable and
-categorical factors (PVC leachate level and developmental stage).
+categorical factors (PVC leachate level and developmental stage) show no differences between groups (all *p* > 0.15)
 :::
 
 #### Using numerical variables
 
 ```{r}
-aov_observed2.num <- aov(ObservedFeatures ~ leachate * timepoint, data = observed_df)
+aov_observed2.num <- aov(ObservedFeatures ~ leachate_mgL * hpf, data = observed_df)
 summary(aov_observed2.num)
 ```
 
 ::: callout-note
 Two-way ANOVA with Observed Features treating leachate concentration and
-timepoint as continuous variables.
+timepoint as continuous variables show similar results, all *p* > 0.11
 :::
 
 ### Boxplots
 
 ```{r, asv-rich-boxplots}
-#| fig-width: 13
-#| fig-height: 12
-
-# Extract p-values from ANOVA for annotations
-observed_pvals <- summary(aov_observed2)[[1]]
-pval_leachate_observed <- observed_pvals["pvc_level", "Pr(>F)"]
-pval_stage_observed <- observed_pvals["stage", "Pr(>F)"]
-pval_interaction_observed <- observed_pvals["pvc_level:stage", "Pr(>F)"]
-
 # Box plot by leachate treatment
-asv1 <- ggplot(observed_df, aes(x = factor(leachate), y = ObservedFeatures, fill = factor(leachate))) +
-  geom_boxplot(alpha = 0.7, outlier.shape = NA) +
-  geom_jitter(width = 0.2, size = 2, alpha = 0.6) +
-  scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+asv1 <- ggplot(observed_df, 
+               aes(x = leachate, y = ObservedFeatures, 
+                   fill = leachate, color=leachate)) +
+  
+  geom_boxplot(alpha = 0.7, outlier.shape = NA, show.legend=FALSE) +
+  geom_jitter(width = 0.2, size = 2, alpha = 1, show.legend=FALSE) +
+  
+  scale_color_manual(values = leachate.colors) +
+  scale_fill_manual(values = leachate.colors) +
+  
   labs(
-    title = "Observed ASV Richness by Leachate Treatment",
-    x = "Leachate Level",
-    y = "Number of Observed Features",
-    fill = "Leachate",
-    subtitle = paste0("Two-way ANOVA: ", format_pval(pval_leachate_observed))
+    title = "Observed Features",
+    x = "",
+    y = ""
   ) +
-  theme_classic() +
-  theme(
-    plot.title = element_text(face = "bold", size = 14),
-    plot.subtitle = element_text(size = 10, color = "grey40"),
-    axis.title = element_text(size = 12),
-    legend.position = "none"
-  )
+  theme_sleek_axe()
 
+asv1
+```
+
+```{r}
 # Box plot by timepoint
-asv2 <- ggplot(observed_df, aes(x = factor(timepoint), y = ObservedFeatures, fill = factor(timepoint))) +
-  geom_boxplot(alpha = 0.7, outlier.shape = NA) +
-  geom_jitter(width = 0.2, size = 2, alpha = 0.6) +
-  scale_fill_viridis_d(option = "mako", begin = 0.2, end = 0.9) +
+asv2 <- ggplot(observed_df, aes(x = factor(hpf), y = ObservedFeatures, 
+                                fill = factor(hpf), color=factor(hpf))) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA, show.legend=FALSE) +
+  geom_beeswarm(size = 2, alpha = 1, show.legend=FALSE) +
+  
+  scale_fill_manual(values = hpf.3.colors) +
+  scale_color_manual(values = hpf.3.colors)+
+  
   labs(
-    title = "Observed ASV Richness by Developmental Timepoint",
-    x = "Hours Post Fertilization",
-    y = "Number of Observed Features",
-    fill = "Timepoint",
-    subtitle = paste0("Two-way ANOVA: ", format_pval(pval_stage_observed))
+    title = "Observed Features",
+    x = "",
+    y = ""
   ) +
-  theme_classic() +
-  theme(
-    plot.title = element_text(face = "bold", size = 14),
-    plot.subtitle = element_text(size = 10, color = "grey40"),
-    axis.title = element_text(size = 12),
-    legend.position = "right"
-  )
+  theme_sleek_axe()
 
+asv2
+```
+
+
+```{r}
 # Box plot by leachate x timepoint interaction
-asv3 <- ggplot(observed_df, aes(x = factor(timepoint), y = ObservedFeatures, fill = factor(leachate))) +
-  geom_boxplot(alpha = 0.7, outlier.shape = NA, position = position_dodge(width = 0.8)) +
-  geom_point(position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.8), 
-             size = 1.5, alpha = 0.6) +
-  scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+asv3 <- ggplot(observed_df, aes(x = factor(hpf), y = ObservedFeatures, 
+                                fill = leachate, color=leachate)) +
+  geom_violin(alpha = 0.5, position = position_dodge(width = 0.8), show.legend = FALSE) +   
+  geom_boxplot(alpha = 0.7, outlier.shape = NA, position = position_dodge(width = 0.8), show.legend=FALSE) +
+    
+    scale_color_manual(values = leachate.colors) +
+    scale_fill_manual(values = leachate.colors)+
+    
   labs(
-    title = "Observed ASV Richness by Leachate Treatment x Timepoint",
-    x = "Hours Post Fertilization",
-    y = "Number of Observed Features",
-    fill = "Leachate",
-    subtitle = paste0("Interaction: ", format_pval(pval_interaction_observed))
+    title = "Observed Features",
+    x = "",
+    y = ""
   ) +
-  theme_classic() +
-  theme(
-    plot.title = element_text(face = "bold", size = 14),
-    plot.subtitle = element_text(size = 10, color = "grey40"),
-    axis.title = element_text(size = 12),
-    legend.position = "right",
-    axis.text.x = ggtext::element_markdown(size = 11)
-  ) +
-  scale_x_discrete(labels = c(
-    "4" = paste0("<span style='background-color:", mako_colors[1], ";padding:2px 8px;border-radius:3px;'>4</span>"),
-    "9" = paste0("<span style='background-color:", mako_colors[2], ";padding:2px 8px;border-radius:3px;'>9</span>"),
-    "14" = paste0("<span style='background-color:", mako_colors[3], ";padding:2px 8px;border-radius:3px;'>14</span>")
-  ))
+  theme_sleek_axe()
+  
+asv3  
+```
 
+```{r}
 # Combine plots using patchwork
 asv_combined <- (asv1 + asv2) / asv3
 
@@ -925,72 +890,28 @@ ggsave(filename = file.path(figures_dir, "observed_features_combined.png"), plot
 asv_combined
 ```
 
-## Alpha Diversity Summary Panel
+# Alpha Diversity Summary Panel
+
+Shannon, Faith, Pielou, Observed Features
 
 ```{r}
-#| fig-width: 12
-#| fig-height: 10
-
-# Combine all alpha diversity metrics
-alpha_combined <- shannon_df %>%
-  select(SampleID, leachate, timepoint, Shannon) %>%
-  left_join(faith_df %>% select(SampleID, Faith), by = "SampleID") %>%
-  left_join(evenness_df %>% select(SampleID, Evenness), by = "SampleID") %>%
-  left_join(observed_df %>% select(SampleID, ObservedFeatures), by = "SampleID") %>%
-  pivot_longer(cols = c(Shannon, Faith, Evenness, ObservedFeatures),
-               names_to = "Metric",
-               values_to = "Value")
-
-# Panel by leachate
-alph1 <- ggplot(alpha_combined, aes(x = factor(leachate), y = Value, fill = factor(leachate), color = factor(leachate))) +
-  geom_boxplot(alpha = 0.7) +
-  geom_jitter()+
-  facet_wrap(~Metric, scales = "free_y", ncol = 2) +
-  scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
-  labs(
-    title = "Alpha Diversity Metrics by Leachate Treatment",
-    x = "Leachate Level",
-    y = "Diversity Value",
-    fill = "Leachate"
-  ) +
-  theme_classic() +
-  theme(
-    plot.title = element_text(face = "bold", size = 14),
-    axis.title = element_text(size = 12),
-    strip.background = element_rect(fill = "grey90"),
-    strip.text = element_text(face = "bold", size = 11),
-    legend.position = "none"
+alpha_combined <- wrap_plots(
+  shan1, fait1, piel1, asv1,
+  shan2, fait2, piel2, asv2,
+  shan3, fait3, piel3, asv3,
+  ncol = 4,
+  nrow = 3,
+  byrow = TRUE
+) +
+  plot_annotation(
+    title = "Alpha Diversity Metrics by Leachate Treatment, Timepoint, and Interaction",
+    theme = theme(
+      plot.title = element_text(size = 12),
+      plot.subtitle = element_text(size = 12, color = "grey40")
+    )
   )
 
-# Panel by timepoint
-alph2 <- ggplot(alpha_combined, aes(x = factor(timepoint), y = Value, fill = factor(timepoint),  color = factor(timepoint))) +
-  geom_boxplot(alpha = 0.7) +
-  geom_jitter(width=0.1, alpha = 0.9)+
-  facet_wrap(~Metric, scales = "free_y", ncol = 2) +
-  scale_fill_viridis_d(option = "mako", begin = 0.2, end = 0.9) + # palette for boxplot fill
-  scale_color_viridis_d(option = "mako", begin = 0.2, end = 0.9) +  # <- same palette for points
-  labs(
-    title = "Alpha Diversity Metrics by Developmental Timepoint",
-    x = "Hours Post Fertilization",
-    y = "Diversity Value",
-    fill = "Timepoint",
-    color = "Timepoint"
-  ) +
-  theme_classic() +
-  theme(
-    plot.title = element_text(face = "bold", size = 14),
-    axis.title = element_text(size = 12),
-    strip.background = element_rect(fill = "grey90"),
-    strip.text = element_text(face = "bold", size = 11),
-    legend.position = "right"
-  )
-
-# Save plots
-ggsave(filename = file.path(figures_dir, "alpha_diversity_panel_by_leachate.png"), plot = alph1, width = 12, height = 10, dpi = 300)
-ggsave(filename = file.path(figures_dir, "alpha_diversity_panel_by_timepoint.png"), plot = alph2, width = 12, height = 10, dpi = 300)
-
-alph1
-alph2
+alpha_combined
 ```
 
 # Beta Diversity
