@@ -1,5 +1,5 @@
 ---
-title: "PICRUSt2 pathway resulst"
+title: "Maaslin3 Differential abundance and prevalence testing on PICRUSt2 full functional profile output of predicted MetaCyc metabolic pathways"
 author: "Sarah Tanja"
 date: 2026-04-30
 date-modified: today
@@ -44,7 +44,6 @@ note to self.. can't use qiime2R on windows so go to raven but can't update rave
 # Load libraries
 
 ```{r, eval=TRUE}
-library(reticulate)
 library(tidyverse)
 library(qiime2R)
 library(maaslin3)
@@ -52,18 +51,18 @@ library(maaslin3)
 
 
 ```{r}
-path <- read_qza("../../output/picrust2/pathway_abundance.qza")$data
+path <- read_qza("../../output/picrust2_epa-ng/pathway_abundance.qza")$data
 ```
 
 ```{r}
-ko <- read_qza("../../output/picrust2/ko_metagenome.qza")$data
+ko <- read_qza("../../output/picrust2_epa-ng/ko_metagenome.qza")$data
 ```
 
 ## Define file paths
 
 ```{r}
 metadata_path <- "../../metadata/meta.csv"
-output_path <- "../../output/picrust2/"
+output_path <- "../../output/picrust2_epa-ng/"
 fig_path <- "../../output/figs"
 ```
 
@@ -106,7 +105,7 @@ path <- t(path)
 
 ##  Run MaAsLin3
 ```{r}
-set.seed(04302026)
+set.seed(05032026)
 mp <- maaslin3(
   input_data = path,
   input_metadata = meta,
