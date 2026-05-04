@@ -67,8 +67,6 @@ Some advice from Dr. Steve Salipante
 # Load libraries
 
 ```{r, eval=TRUE}
-library(knitr)
-library(dplyr)
 library(reticulate)
 library(tidyverse)
 library(qiime2R)
@@ -125,18 +123,18 @@ accept terms of service
 
 picrust needs python 3.9
 
-## 2025.7
-
+## 2026.4
+has python 3.12.13
 ```         
 conda env create \
-  --name qiime2-amplicon-2025.7 \
-  --file https://raw.githubusercontent.com/qiime2/distributions/refs/heads/dev/2025.7/amplicon/released/qiime2-amplicon-ubuntu-latest-conda.yml
+  --name rachis-qiime2-2026.4 \
+  --file https://raw.githubusercontent.com/qiime2/distributions/refs/heads/dev/2026.4/qiime2/released/rachis-qiime2-linux-64-conda.yml
 ```
 
 # Activate qiime2 environment in R
 
 ```{r load-qiime-env, eval=TRUE}
-use_condaenv(condaenv = "qiime2-amplicon-2023.9", conda = "/home/shared/8TB_HDD_02/stanja/miniconda3/condabin/conda")
+use_condaenv(condaenv = "rachis-qiime2-2026.4", conda = "/home/shared/8TB_HDD_02/stanja/miniconda3/condabin/conda")
 
 # Check successful env loading
 py_config()
@@ -153,6 +151,11 @@ echo $PATH
 # Install picrust2
 
 This must be done from within the active qiime2 conda environment!
+In the terminal, type: 
+
+```
+conda activate qiime2-amplicon-2023.9
+```
 
 `qiime2` depends on `python 3.8` but `picrust2` uses `python 3.9` ... This results in package conflicts!!! The qiime2 library plugin for q2-picrust2 warms about this and suggests installing the plugin manually to avoid the "mysterious incompatibility errors"
 
@@ -168,7 +171,7 @@ conda install -c bioconda -c conda-forge picrust2
 
 Download, unzip, and install the q2-picrust2 qiime2 plugin!
 
-1\. Get and unzip the plugin
+1. Get and unzip the plugin
 
 ```{r, engine='bash'}
 cd /home/shared/8TB_HDD_02/stanja
@@ -182,7 +185,6 @@ tar -xzvf 2024.5_1.tar.gz
 cd /home/shared/8TB_HDD_02/stanja/q2-picrust2-2024.5_1
 pip install -e .
 ```
-
 3.  Refresh the qiime cache
 
 ```{r,engine='bash'}
@@ -234,20 +236,18 @@ qiime tools peek ../../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270
 
 Filter representative sequences
 
-```{r, engine='bash'}
-rep_seqs = read_qza("../../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_representative-sequences.qza")$data
+```{r}
+rep_seqs <- read_qza("../../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_representative-sequences.qza")$data
 ```
 
 ## Run `qiime picrust2 full-pipeline`
 
 ```{r, engine='bash'}
 qiime picrust2 full-pipeline \
-   --i-table deat_table.qza \
-   --i-seq rep_seqs.qza \
-   --output-dir ../../output/picrust2 \
-   --p-placement-tool sepp \
+   --i-table ../../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza \
+   --i-seq ../../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_representative-sequences.qza \
+   --output-dir ../../output/picrust2v2 \
    --p-threads 4 \
-   --p-hsp-method pic \
    --p-max-nsti 2 \
    --verbose
 ```
