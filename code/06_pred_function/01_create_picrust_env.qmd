@@ -119,78 +119,21 @@ conda update conda
 
 accept terms of service
 
-# Install QIIME2 as a conda environment
+# Install Picrust as a conda environment
 
-picrust needs python 3.9
+[Install from bioconda](https://github.com/picrust/picrust2/wiki/Installation#:~:text=Install%20from%20bioconda)
 
-## 2025.7
-
-```         
-conda env create \
-  --name qiime2-amplicon-2025.7 \
-  --file https://raw.githubusercontent.com/qiime2/distributions/refs/heads/dev/2025.7/amplicon/released/qiime2-amplicon-ubuntu-latest-conda.yml
+Check conda envs: 
 ```
-
-# Activate qiime2 environment in R
-
-```{r load-qiime-env, eval=TRUE}
-use_condaenv(condaenv = "qiime2-amplicon-2023.9", conda = "/home/shared/8TB_HDD_02/stanja/miniconda3/condabin/conda")
-
-# Check successful env loading
-py_config()
+conda env list
 ```
-
-If this is successful, the first line of output should show that the Python environment being used is the one in your conda environment path.
-
-Your conda and qiime environments should be listed in your \$PATH:
-
-```{r test-path, engine='bash'}
-echo $PATH
+Get into the base conda env:
 ```
-
-# Install picrust2
-
-This must be done from within the active qiime2 conda environment!
-
-`qiime2` depends on `python 3.8` but `picrust2` uses `python 3.9` ... This results in package conflicts!!! The qiime2 library plugin for q2-picrust2 warms about this and suggests installing the plugin manually to avoid the "mysterious incompatibility errors"
-
-> If you run into incompatibility errors ... try [installing the plugin manually](https://github.com/picrust/picrust2/wiki/Manually-install-QIIME-2-plugin) instead.
-
-Run the following code in the Terminal and type 'y' when prompted to first install picrust2.
-
-```         
-conda install -c bioconda -c conda-forge picrust2
+conda activate base
 ```
-
-# Install q2-picrust2 plugin
-
-Download, unzip, and install the q2-picrust2 qiime2 plugin!
-
-1. Get and unzip the plugin
-
-```{r, engine='bash'}
-cd /home/shared/8TB_HDD_02/stanja
-wget https://github.com/picrust/q2-picrust2/archive/refs/tags/2024.5_1.tar.gz
-tar -xzvf 2024.5_1.tar.gz
+create picrust conda env:
 ```
-
-2.  Move into the plugin directory and `pip install` the `setup.py` script.
-
-```{r, engine='bash'}
-cd /home/shared/8TB_HDD_02/stanja/q2-picrust2-2024.5_1
-pip install -e .
-```
-
-3.  Refresh the qiime cache
-
-```{r,engine='bash'}
-qiime dev refresh-cache
-```
-
-4.  Test that the plugin is working
-
-```{r, engine='bash'}
-qiime picrust2 --help
+mamba create -n picrust2 -c bioconda -c conda-forge picrust2=2.6.2
 ```
 
 

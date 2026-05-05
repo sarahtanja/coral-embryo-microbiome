@@ -40,27 +40,7 @@ knitr::opts_chunk$set(
 
 [How does PICRUSt2 work? What does it do?](https://github.com/picrust/picrust2/wiki/How-does-PICRUSt2-work%3F-What-does-it-do%3F)
 
-> PICRUSt2 aims to predict the functional content of microbial communities based on amplicon/marker gene sequences. Very simply, PICRUSt2 takes information about which microbes are present in a sample and predicts what these microbes might be doing. PICRUSt2 compares the marker gene sequences from a sample to known genomes from similar microbes in order to predict the genes that are likely present and what functions they might perform.
 
--   fasta formatted representative sequences (ASVs)
-
--   feature table (tab-delimited) containing abundance of ASVs within samples
-
-::: callout-note
-Some advice from Dr. Steve Salipante
-
-> Yes it is reasonable to look at picrust output and see if there are functional shifts, but it is not clear how adequate picrust libraries are to allow metabolic inference of these particular populations.  I would recommend that the actual analysis of metabolic shifts be conducted in Maaslin, as before, to account for covariates.
->
-> it is possible to give sarah the input files she would need for the analysis. \[see [https://forum.qiime2.org/t/picrust2-input-files-for-bacteria/27968](https://urldefense.com/v3/__https://forum.qiime2.org/t/picrust2-input-files-for-bacteria/27968__;!!K-Hz7m0Vt54!iZIXAiB2i2QtliEgrFMztEKZHQZuAILNAY54WW_klnDOn0rCNia6tnE-GrFq0efQ8IeJkkAwEJWtIM0$)\]. For the record, you could isolate the ASV table from DADA2 in qiime (these are stored in rep-seqs-dada2.qza, according to [https://forum.qiime2.org/t/how-to-generate-an-asv-table-from-dada2-output/9973](https://urldefense.com/v3/__https://forum.qiime2.org/t/how-to-generate-an-asv-table-from-dada2-output/9973__;!!K-Hz7m0Vt54!iZIXAiB2i2QtliEgrFMztEKZHQZuAILNAY54WW_klnDOn0rCNia6tnE-GrFq0efQ8IeJkkAwpWyxhvY$)), and convert it to biom format \[[https://forum.qiime2.org/t/how-to-generate-an-asv-table-from-dada2-output/9973/2](https://urldefense.com/v3/__https://forum.qiime2.org/t/how-to-generate-an-asv-table-from-dada2-output/9973/2__;!!K-Hz7m0Vt54!iZIXAiB2i2QtliEgrFMztEKZHQZuAILNAY54WW_klnDOn0rCNia6tnE-GrFq0efQ8IeJkkAwc-L0gtk$)\]. 
->
-> having said this it may just be easier to use the picrust2 plugin for qiime and hand over those outputs, since we already have the inputs ready in qiime
->
-> [https://github.com/picrust/picrust2/wiki/q2-picrust2-Tutorial](https://urldefense.com/v3/__https://github.com/picrust/picrust2/wiki/q2-picrust2-Tutorial__;!!K-Hz7m0Vt54!iZIXAiB2i2QtliEgrFMztEKZHQZuAILNAY54WW_klnDOn0rCNia6tnE-GrFq0efQ8IeJkkAwVcNVfvQ$)
->
-> [https://github.com/picrust/picrust2/wiki/Manually-install-QIIME-2-plugin](https://urldefense.com/v3/__https://github.com/picrust/picrust2/wiki/Manually-install-QIIME-2-plugin__;!!K-Hz7m0Vt54!iZIXAiB2i2QtliEgrFMztEKZHQZuAILNAY54WW_klnDOn0rCNia6tnE-GrFq0efQ8IeJkkAwAif4ef0$)\
-> \
-> id say generate those outputs and then run them through maaslin to look for significant feature abundances. -- S.S.
-:::
 
 # Load libraries
 
@@ -70,27 +50,15 @@ library(qiime2R)
 ```
 
 
-
-# PICRUSt2 qiime pipeline
-
-```{r, engine='bash'}
-qiime picrust2 full-pipeline --help
-```
-
-> The required inputs are --i-table and --i-seq, which need to correspond to QIIME 2 artifacts of types FeatureTable\[Frequency\] and FeatureData\[Sequence\], respectively. The Feature Table needs to contain the abundances of ASVs (i.e. a BIOM table) and the sequence file needs to be a FASTA file containing the sequences for each ASV.
-
-> These files correspond to the ASV count table, ASV sequences, and metadata for the samples.
-
-## Feature table (BIOM)
+# Subset Feature table (BIOM)
+I want to subset the feature table to only the taxa that were found to be differentially abundant/prevalent in the maaslin3 analysis.
+We ran the maaslin3 analysis on the collapsed-l6 feature table. 
 
 located at path `../../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza`
 
 ```{r, engine='bash', eval=TRUE}
 qiime tools peek ../../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza
-
 ```
-
-I want to subset the feature table to only the taxa that were found to be differentially abundant/prevalent in the maaslin3 analysis.
 
 ```{r}
 feat_tbl <- read_qza("../../salipante/241121_StonyCoral/270x200/250414_StonyCoral_270x200_featureTable_filtered.qza")$data
