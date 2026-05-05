@@ -47,20 +47,7 @@ library(tidyverse)
 library(qiime2R)
 ```
 
-[Install from bioconda](https://github.com/picrust/picrust2/wiki/Installation#:~:text=Install%20from%20bioconda)
 
-Check conda envs: 
-```
-conda env list
-```
-Get into the base conda env:
-```
-conda activate base
-```
-create picrust conda env:
-```
-mamba create -n picrust2 -c bioconda -c conda-forge picrust2=2.6.2
-```
 
 Use qiime tools (qiime2R) to  format feature table as a BIOM and representative sequences as fasta
 
