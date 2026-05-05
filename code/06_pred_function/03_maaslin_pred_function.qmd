@@ -51,18 +51,15 @@ library(maaslin3)
 
 
 ```{r}
-path <- read_qza("../../output/picrust2_epa-ng/pathway_abundance.qza")$data
+path <- read_tsv("../../output/picrust2/envrun/pathways_out/path_abun_unstrat.tsv.gz")
 ```
 
-```{r}
-ko <- read_qza("../../output/picrust2_epa-ng/ko_metagenome.qza")$data
-```
 
 ## Define file paths
 
 ```{r}
 metadata_path <- "../../metadata/meta.csv"
-output_path <- "../../output/picrust2_epa-ng/"
+output_path <- "../../output/picrust2"
 fig_path <- "../../output/figs"
 ```
 
