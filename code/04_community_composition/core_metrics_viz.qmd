@@ -72,6 +72,7 @@ Faith's Phylogenetic Diversity, - Evenness - Observed Features
 ```
 
 ## Load libraries
+
 ```{r}
 #| message: false
 #| warning: false
@@ -136,7 +137,9 @@ theme_sleek_axe <- function() {
       axis.title = element_text(size = 8, color = "grey40"),
       axis.text = element_text(size = 7, color = "grey40"),
       legend.title = element_text(size = 8, color = "grey40"),
-      legend.text = element_text(size = 7, color = "grey40")
+      legend.text = element_text(size = 7, color = "grey40"),
+  
+      plot.margin = margin(t = 2, r = 2, b = 2, l = 2)
     )
 }
 
@@ -257,7 +260,7 @@ continuous trend (e.g., linear dose–response).
 :::
 
 | Variable | Nature | Should be coded as | Why |
-|:---------------|:---------------|:---------------|:-----------------------|
+|:----------------|:----------------|:----------------|:---------------------|
 | **`stage` (4 hpf, 9 hpf, 14 hpf)** | Distinct developmental stages | **Categorical (factor)** | The stages are not on a linear scale — differences are categorical, not continuous. |
 | **`leachate` (0, 0.01, 0.1, 1 mg/L)** | Nominally continuous, used as treatment bins | **Categorical (factor)** for ANOVA **or** **numeric** to test a dose–response trend | If you care about *group differences*, treat as a factor; if you want to test whether Shannon changes *linearly/non-linearly* with concentration, treat it as numeric. |
 
@@ -323,9 +326,9 @@ gradients, indicating limited sensitivity of microbial diversity to
 leachate exposure or developmental progression.
 :::
 
-### Boxplots
+### Shannon Boxplots
 
-```{r shannon-boxplots}
+```{r shannon-leachate-shan1}
 # Box plot by leachate treatment
 shan1 <- ggplot(shannon_df, aes(x = leachate, y = Shannon,
                                 fill = leachate, color=leachate)
@@ -347,7 +350,7 @@ shan1 <- ggplot(shannon_df, aes(x = leachate, y = Shannon,
     values = leachate.colors
   ) +
   labs(
-    title = "Shannon",
+    title = "",
     x = "",
     y = ""
   ) +
@@ -356,7 +359,7 @@ shan1 <- ggplot(shannon_df, aes(x = leachate, y = Shannon,
 shan1
 ```
 
-```{r}
+```{r shannon-stage-shan2}
 # Box plot by timepoint
 shan2 <- ggplot(shannon_df, aes(x = factor(hpf), y = Shannon, 
                                 fill = factor(hpf), color = factor(hpf))) +
@@ -365,7 +368,7 @@ shan2 <- ggplot(shannon_df, aes(x = factor(hpf), y = Shannon,
   scale_fill_manual(values = hpf.3.colors) +
   scale_color_manual(values = hpf.3.colors) +
   labs(
-    title = "Shannon",
+    title = "",
     x = "",
     y = ""
   ) +
@@ -375,6 +378,12 @@ shan2
 ```
 
 ```{r}
+box1 <- 4
+box2 <- 3
+box3 <- 12
+```
+
+```{r shannon-int-shan3}
 # Box plot by leachate x timepoint interaction
 
 shan3 <- ggplot(shannon_df, aes(
@@ -412,18 +421,20 @@ shan3
 ggsave(filename = file.path(figures_dir, "alpha_shannon.png"), plot = shan3, width = 10, height = 6, dpi = 900)
 ```
 
-```{r}
+```{r shannon-combo}
 # Combine plots using patchwork
-shannon_combined <- (shan1 + shan2) / shan3
+shannon_combined <- shan3/ (shan1 + shan2) 
+shannon_combined
+```
 
+```{r save-shannon}
 # Save plots
 ggsave(filename = file.path(figures_dir, "shannon_by_leachate.png"), plot = shan1, width = 10, height = 6, dpi = 300)
 ggsave(filename = file.path(figures_dir, "shannon_by_timepoint.png"), plot = shan2, width = 10, height = 6, dpi = 300)
 ggsave(filename = file.path(figures_dir, "shannon_leachate_x_timepoint.png"), plot = shan3, width = 10, height = 6, dpi = 300)
 ggsave(filename = file.path(figures_dir, "shannon_combined.png"), plot = shannon_combined, width = 13, height = 12, dpi = 300)
-
-shannon_combined
 ```
+
 
 ## Faith's Phylogenetic Diversity
 
@@ -514,7 +525,7 @@ It appears the only sig difference between groups is between the
 cleavage and early gastrula stages (*p* = 0.04)
 :::
 
-### Boxplots
+### Faith Boxplots
 
 ```{r}
 # Box plot by leachate treatment
@@ -524,16 +535,16 @@ fait1 <- ggplot(faith_df, aes(
   fill = factor(leachate), 
   color=factor(leachate))
   ) +
-  geom_boxplot(alpha = 0.7, 
+  geom_boxplot(alpha = 0.7,
+               width = 0.7,
                outlier.shape = NA, 
                show.legend = FALSE) +
-  geom_beeswarm(width = 0.2,
-              size = 2,
-              alpha = 0.6, 
+  geom_beeswarm(size = 2,
+              alpha = 1, 
               show.legend=FALSE) +   
   scale_fill_manual(values=leachate.colors) +
   scale_color_manual(values=leachate.colors)+
-  labs(title = "Faith's",
+  labs(title = "",
        x = "",
        y = ""
        )+
@@ -544,17 +555,20 @@ fait1
 
 ```{r}
 # Box plot by hpf
-fait2 <- ggplot(faith_df, aes(x = factor(hpf), y = Faith, fill = factor(hpf), color=factor(hpf))) +
+fait2 <- ggplot(faith_df, aes(x = factor(hpf), 
+                              y = Faith, 
+                              fill = factor(hpf), 
+                              color=factor(hpf))) +
   geom_boxplot(alpha = 0.7, 
                outlier.shape = NA, 
                show.legend = FALSE) +
   geom_beeswarm(size = 2, 
-                alpha = 0.6, 
+                alpha = 1, 
                 show.legend = FALSE) +
   scale_fill_manual(values = hpf.3.colors) +
   scale_color_manual(values = hpf.3.colors)+
   labs(
-    title = "Faith's",
+    title = "",
     x = "",
     y = ""
   ) +
@@ -565,33 +579,46 @@ fait2
 
 ```{r}
 # Box plot by leachate x timepoint interaction
-fait3 <- ggplot(faith_df, aes(x=factor(hpf), y=Faith,
-                              fill=factor(leachate), color=factor(leachate))
-                ) +
-  geom_boxplot(alpha = 0.7, outlier.shape = NA, 
-               position = position_dodge(width = 0.8)) +
-  geom_point(position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.8), 
-             size = 1.5, alpha = 0.6) +
+
+fait3 <- ggplot(faith_df, aes(
+  x = factor(hpf),
+  y = Faith,
+  fill = factor(leachate),
+  color = factor(leachate)
+)) +
+  geom_boxplot(
+    alpha = 0.7,
+    outlier.shape = NA,
+    position = position_dodge(width = 0.8),
+    show.legend = FALSE
+  ) +
+  geom_beeswarm(
+    aes(group = interaction(hpf, leachate)),
+    dodge.width = 0.8,
+    size = 1.5,
+    alpha = 1,
+    show.legend = FALSE
+  ) +
   scale_fill_manual(values = leachate.colors) +
-  scale_color_manual(values = leachate.colors)+
+  scale_color_manual(values = leachate.colors) +
   labs(
-    title = "Faith's Phylogenetic Diversity by Leachate Treatment x Timepoint",
-    x = "Hours Post Fertilization",
-    y = "Faith's Phylogenetic Diversity Metric",
-    fill = "Leachate",
-    color="Leachate",
-    subtitle = paste0("Two-way ANOVA leachate x hpf: ", format_pval(pval_interaction_faith))
+    title = "Faith's Phylogenetic Diversity",
+    x = "",
+    y = ""
   ) +
   theme_sleek_axe()
 
 fait3
 ```
 
-```{r}
+```{r, fig.width=3, fig.height=9}
 # Combine plots using patchwork
-faith_combined <- (fait1 + fait2) / fait3
+faith_combined <- fait3/(fait1 + fait2)
 
-faith_combined
+faith_combined &
+  theme(
+    plot.margin = margin(t = 1, r = 5, b = 1, l = 5)  # shrink top/bottom margins
+  )
 ```
 
 ```{r}
@@ -638,7 +665,10 @@ shapiro.test(evenness_df$Evenness) # normality
 ```
 
 ::: callout-note
-Check normality of Pielou's Evenness values using Shapiro-Wilk test. Since *p* = 0.09, we fail to reject the null and conclude that Pielou's Evenness values are approximately normally distributed, allowing for parametric testing.
+Check normality of Pielou's Evenness values using Shapiro-Wilk test.
+Since *p* = 0.09, we fail to reject the null and conclude that Pielou's
+Evenness values are approximately normally distributed, allowing for
+parametric testing.
 :::
 
 ### Run a two-way ANOVA
@@ -652,7 +682,13 @@ summary(aov_evenness2)
 
 ::: callout-note
 Two-way ANOVA with Pielou's Evenness as the response variable and
-categorical factors (PVC leachate level and developmental stage) revealed no differences in evenness (equal species abundances) within samples across leachate treatments (*F*₃,₄₈ = 0.75, *p* = 0.53), developmental stages (*F*₂,₄₈ = 1.02, *p* = 0.37), or their interaction (*F*₆,₄₈ = 0.29, *p* = 0.94). This suggests that species evenness remained stable regardless of leachate exposure *or* developmental progression from 4 to 14 hours post-fertilization.
+categorical factors (PVC leachate level and developmental stage)
+revealed no differences in evenness (equal species abundances) within
+samples across leachate treatments (*F*₃,₄₈ = 0.75, *p* = 0.53),
+developmental stages (*F*₂,₄₈ = 1.02, *p* = 0.37), or their interaction
+(*F*₆,₄₈ = 0.29, *p* = 0.94). This suggests that species evenness
+remained stable regardless of leachate exposure *or* developmental
+progression from 4 to 14 hours post-fertilization.
 :::
 
 #### Using numerical variables
@@ -664,14 +700,35 @@ summary(aov_evenness2.num)
 
 ::: callout-note
 Two-way ANOVA with Pielou's Evenness treating leachate concentration and
-timepoint as continuous variables showed similar results as categorical treatment of explanatory factors. All *p* > 0.1, indicating no significant effects of leachate concentration, developmental timepoint, or their interaction on species evenness within samples.
+timepoint as continuous variables showed similar results as categorical
+treatment of explanatory factors. All *p* \> 0.1, indicating no
+significant effects of leachate concentration, developmental timepoint,
+or their interaction on species evenness within samples.
 :::
 
 ### Boxplots
 
 ```{r}
+# Box plot by leachate
+piel1 <- ggplot(evenness_df, aes(x = factor(leachate), y = Evenness, fill = factor(leachate), color=factor(leachate))) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA, show.legend = FALSE) +
+  geom_beeswarm(size = 2, alpha = 1, show.legend = FALSE) +
+  scale_fill_manual(values = leachate.colors) +
+  scale_color_manual(values = leachate.colors)+
+  
+  labs(
+    title = "Pielou's",
+    x = "",
+    y = ""
+  ) +
+  theme_sleek_axe()
+
+piel1
+```
+
+```{r}
 # Box plot by stage
-piel1 <- ggplot(evenness_df, aes(x = factor(hpf), y = Evenness, 
+piel2 <- ggplot(evenness_df, aes(x = factor(hpf), y = Evenness, 
                                  fill = factor(hpf), color=factor(hpf))
                 )+
   geom_boxplot(alpha = 0.7, 
@@ -689,24 +746,6 @@ piel1 <- ggplot(evenness_df, aes(x = factor(hpf), y = Evenness,
   ) +
   theme_sleek_axe()
 
-piel1
-```
-
-```{r}
-# Box plot by timepoint
-piel2 <- ggplot(evenness_df, aes(x = factor(leachate), y = Evenness, fill = factor(leachate), color=factor(leachate))) +
-  geom_boxplot(alpha = 0.7, outlier.shape = NA, show.legend = FALSE) +
-  geom_beeswarm(size = 2, alpha = 1, show.legend = FALSE) +
-  scale_fill_manual(values = leachate.colors) +
-  scale_color_manual(values = leachate.colors)+
-  
-  labs(
-    title = "Pielou's",
-    x = "",
-    y = ""
-  ) +
-  theme_sleek_axe()
-
 piel2
 ```
 
@@ -714,14 +753,8 @@ piel2
 # Box plot by leachate x timepoint interaction
 piel3 <- ggplot(evenness_df, aes(x = factor(hpf), y = Evenness, fill = leachate, color=leachate)) +
   geom_violin(alpha = 0.5, position = position_dodge(width = 0.8), show.legend = FALSE) +
-  geom_boxplot(alpha = 0.7, outlier.shape = NA, position = position_dodge(width = 0.8)) +
-  ggbeeswarm::geom_quasirandom(
-  aes(group = interaction(leachate, hpf)),  # change names to your variables
-  dodge.width = 0.8,
-  width = 0.1,
-  size = 1.5,
-  alpha = 0.6
-) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA, position = position_dodge(width = 0.8), show.legend = FALSE) +
+  
   scale_color_manual(values = leachate.colors) +
   scale_fill_manual(values = leachate.colors)+
   labs(
@@ -783,7 +816,10 @@ shapiro.test(observed_df$ObservedFeatures) # normality
 ```
 
 ::: callout-note
-Check normality of Observed Features values using Shapiro-Wilk test.. since *p* = 0.12, we can reject the null hypothesis and conclude that Observed Features values are approximately normally distributed, allowing for parametric testing.
+Check normality of Observed Features values using Shapiro-Wilk test..
+since *p* = 0.12, we can reject the null hypothesis and conclude that
+Observed Features values are approximately normally distributed,
+allowing for parametric testing.
 :::
 
 ### Run a two-way ANOVA
@@ -797,7 +833,8 @@ summary(aov_observed2)
 
 ::: callout-note
 Two-way ANOVA with Observed Features as the response variable and
-categorical factors (PVC leachate level and developmental stage) show no differences between groups (all *p* > 0.15)
+categorical factors (PVC leachate level and developmental stage) show no
+differences between groups (all *p* \> 0.15)
 :::
 
 #### Using numerical variables
@@ -809,7 +846,7 @@ summary(aov_observed2.num)
 
 ::: callout-note
 Two-way ANOVA with Observed Features treating leachate concentration and
-timepoint as continuous variables show similar results, all *p* > 0.11
+timepoint as continuous variables show similar results, all *p* \> 0.11
 :::
 
 ### Boxplots
@@ -819,15 +856,15 @@ timepoint as continuous variables show similar results, all *p* > 0.11
 asv1 <- ggplot(observed_df, 
                aes(x = leachate, y = ObservedFeatures, 
                    fill = leachate, color=leachate)) +
-  
-  geom_boxplot(alpha = 0.7, outlier.shape = NA, show.legend=FALSE) +
-  geom_jitter(width = 0.2, size = 2, alpha = 1, show.legend=FALSE) +
+  geom_violin(alpha = 0.5, width = 0.9, outlier.shape = NA, show.legend=FALSE) +
+  geom_boxplot(color="black", fill="white", width = 0.2, outlier.shape = NA, show.legend=FALSE) +
+  #geom_beeswarm(size = 2, alpha = 1, show.legend=FALSE) +
   
   scale_color_manual(values = leachate.colors) +
   scale_fill_manual(values = leachate.colors) +
   
   labs(
-    title = "Observed Features",
+    title = "",
     x = "",
     y = ""
   ) +
@@ -836,18 +873,18 @@ asv1 <- ggplot(observed_df,
 asv1
 ```
 
-```{r}
+```{r asv-stage-asv2}
 # Box plot by timepoint
 asv2 <- ggplot(observed_df, aes(x = factor(hpf), y = ObservedFeatures, 
                                 fill = factor(hpf), color=factor(hpf))) +
-  geom_boxplot(alpha = 0.7, outlier.shape = NA, show.legend=FALSE) +
+  geom_boxplot(alpha = 0.7, width = 0.6, outlier.shape = NA, show.legend=FALSE) +
   geom_beeswarm(size = 2, alpha = 1, show.legend=FALSE) +
   
   scale_fill_manual(values = hpf.3.colors) +
   scale_color_manual(values = hpf.3.colors)+
   
   labs(
-    title = "Observed Features",
+    title = "",
     x = "",
     y = ""
   ) +
@@ -856,14 +893,27 @@ asv2 <- ggplot(observed_df, aes(x = factor(hpf), y = ObservedFeatures,
 asv2
 ```
 
-
-```{r}
+```{r asv-int-asv3}
 # Box plot by leachate x timepoint interaction
-asv3 <- ggplot(observed_df, aes(x = factor(hpf), y = ObservedFeatures, 
-                                fill = leachate, color=leachate)) +
-  geom_violin(alpha = 0.5, position = position_dodge(width = 0.8), show.legend = FALSE) +   
-  geom_boxplot(alpha = 0.7, outlier.shape = NA, position = position_dodge(width = 0.8), show.legend=FALSE) +
-    
+asv3 <- ggplot(observed_df, aes(x = factor(hpf), y = ObservedFeatures)) +
+  
+  #geom_beeswarm(aes(color=factor(hpf)), 
+  #            alpha = 0.5, 
+  #            position = position_nudge(x=-2), #shift beeswarm to left of boxes
+  #            show.legend = FALSE) +  
+  
+  #scale_color_manual(values = hpf.3.colors) +
+  #scale_fill_manual(values = hpf.3.colors) +
+  
+  #ggnewscale::new_scale_color() + # new color scale for boxplots
+  
+  geom_boxplot(aes(color=factor(leachate), fill=factor(leachate)), 
+               alpha = 0.7, 
+               width = 0.6,
+               outlier.shape = NA, 
+               position = position_dodge(width = 0.7), 
+               show.legend=FALSE) +
+
     scale_color_manual(values = leachate.colors) +
     scale_fill_manual(values = leachate.colors)+
     
@@ -877,24 +927,29 @@ asv3 <- ggplot(observed_df, aes(x = factor(hpf), y = ObservedFeatures,
 asv3  
 ```
 
-```{r}
-# Combine plots using patchwork
-asv_combined <- (asv1 + asv2) / asv3
+```{r, fig.width=3, fig.height=8.5}
+top_row <- asv1 + asv2 +
+  plot_layout(widths = c(box1, box2))
 
+asv_combined <- asv3 / top_row +
+  plot_layout(heights = c(1, 1))
+
+asv_combined
+```
+
+```{r}
 # Save plots
 ggsave(filename = file.path(figures_dir, "observed_features_by_leachate.png"), plot = asv1, width = 10, height = 6, dpi = 300)
 ggsave(filename = file.path(figures_dir, "observed_features_by_timepoint.png"), plot = asv2, width = 10, height = 6, dpi = 300)
 ggsave(filename = file.path(figures_dir, "observed_features_leachate_x_timepoint.png"), plot = asv3, width = 10, height = 6, dpi = 300)
 ggsave(filename = file.path(figures_dir, "observed_features_combined.png"), plot = asv_combined, width = 13, height = 12, dpi = 300)
-
-asv_combined
 ```
 
 # Alpha Diversity Summary Panel
 
 Shannon, Faith, Pielou, Observed Features
 
-```{r}
+```{r, fig.height=9, fig.width=5}
 alpha_combined <- wrap_plots(
   shan1, fait1, piel1, asv1,
   shan2, fait2, piel2, asv2,
@@ -912,6 +967,19 @@ alpha_combined <- wrap_plots(
   )
 
 alpha_combined
+```
+
+```{r}
+alpha_combined_v2 <- shannon_combined + faith_combined + pielou_combined + asv_combined +
+  plot_annotation(
+    title = "Alpha Diversity Metrics by Leachate Treatment, Timepoint, and Interaction",
+    theme = theme(
+      plot.title = element_text(size = 12),
+      plot.subtitle = element_text(size = 12, color = "grey40")
+    )
+  )
+
+alpha_combined_v2
 ```
 
 # Beta Diversity
@@ -961,7 +1029,7 @@ bc_variance <- bc_pcoa$data$ProportionExplained
 #| fig-height: 8
 
 # PCoA plot colored by leachate
-bray1 <- ggplot(bc_coords, aes(x = PC1, y = PC2, color = factor(leachate), shape = factor(timepoint))) +
+bray1 <- ggplot(bc_coords, aes(x = PC1, y = PC2, color = factor(leachate), shape = factor(hpf))) +
   geom_point(size = 4, alpha = 0.8) +
   scale_color_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
   labs(
@@ -981,7 +1049,7 @@ bray1 <- ggplot(bc_coords, aes(x = PC1, y = PC2, color = factor(leachate), shape
   )
 
 # PCoA plot colored by timepoint
-bray2 <- ggplot(bc_coords, aes(x = PC1, y = PC2, color = factor(timepoint), shape = factor(leachate)), fill = factor(cross)) +
+bray2 <- ggplot(bc_coords, aes(x = PC1, y = PC2, color = factor(hpf), shape = factor(leachate)), fill = factor(cross)) +
   geom_point(size = 4, alpha = 0.8) +
   scale_color_viridis_d(option = "mako", begin = 0.2, end = 0.9) +
   labs(
@@ -1000,12 +1068,14 @@ bray2 <- ggplot(bc_coords, aes(x = PC1, y = PC2, color = factor(timepoint), shap
     legend.position = "right"
   )
 
+bray1
+bray2
+```
+
+```{r}
 # Save plots
 ggsave(filename = file.path(figures_dir, "bray_curtis_by_leachate.png"), plot = bray1, width = 10, height = 8, dpi = 300)
 ggsave(filename = file.path(figures_dir, "bray_curtis_by_timepoint.png"), plot = bray2, width = 10, height = 8, dpi = 300)
-
-bray1
-bray2
 ```
 
 ::: callout-note
