@@ -133,40 +133,6 @@ length(unique(m1_L6_sig_prev_feats$feature))
 unique(m1_L6_sig_prev_feats$feature)
 ```
 
-Longimicrobiaceae *Tropicibacter* Peredibacter PS1 clade Sulfitobacter
-Pontibacterium Neisseriaceae *Marine Methylotrophic Group 3*
-
-Are these the same features that were significant in the m2 model? Let's
-check:
-
-```{r}
-m2_L6_sig_feats <- read_tsv("../../output/maaslin_taxa/m2_l6/significant_results.tsv")
-```
-
-```{r}
-m2_L6_sig_prev_feats <- m2_L6_sig_feats %>%
-  filter(model == "prevalence", 
-         metadata == "leachate", 
-         is.na(error), 
-         qval_joint < 0.1
-        )
-```
-
-```{r}
-length(unique(m2_L6_sig_prev_feats$feature))
-unique(m2_L6_sig_prev_feats$feature)
-```
-
-Wow ok so we have ZERO significant features in the m2 model, which is
-the model that uses a continuous numeric leachate_mgL factor and looks
-for linear relationships between leachate and prevalence. This suggests
-that the relationship between leachate and prevalence is not linear,
-which is why the GAMs are useful for visualizing these relationships.
-
-BUT using the categorical method, and looking for non-linear responses,
-We have 8 significant features to visualize! What is the best approach
-to visualize the predicted probability of detection across categorical
-leachate and time for these features?
 
 > We only have: 4 discrete treatment levels categorical inference model
 > no evidence supporting a continuous linear relationship A GAM can

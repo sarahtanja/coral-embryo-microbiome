@@ -355,6 +355,12 @@ m1_fit <- maaslin3(
 )
 ```
 
+```{r}
+m1_lin <- readRDS(file.path(output_path, "m1_l6/fits/models_linear.rds"))
+
+m1_log <- readRDS(file.path(output_path, "m1_l6/fits/models_logistic.rds"))
+```
+
 ## m2 : leachate_mgL\*hpf
 
 ```{r run-maaslin-continuous}
@@ -403,12 +409,12 @@ L6_sig <- L6_sig %>%
     CI_upr = coef + 1.98 * stderr
   ) %>% 
   filter(is.na(error)) %>% 
-  filter(metadata != "reads")
+  filter(metadata == "leachate")
 
 L6_sigfeat <- unique(L6_sig$feature)
 ```
 
-There are 57 unique features
+There are 8 unique leachate responsive features
 
 ```{r}
 L6_sig %>% 
@@ -440,21 +446,6 @@ paste0("There are ", length(feat_abun), " total and ", length(setdiff(feat_abun,
 paste0("There are ", length(feat_overlap), " significant features in both")
 ```
 
-::: callout-important
-ALL taxa that are significant in the prevalence model are also
-significant in the abundance model, but there are some taxa that are
-only significant in the abundance model and not the prevalence model.
-This suggests that some taxa show significant changes in relative
-abundance across leachate and time, but do not show significant changes
-in presence/absence. In other words, these taxa may be consistently
-present across samples but vary in how abundant they are, rather than
-being present in some samples and absent in others. Meanwhile, all taxa
-that show significant changes in presence/absence also show significant
-changes in relative abundance, which makes sense because if a taxon is
-present in some samples and absent in others, it is likely to also show
-differences in how abundant it is across those samples.
-:::
-
 > In abundance models, a one-unit change in the metadatum variable
 > corresponds to a 2coef fold change in the relative abundance of the
 > feature.
@@ -462,6 +453,41 @@ differences in how abundant it is across those samples.
 > In prevalence models, a one-unit change in the metadatum variable
 > corresponds to a coef change in the log-odds of a feature being
 > present.
+
+Longimicrobiaceae *Tropicibacter* Peredibacter PS1 clade Sulfitobacter
+Pontibacterium Neisseriaceae *Marine Methylotrophic Group 3*
+
+Are these the same features that were significant in the m2 model? Let's
+check:
+
+```{r}
+m2_L6_sig_feats <- read_tsv("../../output/maaslin_taxa/m2_l6/significant_results.tsv")
+```
+
+```{r}
+m2_L6_sig_prev_feats <- m2_L6_sig_feats %>%
+  filter(model == "prevalence", 
+         metadata == "leachate", 
+         is.na(error), 
+         qval_joint < 0.1
+        )
+```
+
+```{r}
+length(unique(m2_L6_sig_prev_feats$feature))
+unique(m2_L6_sig_prev_feats$feature)
+```
+
+Wow ok so we have ZERO significant features in the m2 model, which is
+the model that uses a continuous numeric leachate_mgL factor and looks
+for linear relationships between leachate and prevalence. This suggests
+that the relationship between leachate and prevalence is not linear,
+which is why the GAMs are useful for visualizing these relationships.
+
+BUT using the categorical method, and looking for non-linear responses,
+We have 8 significant features to visualize! What is the best approach
+to visualize the predicted probability of detection across categorical
+leachate and time for these features?
 
 # Pivot data longer for plotting
 
