@@ -1,5 +1,5 @@
 ---
-title: "Differential abundance of bacterial taxa at various taxonomic levels"
+title: "Differential abundance and prevalence of bacterial taxa at various taxonomic levels"
 subtitle: "Using Maaslin3"
 author: "Sarah Tanja"
 date: 2026-03-16
@@ -85,20 +85,15 @@ should usually have at least 10 observations in each category.
 Significant prevalence associations with categorical variables should
 also have at least 10 samples in which the feature was present and at
 least 10 samples in which it was absent for each significant category.
-Significant abundance associations with continuous metadata should be
-checked visually for influential outliers.
 
 ::: callout-important
-There are also a few rules of thumb to keep in mind:
+There are also a few rules of thumb to keep in mind: - Models should
+ideally have about **10 times as many samples** (all samples for
+logistic fits, non-zero samples for linear fits) **as covariate terms**
+(**all continuous variables plus all categorical variable levels**).
 
--   Models should ideally have about **10 times as many samples** (all
-    samples for logistic fits, non-zero samples for linear fits) **as
-    covariate terms** (**all continuous variables plus all categorical
-    variable levels**).
-
-```         
-We have 63 samples... so the maximum number of terms we should use is 6 
-```
+-   We have 63 samples... so the maximum number of terms we should use
+    is 6
 
 -   Significant associations for MaAsLin 3 are results with no model
     fitting errors, and joint q-value less than 0.1
@@ -143,7 +138,7 @@ library(tidyverse)
 
 ## Set custom ggplot theme
 
-```{r}
+```{r custom-theme}
 library(ggsidekick) # theme by sean anderson
 theme_sleek_axe <- function() {
   theme_sleek() +
@@ -184,7 +179,7 @@ theme_sleek_axe <- function() {
 
 ## Set colorschemes
 
-```{r}
+```{r colorscheme}
 leachate.colors <- c(control = "#AEF1FF", 
                      low     = "#BBC7FF",
                      mid     = "#7D8BFF", 
@@ -215,7 +210,7 @@ night.colors.alt <- c(July_6th = "#21918C",
 
 ## Define file paths
 
-```{r}
+```{r file-paths}
 feature_table_path <- "../../salipante/241121_StonyCoral/270x200/"
 metadata_path <- "../../metadata/meta.csv"
 output_path <- "../../output/maaslin_taxa/"
@@ -224,7 +219,7 @@ fig_path <- "../../figs"
 
 ## Load metadata
 
-```{r}
+```{r metadata}
 # Load metadata
 metadata <- read_csv(metadata_path)
 
@@ -251,17 +246,16 @@ metadata <- metadata %>%
 > feature detection in a way that could spuriously correlate with
 > metadata of interest when read depth is not included in the model.
 
-```{r}
+```{r read-depths}
 readepth <- read_csv("../../salipante/Sarah_StonyCoral/241121_StonyCoral_readcounts.csv")
 ```
 
-```{r}
+```{r join-meta-reads}
 metadata <- metadata %>% 
   left_join(readepth, by = c("sample_id" = "sample"))
 ```
 
-```{r}
-# make samples rownames
+```{r make-samples-rownames}
 meta <- metadata %>% 
   column_to_rownames(var = "sample_id") %>% 
   as.data.frame()
@@ -274,7 +268,7 @@ str(meta)
 
 ## Feature table L6 Genus
 
-```{r}
+```{r l6-feat-tbl}
 # L6 Genus
 ## Load feature table from QIIME2 artifact
 ft_l6 <- read_qza(file.path(feature_table_path, "collapsed-l6.qza"))$data
@@ -347,9 +341,9 @@ sequencing depth (`reads`) and including random intercepts for
 
 ## m1 : leachate\*hpf
 
-```{r}
+```{r run-maaslin-categorical}
 set.seed(05032026)
-m1_l6 <- maaslin3(
+m1_fit <- maaslin3(
   input_data = ft_l6,
   input_metadata = meta,
   output = file.path(output_path, "m1_l6"),
@@ -361,20 +355,33 @@ m1_l6 <- maaslin3(
 )
 ```
 
+```{r}
+m1_lin <- readRDS(file.path(output_path, "m1_l6/fits/models_linear.rds"))
+
+m1_log <- readRDS(file.path(output_path, "m1_l6/fits/models_logistic.rds"))
+```
+
 ## m2 : leachate_mgL\*hpf
 
-```{r}
+```{r run-maaslin-continuous}
 set.seed(05032026)
 m2_fit <- maaslin3(
-  input_data = ft_l7,
+  input_data = ft_l6,
   input_metadata = meta,
-  output = file.path(output_path, "m2"),
+  output = file.path(output_path, "m2_l6"),
   formula = ~ leachate_mgL*hpf + reads + (1|spawn_night),
   verbosity = 'ERROR',
   cores = 3, 
   plot_associations = FALSE, 
   save_models = TRUE
 )
+```
+
+```{r}
+m2_lin <- readRDS(file.path(output_path, "m2_l6/fits/models_linear.rds"))
+
+m2_log <- readRDS(file.path(output_path, "m2_l6/fits/models_logistic.rds"))
+
 ```
 
 ![](images/maaslin_model_fit.png)
@@ -402,12 +409,12 @@ L6_sig <- L6_sig %>%
     CI_upr = coef + 1.98 * stderr
   ) %>% 
   filter(is.na(error)) %>% 
-  filter(metadata != "reads")
+  filter(metadata == "leachate")
 
 L6_sigfeat <- unique(L6_sig$feature)
 ```
 
-There are 57 unique features
+There are 8 unique leachate responsive features
 
 ```{r}
 L6_sig %>% 
@@ -439,21 +446,6 @@ paste0("There are ", length(feat_abun), " total and ", length(setdiff(feat_abun,
 paste0("There are ", length(feat_overlap), " significant features in both")
 ```
 
-::: callout-important
-ALL taxa that are significant in the prevalence model are also
-significant in the abundance model, but there are some taxa that are
-only significant in the abundance model and not the prevalence model.
-This suggests that some taxa show significant changes in relative
-abundance across leachate and time, but do not show significant changes
-in presence/absence. In other words, these taxa may be consistently
-present across samples but vary in how abundant they are, rather than
-being present in some samples and absent in others. Meanwhile, all taxa
-that show significant changes in presence/absence also show significant
-changes in relative abundance, which makes sense because if a taxon is
-present in some samples and absent in others, it is likely to also show
-differences in how abundant it is across those samples.
-:::
-
 > In abundance models, a one-unit change in the metadatum variable
 > corresponds to a 2coef fold change in the relative abundance of the
 > feature.
@@ -461,6 +453,41 @@ differences in how abundant it is across those samples.
 > In prevalence models, a one-unit change in the metadatum variable
 > corresponds to a coef change in the log-odds of a feature being
 > present.
+
+Longimicrobiaceae *Tropicibacter* Peredibacter PS1 clade Sulfitobacter
+Pontibacterium Neisseriaceae *Marine Methylotrophic Group 3*
+
+Are these the same features that were significant in the m2 model? Let's
+check:
+
+```{r}
+m2_L6_sig_feats <- read_tsv("../../output/maaslin_taxa/m2_l6/significant_results.tsv")
+```
+
+```{r}
+m2_L6_sig_prev_feats <- m2_L6_sig_feats %>%
+  filter(model == "prevalence", 
+         metadata == "leachate", 
+         is.na(error), 
+         qval_joint < 0.1
+        )
+```
+
+```{r}
+length(unique(m2_L6_sig_prev_feats$feature))
+unique(m2_L6_sig_prev_feats$feature)
+```
+
+Wow ok so we have ZERO significant features in the m2 model, which is
+the model that uses a continuous numeric leachate_mgL factor and looks
+for linear relationships between leachate and prevalence. This suggests
+that the relationship between leachate and prevalence is not linear,
+which is why the GAMs are useful for visualizing these relationships.
+
+BUT using the categorical method, and looking for non-linear responses,
+We have 8 significant features to visualize! What is the best approach
+to visualize the predicted probability of detection across categorical
+leachate and time for these features?
 
 # Pivot data longer for plotting
 

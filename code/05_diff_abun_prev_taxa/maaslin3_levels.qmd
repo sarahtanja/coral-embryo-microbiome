@@ -26,7 +26,6 @@ format:
     link-external-newwindow: true
     reference-location: margin
     citation-location: margin
-bibliography: "../microbiome_bibtex.bib"
 editor: 
   markdown: 
     wrap: 72
@@ -103,7 +102,7 @@ We have 63 samples... so the maximum number of terms we should use is 6
 
 # Install MaAsLin3
 
-```{r, eval=false}
+```{r, eval=FALSE}
 #library("devtools")
 #install_github("biobakery/maaslin3")
 ```
@@ -1241,6 +1240,3 @@ ggplot(., aes(x = factor(hpf), y = norm_abundance, color = leachate, fill = leac
   theme_sleek_axe()
 ```
 
-```{r}
-
-```
