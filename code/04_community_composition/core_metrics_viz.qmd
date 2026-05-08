@@ -86,6 +86,7 @@ library(viridis)
 library(broom)
 library(ggsidekick)
 library(ggbeeswarm)
+library(ggsignif)
 ```
 
 ## Set Paths
@@ -113,7 +114,7 @@ theme_sleek_axe <- function() {
       panel.border = element_rect(
         color = "grey70",
         fill = NA,
-        linewidth = 0.5
+        linewidth = 0.3
       ),
       axis.line.x  = element_line(color = "grey70"),
       axis.line.y  = element_line(color = "grey70"),
@@ -125,21 +126,21 @@ theme_sleek_axe <- function() {
         margin = margin(b = 20)
       ),
       
-      strip.text = element_text(size = 8, color = "grey40"),
+      strip.text = element_text(size = 10, color = "grey40"),
       
       plot.subtitle = element_text(
-        size   = 8,
+        size   = 10,
         color  = "grey40",
         hjust  = 0.5,
         margin = margin(b = 40)
       ),
       
-      axis.title = element_text(size = 8, color = "grey40"),
-      axis.text = element_text(size = 7, color = "grey40"),
-      legend.title = element_text(size = 8, color = "grey40"),
-      legend.text = element_text(size = 7, color = "grey40"),
+      axis.title = element_text(size = 10, color = "grey40"),
+      axis.text = element_text(size = 10, color = "grey40"),
+      legend.title = element_text(size = 10, color = "grey40"),
+      legend.text = element_text(size = 10, color = "grey40"),
   
-      plot.margin = margin(t = 2, r = 2, b = 2, l = 2)
+      plot.margin = margin(t = 0.05, r = 2, b = 0.02, l = 2)
     )
 }
 
@@ -328,27 +329,36 @@ leachate exposure or developmental progression.
 
 ### Shannon Boxplots
 
-```{r shannon-leachate-shan1}
+```{r shan1-leachates}
 # Box plot by leachate treatment
 shan1 <- ggplot(shannon_df, aes(x = leachate, y = Shannon,
                                 fill = leachate, color=leachate)
                 ) +
-  geom_boxplot(
-    alpha = 0.7,
-    outlier.shape = NA, 
-    show.legend=FALSE
-  ) +
-  geom_beeswarm(
-    size = 2,
-    alpha = 1,
-    show.legend = FALSE
-  ) +
+  
+  geom_violin(alpha = 0.5, 
+              width = 0.9,
+              show.legend=FALSE) +
+  
+  geom_boxplot(color="black", 
+               width = 0.2, 
+               outlier.shape = NA, 
+               show.legend=FALSE) +
+  
   scale_color_manual(
     values = leachate.colors
   ) +
+  
   scale_fill_manual(
     values = leachate.colors
   ) +
+  
+  scale_x_discrete(labels = c(
+    control = "0",
+    low = "0.01",
+    mid = "0.1",
+    high = "1"
+  ))+
+  
   labs(
     title = "",
     x = "",
@@ -359,14 +369,23 @@ shan1 <- ggplot(shannon_df, aes(x = leachate, y = Shannon,
 shan1
 ```
 
-```{r shannon-stage-shan2}
+```{r shan2-stage}
 # Box plot by timepoint
 shan2 <- ggplot(shannon_df, aes(x = factor(hpf), y = Shannon, 
                                 fill = factor(hpf), color = factor(hpf))) +
-  geom_boxplot(alpha = 0.7, outlier.shape = NA, show.legend=FALSE) +
-  geom_beeswarm(size = 2, alpha = 1, show.legend=FALSE) +
+  
+  geom_violin(alpha = 0.5, 
+              width = 0.9,
+              show.legend=FALSE) +
+  
+  geom_boxplot(color="black", 
+               width = 0.2, 
+               outlier.shape = NA, 
+               show.legend=FALSE) +
+  
   scale_fill_manual(values = hpf.3.colors) +
   scale_color_manual(values = hpf.3.colors) +
+  
   labs(
     title = "",
     x = "",
@@ -383,7 +402,7 @@ box2 <- 3
 box3 <- 12
 ```
 
-```{r shannon-int-shan3}
+```{r shan3-int}
 # Box plot by leachate x timepoint interaction
 
 shan3 <- ggplot(shannon_df, aes(
@@ -392,23 +411,27 @@ shan3 <- ggplot(shannon_df, aes(
   fill = factor(leachate), 
   color = factor(leachate)
   )) +
-  geom_violin(
-    position = position_dodge(width = 0.8), 
-    alpha = 0.5, 
-    show.legend = FALSE
-              )+
   
-  geom_boxplot(
-    alpha = 0.8,
-    outlier.shape = NA,
-    position = position_dodge(width = 0.8), 
-    show.legend=FALSE
-               )+
+  geom_violin(aes(group = interaction(hpf, leachate)),
+              alpha = 0.5, 
+              width = 3,
+              position=position_dodge(width=0.6),
+              show.legend=FALSE) +
+  
+  geom_boxplot(aes(group = interaction(hpf, leachate)),
+               color="black",
+               alpha = 1,
+               width = 0.2, 
+               outlier.shape = NA, 
+               position=position_dodge(width=0.6),
+               show.legend=FALSE) +
+  
+   scale_x_discrete(expand = expansion(mult = c(0.02, 0.02))) +
   
   scale_color_manual(values = leachate.colors) +
   scale_fill_manual(values = leachate.colors) +
   labs(
-    title = "Shannon",
+    title = "",
     x = "",
     y = ""
       )+
@@ -417,22 +440,56 @@ shan3 <- ggplot(shannon_df, aes(
 shan3
 ```
 
+```{r shannon-combo, fig.width=10, fig.height=4}
+# Combine plots using patchwork
+shannon_combo <- shan3 + shan1 + shan2 +
+  plot_layout(widths = c(box3, box1, box2)) +
+  plot_annotation(
+    title = "Shannon Diversity Index",
+    tag_levels = "a",
+    theme = theme(
+      plot.title = element_text(size = 12,
+                                color = "grey40", 
+                                hjust = 0.5), 
+      plot.tag = element_text(size = 10, 
+                              color = "grey40", 
+                              hjust = 1, 
+                              vjust = -4)
+    )
+  )
+
+shannon_combo
+```
 ```{r}
-ggsave(filename = file.path(figures_dir, "alpha_shannon.png"), plot = shan3, width = 10, height = 6, dpi = 900)
+shannon_combo <- shan3 + shan1 + shan2 +
+  plot_layout(widths = c(box3, box1, box2)) +
+  plot_annotation(
+    title = "Shannon Diversity Index",
+    tag_levels = "a") &
+  
+  theme(plot.title = element_text(
+        size = 12,
+        color = "grey40", 
+        hjust = 0.5
+      ),
+       plot.tag = element_text(
+        size = 10,
+        color = "grey30",
+        face = "bold"
+      ),
+      plot.tag.position = c(0.02, 0.9)
+    )
+
+shannon_combo
 ```
 
-```{r shannon-combo}
-# Combine plots using patchwork
-shannon_combined <- shan3/ (shan1 + shan2) 
-shannon_combined
-```
 
 ```{r save-shannon}
 # Save plots
 ggsave(filename = file.path(figures_dir, "shannon_by_leachate.png"), plot = shan1, width = 10, height = 6, dpi = 300)
 ggsave(filename = file.path(figures_dir, "shannon_by_timepoint.png"), plot = shan2, width = 10, height = 6, dpi = 300)
 ggsave(filename = file.path(figures_dir, "shannon_leachate_x_timepoint.png"), plot = shan3, width = 10, height = 6, dpi = 300)
-ggsave(filename = file.path(figures_dir, "shannon_combined.png"), plot = shannon_combined, width = 13, height = 12, dpi = 300)
+ggsave(filename = file.path(figures_dir, "shannon_combined.png"), plot = shannon_combo, width = 10, height = 4, dpi = 900)
 ```
 
 
@@ -522,12 +579,12 @@ TukeyHSD(aov_faith2)
 
 ::: callout-important
 It appears the only sig difference between groups is between the
-cleavage and early gastrula stages (*p* = 0.04)
+cleavage and early gastrula stages (Tukey HSD *padj* = 0.04)
 :::
 
 ### Faith Boxplots
 
-```{r}
+```{r fait1-leachate}
 # Box plot by leachate treatment
 fait1 <- ggplot(faith_df, aes(
   x = factor(leachate),
@@ -535,15 +592,30 @@ fait1 <- ggplot(faith_df, aes(
   fill = factor(leachate), 
   color=factor(leachate))
   ) +
-  geom_boxplot(alpha = 0.7,
-               width = 0.7,
+
+  geom_violin(alpha = 0.5, 
+              width = 0.9,
+              show.legend=FALSE) +
+  
+  geom_boxplot(color="black", 
+               width = 0.2, 
                outlier.shape = NA, 
-               show.legend = FALSE) +
-  geom_beeswarm(size = 2,
-              alpha = 1, 
-              show.legend=FALSE) +   
+               show.legend=FALSE) +
+  
+    
   scale_fill_manual(values=leachate.colors) +
   scale_color_manual(values=leachate.colors)+
+  
+  scale_x_discrete(labels = c(
+    control = "0",
+    low = "0.01",
+    mid = "0.1",
+    high = "1"
+  ))+
+  
+  scale_y_continuous(breaks = seq(0, 170, by = 50), 
+                     limits = c(55, 160)) +
+  
   labs(title = "",
        x = "",
        y = ""
@@ -553,20 +625,38 @@ fait1 <- ggplot(faith_df, aes(
 fait1  
 ```
 
-```{r}
+```{r fait2-stage}
 # Box plot by hpf
 fait2 <- ggplot(faith_df, aes(x = factor(hpf), 
                               y = Faith, 
                               fill = factor(hpf), 
                               color=factor(hpf))) +
-  geom_boxplot(alpha = 0.7, 
+
+  geom_violin(alpha = 0.5, 
+              width = 1,
+              show.legend=FALSE) +
+  
+  geom_boxplot(color="black", 
+               width = 0.2, 
                outlier.shape = NA, 
-               show.legend = FALSE) +
-  geom_beeswarm(size = 2, 
-                alpha = 1, 
-                show.legend = FALSE) +
+               show.legend=FALSE) +
+  
+  geom_signif(
+    comparisons = list(c("4", "14")),
+    annotations = "*",
+    y_position = 150,
+    tip_length = 0.02,
+    textsize = 6, 
+    color = "grey20",
+    show.legend = FALSE
+  ) +
+  
   scale_fill_manual(values = hpf.3.colors) +
   scale_color_manual(values = hpf.3.colors)+
+  
+  scale_y_continuous(breaks = seq(0, 170, by = 50), 
+                     limits = c(55, 160)) +
+  
   labs(
     title = "",
     x = "",
@@ -577,7 +667,7 @@ fait2 <- ggplot(faith_df, aes(x = factor(hpf),
 fait2
 ```
 
-```{r}
+```{r fait3-int}
 # Box plot by leachate x timepoint interaction
 
 fait3 <- ggplot(faith_df, aes(
@@ -586,23 +676,29 @@ fait3 <- ggplot(faith_df, aes(
   fill = factor(leachate),
   color = factor(leachate)
 )) +
-  geom_boxplot(
-    alpha = 0.7,
-    outlier.shape = NA,
-    position = position_dodge(width = 0.8),
-    show.legend = FALSE
-  ) +
-  geom_beeswarm(
-    aes(group = interaction(hpf, leachate)),
-    dodge.width = 0.8,
-    size = 1.5,
-    alpha = 1,
-    show.legend = FALSE
-  ) +
+
+  geom_violin(aes(group = interaction(hpf, leachate)),
+              alpha = 0.5, 
+              width = 3,
+              position=position_dodge(width=0.6),
+              show.legend=FALSE) +
+  
+  geom_boxplot(aes(group = interaction(hpf, leachate)),
+               color="black",
+               alpha = 1,
+               width = 0.2, 
+               outlier.shape = NA, 
+               position=position_dodge(width=0.6),
+               show.legend=FALSE) +
+  
+  scale_x_discrete(expand = expansion(mult = c(0.02, 0.02))) +
+  scale_y_continuous(breaks = seq(0, 170, by = 50), 
+                     limits = c(55, 160)) +
+  
   scale_fill_manual(values = leachate.colors) +
   scale_color_manual(values = leachate.colors) +
   labs(
-    title = "Faith's Phylogenetic Diversity",
+    title = "",
     x = "",
     y = ""
   ) +
@@ -611,14 +707,20 @@ fait3 <- ggplot(faith_df, aes(
 fait3
 ```
 
-```{r, fig.width=3, fig.height=9}
+```{r, faith-combo, fig.width=10, fig.height=4}
 # Combine plots using patchwork
-faith_combined <- fait3/(fait1 + fait2)
-
-faith_combined &
-  theme(
-    plot.margin = margin(t = 1, r = 5, b = 1, l = 5)  # shrink top/bottom margins
+faith_combo <- fait3 + fait1 + fait2+
+  plot_layout(widths = c(box3, box1, box2)) +
+  plot_annotation(
+    title = "Faith's Phylogenetic Diversity",
+    theme = theme(
+      plot.title = element_text(size = 12,
+                                color = "grey40", 
+                                hjust = 0.5)
+    )
   )
+
+faith_combo
 ```
 
 ```{r}
@@ -717,7 +819,7 @@ piel1 <- ggplot(evenness_df, aes(x = factor(leachate), y = Evenness, fill = fact
   scale_color_manual(values = leachate.colors)+
   
   labs(
-    title = "Pielou's",
+    title = "",
     x = "",
     y = ""
   ) +
@@ -740,7 +842,7 @@ piel2 <- ggplot(evenness_df, aes(x = factor(hpf), y = Evenness,
   scale_fill_manual(values = hpf.3.colors) +
   scale_color_manual(values = hpf.3.colors)+
   labs(
-    title = "Pielou's",
+    title = "",
     x = "",
     y = ""
   ) +
@@ -752,9 +854,12 @@ piel2
 ```{r}
 # Box plot by leachate x timepoint interaction
 piel3 <- ggplot(evenness_df, aes(x = factor(hpf), y = Evenness, fill = leachate, color=leachate)) +
-  geom_violin(alpha = 0.5, position = position_dodge(width = 0.8), show.legend = FALSE) +
   geom_boxplot(alpha = 0.7, outlier.shape = NA, position = position_dodge(width = 0.8), show.legend = FALSE) +
-  
+  geom_beeswarm(aes(group = interaction(hpf, leachate)), 
+              dodge.width = 0.8, 
+              size = 1.5, 
+              alpha = 1, 
+              show.legend = FALSE) +
   scale_color_manual(values = leachate.colors) +
   scale_fill_manual(values = leachate.colors)+
   labs(
@@ -769,7 +874,7 @@ piel3
 
 ```{r}
 # Combine plots using patchwork
-pielou_combined <- (piel1 + piel2) / piel3
+pielou_combined <- piel3/(piel1 + piel2)
 pielou_combined
 ```
 
@@ -851,14 +956,21 @@ timepoint as continuous variables show similar results, all *p* \> 0.11
 
 ### Boxplots
 
-```{r, asv-rich-boxplots}
+```{r, asv1-leachate}
 # Box plot by leachate treatment
 asv1 <- ggplot(observed_df, 
                aes(x = leachate, y = ObservedFeatures, 
                    fill = leachate, color=leachate)) +
-  geom_violin(alpha = 0.5, width = 0.9, outlier.shape = NA, show.legend=FALSE) +
-  geom_boxplot(color="black", fill="white", width = 0.2, outlier.shape = NA, show.legend=FALSE) +
-  #geom_beeswarm(size = 2, alpha = 1, show.legend=FALSE) +
+  
+  geom_violin(alpha = 0.5, 
+              width = 0.9, 
+              outlier.shape = NA, 
+              show.legend=FALSE) +
+  
+  geom_boxplot(color="black", 
+               width = 0.2, 
+               outlier.shape = NA, 
+               show.legend=FALSE) +
   
   scale_color_manual(values = leachate.colors) +
   scale_fill_manual(values = leachate.colors) +
@@ -873,12 +985,23 @@ asv1 <- ggplot(observed_df,
 asv1
 ```
 
-```{r asv-stage-asv2}
+```{r asv2-stage}
 # Box plot by timepoint
 asv2 <- ggplot(observed_df, aes(x = factor(hpf), y = ObservedFeatures, 
                                 fill = factor(hpf), color=factor(hpf))) +
-  geom_boxplot(alpha = 0.7, width = 0.6, outlier.shape = NA, show.legend=FALSE) +
-  geom_beeswarm(size = 2, alpha = 1, show.legend=FALSE) +
+  
+  geom_violin(
+              alpha = 0.5, 
+              width = 0.9, 
+              outlier.shape = NA, 
+              show.legend=FALSE) +
+  
+  geom_boxplot(
+               color="black",
+               alpha=1,
+               width = 0.2, 
+               outlier.shape = NA, 
+               show.legend=FALSE) +
   
   scale_fill_manual(values = hpf.3.colors) +
   scale_color_manual(values = hpf.3.colors)+
@@ -895,47 +1018,56 @@ asv2
 
 ```{r asv-int-asv3}
 # Box plot by leachate x timepoint interaction
-asv3 <- ggplot(observed_df, aes(x = factor(hpf), y = ObservedFeatures)) +
+asv3 <- ggplot(observed_df, aes(x = factor(hpf), y = ObservedFeatures,
+                                fill = leachate, color=leachate)) +
   
-  #geom_beeswarm(aes(color=factor(hpf)), 
-  #            alpha = 0.5, 
-  #            position = position_nudge(x=-2), #shift beeswarm to left of boxes
-  #            show.legend = FALSE) +  
+  geom_violin(aes(group = interaction(hpf, leachate)),
+              alpha = 0.5, 
+              width = 1.5,
+              position=position_dodge(width=0.8),
+              show.legend=FALSE) +
   
-  #scale_color_manual(values = hpf.3.colors) +
-  #scale_fill_manual(values = hpf.3.colors) +
-  
-  #ggnewscale::new_scale_color() + # new color scale for boxplots
-  
-  geom_boxplot(aes(color=factor(leachate), fill=factor(leachate)), 
-               alpha = 0.7, 
-               width = 0.6,
+  geom_boxplot(aes(group = interaction(hpf, leachate)),
+               color="black",
+               alpha = 1,
+               width = 0.2, 
                outlier.shape = NA, 
-               position = position_dodge(width = 0.7), 
+               position=position_dodge(width=0.8),
                show.legend=FALSE) +
+  
+   scale_x_discrete(expand = expansion(mult = c(0.02, 0.02))) +
+  
+  #geom_beeswarm(aes(group = interaction(hpf, leachate)),
+  #            dodge.width = 0.7, 
+  #            size = 1.5, 
+  #            alpha = 1, 
+  #            show.legend = FALSE) +
 
-    scale_color_manual(values = leachate.colors) +
-    scale_fill_manual(values = leachate.colors)+
+  scale_color_manual(values = leachate.colors) +
+  scale_fill_manual(values = leachate.colors)+
     
   labs(
-    title = "Observed Features",
+    title = "",
     x = "",
     y = ""
-  ) +
+      ) +
   theme_sleek_axe()
-  
+
 asv3  
 ```
 
-```{r, fig.width=3, fig.height=8.5}
-top_row <- asv1 + asv2 +
-  plot_layout(widths = c(box1, box2))
-
-asv_combined <- asv3 / top_row +
-  plot_layout(heights = c(1, 1))
-
-asv_combined
+```{r, fig.width=10, fig.height=4}
+asv_combo <- asv3 + asv1 + asv2 +
+  plot_layout(widths = c(box3, box1, box2))+
+  plot_annotation(
+    title = "Observed Features (ASV Richnness)",
+    theme = theme(
+      plot.title = element_text(size = 14, color = "grey40",  hjust = 0.5)
+    )
+  )
+asv_combo
 ```
+
 
 ```{r}
 # Save plots
@@ -947,35 +1079,30 @@ ggsave(filename = file.path(figures_dir, "observed_features_combined.png"), plot
 
 # Alpha Diversity Summary Panel
 
-Shannon, Faith, Pielou, Observed Features
-
-```{r, fig.height=9, fig.width=5}
-alpha_combined <- wrap_plots(
-  shan1, fait1, piel1, asv1,
-  shan2, fait2, piel2, asv2,
-  shan3, fait3, piel3, asv3,
-  ncol = 4,
-  nrow = 3,
-  byrow = TRUE
-) +
+## Shannon + Faith
+```{r}
+alpha_shannon_faith <- shannon_combo / faith_combo +
   plot_annotation(
-    title = "Alpha Diversity Metrics by Leachate Treatment, Timepoint, and Interaction",
+    title = "Alpha Diversity",
     theme = theme(
-      plot.title = element_text(size = 12),
-      plot.subtitle = element_text(size = 12, color = "grey40")
+      plot.title = element_text(size = 14, color = "grey40", hjust = 0.5)
     )
   )
 
-alpha_combined
+alpha_shannon_faith
 ```
+## Shannon, Faith, Pielou, Observed Features
 
-```{r}
-alpha_combined_v2 <- shannon_combined + faith_combined + pielou_combined + asv_combined +
+```{r, fig.height=8, fig.width=6}
+alpha_combined_v2 <- wrap_plots(shannon_combined, faith_combined,
+                                pielou_combined, asv_combo, 
+                                ncol=1, 
+                                nrow=4, 
+                                byrow=TRUE) +
   plot_annotation(
     title = "Alpha Diversity Metrics by Leachate Treatment, Timepoint, and Interaction",
     theme = theme(
-      plot.title = element_text(size = 12),
-      plot.subtitle = element_text(size = 12, color = "grey40")
+      plot.title = element_text(size = 16, color = "grey30", hjust = 0.5)
     )
   )
 
@@ -993,12 +1120,6 @@ between samples.**
 The PCoA plots below visualize beta diversity patterns. To
 **statistically test** whether groups differ in community composition,
 use **PERMANOVA** (Permutational Multivariate Analysis of Variance).
-
-**See comprehensive PERMANOVA documentation:** -
-[**`PERMANOVA_README.md`**](PERMANOVA_README.md) - Theory,
-interpretation, and best practices -
-[**`permanova_analysis.qmd`**](permanova_analysis.qmd) - Working code
-examples with all distance metrics
 
 **Key point**: PERMANOVA tests the distance matrices themselves, NOT the
 PCoA coordinates!
