@@ -431,7 +431,7 @@ shan3 <- ggplot(shannon_df, aes(
   scale_color_manual(values = leachate.colors) +
   scale_fill_manual(values = leachate.colors) +
   labs(
-    title = "",
+    title = "Shannon",
     x = "",
     y = ""
       )+
@@ -460,29 +460,6 @@ shannon_combo <- shan3 + shan1 + shan2 +
 
 shannon_combo
 ```
-```{r}
-shannon_combo <- shan3 + shan1 + shan2 +
-  plot_layout(widths = c(box3, box1, box2)) +
-  plot_annotation(
-    title = "Shannon Diversity Index",
-    tag_levels = "a") &
-  
-  theme(plot.title = element_text(
-        size = 12,
-        color = "grey40", 
-        hjust = 0.5
-      ),
-       plot.tag = element_text(
-        size = 10,
-        color = "grey30",
-        face = "bold"
-      ),
-      plot.tag.position = c(0.02, 0.9)
-    )
-
-shannon_combo
-```
-
 
 ```{r save-shannon}
 # Save plots
@@ -698,7 +675,7 @@ fait3 <- ggplot(faith_df, aes(
   scale_fill_manual(values = leachate.colors) +
   scale_color_manual(values = leachate.colors) +
   labs(
-    title = "",
+    title = "Faith",
     x = "",
     y = ""
   ) +
@@ -707,7 +684,7 @@ fait3 <- ggplot(faith_df, aes(
 fait3
 ```
 
-```{r, faith-combo, fig.width=10, fig.height=4}
+```{r fait-combo, fig.width=10, fig.height=4}
 # Combine plots using patchwork
 faith_combo <- fait3 + fait1 + fait2+
   plot_layout(widths = c(box3, box1, box2)) +
@@ -728,7 +705,7 @@ faith_combo
 ggsave(filename = file.path(figures_dir, "faith_by_leachate.png"), plot = fait1, width = 10, height = 6, dpi = 900)
 ggsave(filename = file.path(figures_dir, "faith_by_timepoint.png"), plot = fait2, width = 10, height = 6, dpi = 900)
 ggsave(filename = file.path(figures_dir, "faith_leachate_x_timepoint.png"), plot = fait3, width = 10, height = 6, dpi = 900)
-ggsave(filename = file.path(figures_dir, "faith_combined.png"), plot = faith_combined, width = 13, height = 12, dpi = 900)
+ggsave(filename = file.path(figures_dir, "faith_combined.png"), plot = faith_combo, width = 10, height = 4, dpi = 900)
 ```
 
 ## Pielou's Evenness
@@ -810,11 +787,19 @@ or their interaction on species evenness within samples.
 
 ### Boxplots
 
-```{r}
+```{r piel1-leachate}
 # Box plot by leachate
 piel1 <- ggplot(evenness_df, aes(x = factor(leachate), y = Evenness, fill = factor(leachate), color=factor(leachate))) +
-  geom_boxplot(alpha = 0.7, outlier.shape = NA, show.legend = FALSE) +
-  geom_beeswarm(size = 2, alpha = 1, show.legend = FALSE) +
+  
+  geom_violin(alpha = 0.5, 
+              width = 0.9,
+              show.legend=FALSE) +
+  
+  geom_boxplot(color="black", 
+               width = 0.2, 
+               outlier.shape = NA, 
+               show.legend=FALSE) +
+  
   scale_fill_manual(values = leachate.colors) +
   scale_color_manual(values = leachate.colors)+
   
@@ -823,24 +808,37 @@ piel1 <- ggplot(evenness_df, aes(x = factor(leachate), y = Evenness, fill = fact
     x = "",
     y = ""
   ) +
+  
+  scale_x_discrete(labels = c(
+    control = "0",
+    low = "0.01",
+    mid = "0.1",
+    high = "1"
+  ))+
+  
   theme_sleek_axe()
 
 piel1
 ```
 
-```{r}
+```{r piel2-stage}
 # Box plot by stage
 piel2 <- ggplot(evenness_df, aes(x = factor(hpf), y = Evenness, 
                                  fill = factor(hpf), color=factor(hpf))
                 )+
-  geom_boxplot(alpha = 0.7, 
+ 
+  geom_violin(alpha = 0.5, 
+              width = 0.9,
+              show.legend=FALSE) +
+  
+  geom_boxplot(color="black", 
+               width = 0.2, 
                outlier.shape = NA, 
                show.legend=FALSE) +
-  geom_beeswarm(size = 2, 
-                alpha = 1, 
-                show.legend=FALSE) +
+  
   scale_fill_manual(values = hpf.3.colors) +
-  scale_color_manual(values = hpf.3.colors)+
+  scale_color_manual(values = hpf.3.colors) +
+  
   labs(
     title = "",
     x = "",
@@ -851,17 +849,27 @@ piel2 <- ggplot(evenness_df, aes(x = factor(hpf), y = Evenness,
 piel2
 ```
 
-```{r}
+```{r piel3-int}
 # Box plot by leachate x timepoint interaction
 piel3 <- ggplot(evenness_df, aes(x = factor(hpf), y = Evenness, fill = leachate, color=leachate)) +
-  geom_boxplot(alpha = 0.7, outlier.shape = NA, position = position_dodge(width = 0.8), show.legend = FALSE) +
-  geom_beeswarm(aes(group = interaction(hpf, leachate)), 
-              dodge.width = 0.8, 
-              size = 1.5, 
-              alpha = 1, 
-              show.legend = FALSE) +
+ 
+  geom_violin(aes(group = interaction(hpf, leachate)),
+              alpha = 0.5, 
+              width = 1.5,
+              position=position_dodge(width=0.6),
+              show.legend=FALSE) +
+  
+  geom_boxplot(aes(group = interaction(hpf, leachate)),
+               color="black",
+               alpha = 1,
+               width = 0.2, 
+               outlier.shape = NA, 
+               position=position_dodge(width=0.6),
+               show.legend=FALSE) +
+  
   scale_color_manual(values = leachate.colors) +
-  scale_fill_manual(values = leachate.colors)+
+  scale_fill_manual(values = leachate.colors) +
+  
   labs(
     title = "Pielou's",
     x = "",
@@ -872,10 +880,19 @@ piel3 <- ggplot(evenness_df, aes(x = factor(hpf), y = Evenness, fill = leachate,
 piel3
 ```
 
-```{r}
+```{r piel-combo, fig.width=10, fig.height=4}
 # Combine plots using patchwork
-pielou_combined <- piel3/(piel1 + piel2)
-pielou_combined
+pielou_combo <- piel3+ piel1 + piel2+
+  plot_layout(widths = c(box3, box1, box2)) +
+  plot_annotation(
+    title = "Pielou's Evenness",
+    theme = theme(
+      plot.title = element_text(size = 12,
+                                color = "grey40", 
+                                hjust = 0.5)
+    )
+  )
+pielou_combo
 ```
 
 ```{r}
@@ -883,7 +900,7 @@ pielou_combined
 ggsave(filename = file.path(figures_dir, "pielou_by_leachate.png"), plot = piel1, width = 10, height = 6, dpi = 900)
 ggsave(filename = file.path(figures_dir, "pielou_by_timepoint.png"), plot = piel2, width = 10, height = 6, dpi = 900)
 ggsave(filename = file.path(figures_dir, "pielou_leachate_x_timepoint.png"), plot = piel3, width = 10, height = 6, dpi = 900)
-ggsave(filename = file.path(figures_dir, "pielou_combined.png"), plot = pielou_combined, width = 13, height = 12, dpi = 900)
+ggsave(filename = file.path(figures_dir, "pielou_combined.png"), plot = pielou_combo, width = 10, height = , dpi = 900)
 ```
 
 ## Observed Features (ASV Richness)
@@ -956,7 +973,7 @@ timepoint as continuous variables show similar results, all *p* \> 0.11
 
 ### Boxplots
 
-```{r, asv1-leachate}
+```{r asv1-leachate}
 # Box plot by leachate treatment
 asv1 <- ggplot(observed_df, 
                aes(x = leachate, y = ObservedFeatures, 
@@ -974,6 +991,13 @@ asv1 <- ggplot(observed_df,
   
   scale_color_manual(values = leachate.colors) +
   scale_fill_manual(values = leachate.colors) +
+  
+  scale_x_discrete(labels = c(
+    control = "0",
+    low = "0.01",
+    mid = "0.1",
+    high = "1"
+  ))+
   
   labs(
     title = "",
@@ -1056,7 +1080,7 @@ asv3 <- ggplot(observed_df, aes(x = factor(hpf), y = ObservedFeatures,
 asv3  
 ```
 
-```{r, fig.width=10, fig.height=4}
+```{r asv-combo, fig.width=10, fig.height=4}
 asv_combo <- asv3 + asv1 + asv2 +
   plot_layout(widths = c(box3, box1, box2))+
   plot_annotation(
@@ -1071,10 +1095,10 @@ asv_combo
 
 ```{r}
 # Save plots
-ggsave(filename = file.path(figures_dir, "observed_features_by_leachate.png"), plot = asv1, width = 10, height = 6, dpi = 300)
-ggsave(filename = file.path(figures_dir, "observed_features_by_timepoint.png"), plot = asv2, width = 10, height = 6, dpi = 300)
-ggsave(filename = file.path(figures_dir, "observed_features_leachate_x_timepoint.png"), plot = asv3, width = 10, height = 6, dpi = 300)
-ggsave(filename = file.path(figures_dir, "observed_features_combined.png"), plot = asv_combined, width = 13, height = 12, dpi = 300)
+ggsave(filename = file.path(figures_dir, "observed_features_by_leachate.png"), plot = asv1, width = 10, height = 6, dpi = 900)
+ggsave(filename = file.path(figures_dir, "observed_features_by_timepoint.png"), plot = asv2, width = 10, height = 6, dpi = 900)
+ggsave(filename = file.path(figures_dir, "observed_features_leachate_x_timepoint.png"), plot = asv3, width = 10, height = 6, dpi = 900)
+ggsave(filename = file.path(figures_dir, "observed_features_combined.png"), plot = asv_combo, width = 10, height = 4, dpi = 900)
 ```
 
 # Alpha Diversity Summary Panel
@@ -1093,9 +1117,9 @@ alpha_shannon_faith
 ```
 ## Shannon, Faith, Pielou, Observed Features
 
-```{r, fig.height=8, fig.width=6}
-alpha_combined_v2 <- wrap_plots(shannon_combined, faith_combined,
-                                pielou_combined, asv_combo, 
+```{r, fig.height=8, fig.width=9}
+alpha_combined_v2 <- wrap_plots(shannon_combo, faith_combo,
+                                pielou_combo, asv_combo, 
                                 ncol=1, 
                                 nrow=4, 
                                 byrow=TRUE) +
@@ -1114,16 +1138,7 @@ alpha_combined_v2
 **Beta diversity measures the dissimilarity in community composition
 between samples.**
 
-::: callout-note
-## Statistical Testing of Beta Diversity
 
-The PCoA plots below visualize beta diversity patterns. To
-**statistically test** whether groups differ in community composition,
-use **PERMANOVA** (Permutational Multivariate Analysis of Variance).
-
-**Key point**: PERMANOVA tests the distance matrices themselves, NOT the
-PCoA coordinates!
-:::
 
 ## Bray-Curtis Dissimilarity
 
@@ -1152,7 +1167,7 @@ bc_variance <- bc_pcoa$data$ProportionExplained
 # PCoA plot colored by leachate
 bray1 <- ggplot(bc_coords, aes(x = PC1, y = PC2, color = factor(leachate), shape = factor(hpf))) +
   geom_point(size = 4, alpha = 0.8) +
-  scale_color_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+  scale_color_manual(values=leachate.colors) +
   labs(
     title = "Bray-Curtis PCoA",
     subtitle = "Community composition dissimilarity",
@@ -1161,7 +1176,7 @@ bray1 <- ggplot(bc_coords, aes(x = PC1, y = PC2, color = factor(leachate), shape
     color = "Leachate",
     shape = "Timepoint"
   ) +
-  theme_classic() +
+  theme_sleek_axe() +
   theme(
     plot.title = element_text(face = "bold", size = 14),
     plot.subtitle = element_text(size = 11, color = "grey40"),
@@ -1172,7 +1187,7 @@ bray1 <- ggplot(bc_coords, aes(x = PC1, y = PC2, color = factor(leachate), shape
 # PCoA plot colored by timepoint
 bray2 <- ggplot(bc_coords, aes(x = PC1, y = PC2, color = factor(hpf), shape = factor(leachate)), fill = factor(cross)) +
   geom_point(size = 4, alpha = 0.8) +
-  scale_color_viridis_d(option = "mako", begin = 0.2, end = 0.9) +
+  scale_color_manual(values=hpf.3.colors) +
   labs(
     title = "Bray-Curtis PCoA",
     subtitle = "Community composition dissimilarity",
@@ -1181,7 +1196,7 @@ bray2 <- ggplot(bc_coords, aes(x = PC1, y = PC2, color = factor(hpf), shape = fa
     color = "Timepoint (hpf)",
     shape = "Leachate"
   ) +
-  theme_classic() +
+  theme_sleek_axe() +
   theme(
     plot.title = element_text(face = "bold", size = 14),
     plot.subtitle = element_text(size = 11, color = "grey40"),
@@ -1236,9 +1251,9 @@ head(jac_variance)
 #| fig-height: 8
 
 # PCoA plot colored by leachate
-jacc1 <- ggplot(jac_coords, aes(x = PC1, y = PC2, color = factor(leachate), shape = factor(timepoint))) +
+jacc1 <- ggplot(jac_coords, aes(x = PC1, y = PC2, color = factor(leachate), shape = factor(hpf))) +
   geom_point(size = 4, alpha = 0.8) +
-  scale_color_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+  scale_color_manual(values=leachate.colors) +
   labs(
     title = "Jaccard PCoA",
     subtitle = "Presence/absence dissimilarity",
@@ -1256,9 +1271,9 @@ jacc1 <- ggplot(jac_coords, aes(x = PC1, y = PC2, color = factor(leachate), shap
   )
 
 # PCoA plot colored by timepoint
-jacc2 <- ggplot(jac_coords, aes(x = PC1, y = PC2, color = factor(timepoint), shape = factor(leachate))) +
+jacc2 <- ggplot(jac_coords, aes(x = PC1, y = PC2, color = factor(hpf), shape = factor(leachate))) +
   geom_point(size = 4, alpha = 0.8) +
-  scale_color_viridis_d(option = "mako", begin = 0.2, end = 0.9) +
+  scale_color_manual(values=hpf.3.colors) +
   labs(
     title = "Jaccard PCoA",
     subtitle = "Presence/absence dissimilarity",
@@ -1299,7 +1314,7 @@ head(wuf_coords)
 ```
 
 ```{r}
-wuf_coords <- wuf_coords %>%
+wuf_coords_n_meta <- wuf_coords %>%
   left_join(metadata, by = "SampleID")
 
 wuf_variance <- wuf_pcoa$data$ProportionExplained
@@ -1310,9 +1325,9 @@ wuf_variance <- wuf_pcoa$data$ProportionExplained
 #| fig-height: 8
 
 # PCoA plot colored by leachate
-wufr1 <- ggplot(wuf_coords, aes(x = PC1, y = PC2, color = factor(leachate), shape = factor(timepoint))) +
+wufr1 <- ggplot(wuf_coords_n_meta, aes(x = PC1, y = PC2, color = factor(leachate), shape = factor(hpf))) +
   geom_point(size = 4, alpha = 0.8) +
-  scale_color_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+  scale_color_manual(values=leachate.colors) +
   labs(
     title = "Weighted UniFrac PCoA",
     subtitle = "Phylogenetic dissimilarity (abundance-weighted)",
@@ -1321,7 +1336,7 @@ wufr1 <- ggplot(wuf_coords, aes(x = PC1, y = PC2, color = factor(leachate), shap
     color = "Leachate",
     shape = "Timepoint"
   ) +
-  theme_classic() +
+  theme_sleek_axe() +
   theme(
     plot.title = element_text(face = "bold", size = 14),
     plot.subtitle = element_text(size = 11, color = "grey40"),
@@ -1330,9 +1345,9 @@ wufr1 <- ggplot(wuf_coords, aes(x = PC1, y = PC2, color = factor(leachate), shap
   )
 
 # PCoA plot colored by timepoint
-wufr2 <- ggplot(wuf_coords, aes(x = PC1, y = PC2, color = factor(timepoint), shape = factor(leachate))) +
+wufr2 <- ggplot(wuf_coords_n_meta, aes(x = PC1, y = PC2, color = factor(hpf), shape = factor(leachate))) +
   geom_point(size = 4, alpha = 0.8) +
-  scale_color_viridis_d(option = "mako", begin = 0.2, end = 0.9) +
+  scale_color_manual(values=hpf.3.colors) +
   labs(
     title = "Weighted UniFrac PCoA",
     subtitle = "Phylogenetic dissimilarity (abundance-weighted)",
@@ -1341,7 +1356,7 @@ wufr2 <- ggplot(wuf_coords, aes(x = PC1, y = PC2, color = factor(timepoint), sha
     color = "Timepoint (hpf)",
     shape = "Leachate"
   ) +
-  theme_classic() +
+  theme_sleek_axe() +
   theme(
     plot.title = element_text(face = "bold", size = 14),
     plot.subtitle = element_text(size = 11, color = "grey40"),
@@ -1350,8 +1365,8 @@ wufr2 <- ggplot(wuf_coords, aes(x = PC1, y = PC2, color = factor(timepoint), sha
   )
 
 # Save plots
-ggsave(filename = file.path(figures_dir, "weighted_unifrac_by_leachate.png"), plot = wufr1, width = 10, height = 8, dpi = 300)
-ggsave(filename = file.path(figures_dir, "weighted_unifrac_by_timepoint.png"), plot = wufr2, width = 10, height = 8, dpi = 300)
+ggsave(filename = file.path(figures_dir, "weighted_unifrac_by_leachate.png"), plot = wufr1, width = 10, height = 8, dpi = 900)
+ggsave(filename = file.path(figures_dir, "weighted_unifrac_by_timepoint.png"), plot = wufr2, width = 10, height = 8, dpi = 900)
 
 wufr1
 wufr2
@@ -1455,14 +1470,14 @@ beta_timepoint
 
 # Summary
 
-This document provides manuscript-ready visualizations of all core
-diversity metrics from the filtered dataset:
+This was for initial exploration of alpha and beta diversity metrics in the coral microbiome dataset. We generated a comprehensive set of visualizations to assess how microbial diversity changes with PVC leachate exposure and developmental progression from 4 to 14 hours post-fertilization.
 
 **Alpha Diversity Metrics:** - Shannon Diversity Index - Faith's
 Phylogenetic Diversity - Pielou's Evenness - Observed ASV Richness -
 Alpha Diversity Summary Panel (all metrics combined)
 
-**Beta Diversity Metrics:** - Bray-Curtis dissimilarity
+**Beta Diversity Metrics:** 
+- Bray-Curtis dissimilarity
 (abundance-based) - Jaccard distance (presence/absence) - Weighted
 UniFrac distance (phylogenetic + abundance) - Unweighted UniFrac
 distance (phylogenetic presence/absence) - Beta Diversity Summary Panel
@@ -1473,5 +1488,4 @@ developmental timepoint (hours post fertilization), allowing for
 comprehensive assessment of how microbiome diversity changes with PVC
 leachate exposure and coral development.
 
-**All plots are automatically saved to the `output/figures/` directory**
-for easy access and manuscript preparation.
+**All plots are saved to the `figs` directory**
