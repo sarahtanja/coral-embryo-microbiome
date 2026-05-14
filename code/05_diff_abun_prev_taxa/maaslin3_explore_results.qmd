@@ -492,8 +492,8 @@ abundance_plot
     ggsave(
       filename = file.path(fig_path, "genus_abundance.png"),
       plot = abundance_plot,
-      width = 6,
-      height = 4,
+      width = 7,
+      height = 12,
       dpi = 900
     )
 ```
@@ -551,7 +551,7 @@ ggsave(
   filename = file.path(fig_path, "genus_prevalence.png"),
   plot = genus_prevalence,
   width = 7,
-  height = 7,
+  height = 12,
   dpi = 900)
 
 ```
