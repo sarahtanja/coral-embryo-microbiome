@@ -1,43 +1,62 @@
----
-title: "Maaslin3 Differential abundance and prevalence testing on PICRUSt2 full functional profile output of predicted MetaCyc metabolic pathways"
-author: "Sarah Tanja"
-date: 2026-04-30
-date-modified: today
-format:
-  gfm: 
-    toc: true
-    number-sections: true
-  html:
-    theme: journal
-    highlight-style: github
-    page-layout: article
-    code-background: true
-    code-tools: 
-      source: true
-      toggle: true
-    toc: true
-    toc-depth: 2
-    toc-location: left
-    number-sections: true
-    df-print: kable
-    smooth-scroll: true
-    link-external-icon: true
-    link-external-newwindow: true
-    reference-location: margin
-    citation-location: margin
-editor: 
-  markdown: 
-    wrap: 72
----
+# Maaslin3 Differential abundance and prevalence testing on PICRUSt2 full functional profile output of predicted MetaCyc metabolic pathways
+Sarah Tanja
+2026-04-30
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(
-  echo = TRUE, # Display code chunks
-  eval = FALSE, # Evaluate code chunks
-  warning = FALSE, # Hide warnings
-  message = FALSE, # Hide messages
-  comment = "") # Prevents appending '##' to beginning of lines in code output)        
-```
+- [<span class="toc-section-number">1</span> Background](#background)
+- [<span class="toc-section-number">2</span> Set paths](#set-paths)
+- [<span class="toc-section-number">3</span> Load pathway abundance
+  table](#load-pathway-abundance-table)
+  - [<span class="toc-section-number">3.1</span> Load
+    metadata](#load-metadata)
+  - [<span class="toc-section-number">3.2</span> Run
+    MaAsLin3](#run-maaslin3)
+  - [<span class="toc-section-number">3.3</span>
+    Methanogenesis](#methanogenesis)
+    - [<span class="toc-section-number">3.3.1</span>
+      PWY-1882](#pwy-1882)
+    - [<span class="toc-section-number">3.3.2</span>
+      PWY-5209](#pwy-5209)
+  - [<span class="toc-section-number">3.4</span> CO2
+    Fixation](#co2-fixation)
+    - [<span class="toc-section-number">3.4.1</span>
+      PWY-7784](#pwy-7784)
+  - [<span class="toc-section-number">3.5</span> Biosynthesis carboxylic
+    acid
+    degradation/biosynthesis](#biosynthesis-carboxylic-acid-degradationbiosynthesis)
+    - [<span class="toc-section-number">3.5.1</span>
+      PWY-6165](#pwy-6165)
+    - [<span class="toc-section-number">3.5.2</span>
+      PWY-6160](#pwy-6160)
+    - [<span class="toc-section-number">3.5.3</span>
+      PWY0-301](#pwy0-301)
+  - [<span class="toc-section-number">3.6</span> Precursor
+    metabolites](#precursor-metabolites)
+    - [<span class="toc-section-number">3.6.1</span>
+      PWY-5741](#pwy-5741)
+    - [<span class="toc-section-number">3.6.2</span>
+      PWY-5109](#pwy-5109)
+  - [<span class="toc-section-number">3.7</span> Aromatic compound
+    degradation](#aromatic-compound-degradation)
+    - [<span class="toc-section-number">3.7.1</span>
+      PWY-6690](#pwy-6690)
+    - [<span class="toc-section-number">3.7.2</span>
+      HCAMHPDEG-PWY](#hcamhpdeg-pwy)
+    - [<span class="toc-section-number">3.7.3</span>
+      PWY0-1277](#pwy0-1277)
+    - [<span class="toc-section-number">3.7.4</span>
+      TOLUENE-DEG-3-OH-PWY](#toluene-deg-3-oh-pwy)
+  - [<span class="toc-section-number">3.8</span> Chlorinated Compound
+    Degradation](#chlorinated-compound-degradation)
+    - [<span class="toc-section-number">3.8.1</span>
+      PCPDEG-PWY](#pcpdeg-pwy)
+    - [<span class="toc-section-number">3.8.2</span>
+      14DICHLORBENZDEG-PWY](#14dichlorbenzdeg-pwy)
+    - [<span class="toc-section-number">3.8.3</span>
+      PWY-6084](#pwy-6084)
+- [<span class="toc-section-number">4</span> PCA of pathway
+  matrix](#pca-of-pathway-matrix)
+- [<span class="toc-section-number">5</span> ggpicrust2 package for
+  visualizing results](#ggpicrust2-package-for-visualizing-results)
 
 # Background
 
@@ -50,11 +69,11 @@ knitr::opts_chunk$set(
 > metagenomics or metatranscriptomics) are not available. “Predicted
 > microbial functional potential shifted…”
 
-note to self.. can't use qiime2R on windows so go to raven but can't
+note to self.. can’t use qiime2R on windows so go to raven but can’t
 update raven r version (needed for maaslin) so head back to minerva to
 run maaslin3 \# Load libraries
 
-```{r, eval=TRUE}
+``` r
 library(tidyverse)
 library(qiime2R)
 library(maaslin3)
@@ -62,7 +81,7 @@ library(maaslin3)
 
 # Set paths
 
-```{r}
+``` r
 metadata_path <- "../../metadata/meta.csv"
 output_path <- "../../output/picrust2"
 fig_path <- "../../output/figs"
@@ -70,13 +89,13 @@ fig_path <- "../../output/figs"
 
 # Load pathway abundance table
 
-```{r}
+``` r
 path <- read_tsv("../../output/picrust2/envrun/pathways_out/path_abun_unstrat.tsv.gz")
 ```
 
 Make pathway names rownames and remove the pathway column
 
-```{r}
+``` r
 path <- path %>% 
   column_to_rownames(var = "pathway") %>% 
   as.data.frame()
@@ -84,7 +103,7 @@ path <- path %>%
 
 Transpose so rownames are samples and columns are pathways
 
-```{r}
+``` r
 path <- t(path)
 dim(path)
 ```
@@ -95,7 +114,7 @@ our metadata!
 
 ## Load metadata
 
-```{r}
+``` r
 # Load metadata
 metadata <- read_csv(metadata_path)
 
@@ -114,7 +133,7 @@ metadata <- metadata %>%
   )
 ```
 
-```{r}
+``` r
 # make samples rownames
 meta <- metadata %>% 
   column_to_rownames(var = "sample_id") %>% 
@@ -126,7 +145,7 @@ str(meta)
 
 ## Run MaAsLin3
 
-```{r maaslin-full}
+``` r
 #set.seed(05032026)
 #mp <- maaslin3(
 #  input_data = path,
@@ -140,7 +159,7 @@ str(meta)
 #)
 ```
 
-```{r sig-paths}
+``` r
 sig_paths <- read_tsv(file.path(output_path, "maaslin_metacycpaths/significant_results.tsv"))
 ```
 
@@ -149,54 +168,13 @@ Does it show a more complex non-monotonic pattern?
 
 leachate
 
-```{r sig-leachate}
+``` r
 sig_leachate <- sig_paths %>% 
   filter(metadata == "leachate") %>% 
   arrange(qval_joint)
 
 length(unique(sig_leachate$feature))
 unique(sig_leachate$feature) 
-```
-
-```{r}
-prev_leachate <- sig_leachate %>% 
-  filter(model == "prevalence")
-
-length(unique(prev_leachate$feature))
-
-abun_leachate <- sig_leachate %>% 
-  filter(model == "abundance")
-
-length(unique(abun_leachate))
-```
-
-```{r}
-paste0(
-  "Features significant for prevalence but not abundance: ",
-  paste(
-    setdiff(prev_leachate$feature,
-            abun_leachate$feature),
-    collapse = ", "
-  )
-)
-
-paste0(
-  "Features significant for abundance but not prevalence: ",
-  paste(
-    setdiff(abun_leachate$feature,
-            prev_leachate$feature),
-    collapse = ", "
-  )
-)
-
-paste0(
-  "Features significant for both abundance and prevalence: ",
-  paste(
-    intersect(abun_leachate$feature,
-              prev_leachate$feature),
-    collapse = ", "
-  )
-)
 ```
 
 ## Methanogenesis
@@ -323,7 +301,8 @@ Expected Taxonomic Range:
 
 This pathway describes autotrophic production of
 [acetyl-CoA](https://metacyc.org/compound?orgid=META&id=ACETYL-COA) from
-two [CO~2~](https://metacyc.org/compound?orgid=META&id=CARBON-DIOXIDE)
+two
+[CO<sub>2</sub>](https://metacyc.org/compound?orgid=META&id=CARBON-DIOXIDE)
 molecules. The pathway was originally documented in homoacetogenic
 [*Clostridia*](https://metacyc.org/META/NEW-IMAGE?object=TAX-186801)
 \[[Jansen82](https://metacyc.org/META/reference.html?type=CITATION-REFERENCE&object=%5bJansen82%5d)\]
@@ -331,15 +310,16 @@ molecules. The pathway was originally documented in homoacetogenic
 bacteria)](https://metacyc.org/pathway?orgid=META&id=CODH-PWY)). In that
 pathway the methyl carbon of
 [acetyl-CoA](https://metacyc.org/compound?orgid=META&id=ACETYL-COA) is
-derived from CO~2~ via the reductions of the tetrahydrofolate route,
-while the carbonyl group is obtained via reduction of a second CO~2~ via
-CO.
+derived from CO<sub>2</sub> via the reductions of the tetrahydrofolate
+route, while the carbonyl group is obtained via reduction of a second
+CO<sub>2</sub> via CO.
 
 In methanogens, a modified pathway exists, where the methyl group of
 [acetyl-CoA](https://metacyc.org/compound?orgid=META&id=ACETYL-COA) is
-derived from CO~2~ via the tetrahydromethanopterin route, which is also
-a part of the of methanogenic pathway (see [methanogenesis from H~2~ and
-CO~2~](https://metacyc.org/pathway?orgid=META&id=METHANOGENESIS-PWY)).
+derived from CO<sub>2</sub> via the tetrahydromethanopterin route, which
+is also a part of the of methanogenic pathway (see [methanogenesis from
+H<sub>2</sub> and
+CO<sub>2</sub>](https://metacyc.org/pathway?orgid=META&id=METHANOGENESIS-PWY)).
 
 The evidence for the existence of this pathway in methanogens derives
 from three observations:
@@ -351,7 +331,7 @@ from three observations:
 [Shieh87](http://www.ncbi.nlm.nih.gov/pubmed/3667534)\].
 
 2\. Isotopic labeling of whole cells show that acetate or acetyl-CoA is
-the first product of CO~2~ fixation
+the first product of CO<sub>2</sub> fixation
 \[[Fuchs80](http://www.springerlink.com/content/j333123631m75100/fulltext.pdf),
 [Ruehlemann85](http://link.springer.com/10.1007/BF00428856)\].
 
@@ -364,8 +344,8 @@ in cell extracts
 
 The pathway starts like the methanogenic pathway with activation of one
 molecule of
-[CO~2~](https://metacyc.org/compound?orgid=META&id=CARBON-DIOXIDE) by
-the unique cofactor
+[CO<sub>2</sub>](https://metacyc.org/compound?orgid=META&id=CARBON-DIOXIDE)
+by the unique cofactor
 [methanofuran](https://metacyc.org/compound?orgid=META&id=Methanofurans),
 resulting in the formation of [a
 formylmethanofuran](https://metacyc.org/compound?orgid=META&id=Formyl-methanofurans).
@@ -374,9 +354,9 @@ The formyl group is then transferred to another cofactor,
 A succession of transformations, catalyzed by
 [methenyltetrahydromethanopterin
 cyclohydrolase](https://metacyc.org/gene?orgid=META&id=MCHMAUTO-MONOMER),
-[H~2~-forming methylene-H~4~MPT
+[H<sub>2</sub>-forming methylene-H<sub>4</sub>MPT
 dehydrogenase](https://metacyc.org/gene?orgid=META&id=HMDMAUTO-MONOMER),
-and finally [F~420~-dependent methylene-H~4~MPT
+and finally [F<sub>420</sub>-dependent methylene-H<sub>4</sub>MPT
 reductase](https://metacyc.org/gene?orgid=META&id=MERMAUTO-MONOMER),
 which depends on the methanogenic cofactor [a factor
 420](https://metacyc.org/compound?orgid=META&id=Factor-420), results in
@@ -415,59 +395,6 @@ that organism in the absence of sulfate
 [Ferry15](http://www.ncbi.nlm.nih.gov/pubmed/26068860)\].
 
 ## Biosynthesis carboxylic acid degradation/biosynthesis
-
-### PWY-7039
-
-[phosphatidate metabolism, as a signaling
-molecule](https://metacyc.org/pathway?orgid=META&id=PWY-7039#SUMMARY)
-
-Some taxa known to possess this pathway include : [Arabidopsis thaliana
-col](https://metacyc.org/META/NEW-IMAGE?object=ORG-5993)[![Inferred from
-experiment](https://metacyc.org/EV-EXP.png){alt="Inferred from experiment"}](javascript:popupUrlContent('/META/reference.html?type=EVIDENCE-GLYPH&object=((PWY-7039+SPECIES+ORG-5993)+%2216081412:EV-EXP:3544209407:zhang%22)%27,%20400,%20400,%20%27Evidence%27,%20this))
-\[[GomezMerino05](http://www.ncbi.nlm.nih.gov/pubmed/16081412)\],
-[Catharanthus
-roseus](https://metacyc.org/META/NEW-IMAGE?object=TAX-4058), [Triticum
-aestivum](https://metacyc.org/META/NEW-IMAGE?object=TAX-4565)
-
-Expected Taxonomic Range:
-[Viridiplantae](https://metacyc.org/META/NEW-IMAGE?object=TAX-33090)
-
-**Pathway Summary**
-
-[1,2-Diacyl-*sn*-glycerol-3-phosphate](https://metacyc.org/compound?orgid=META&id=L-PHOSPHATIDATE),
-often referred to as phosphatidate (PA), is a class of compounds
-consisting of a
-[glycerol](https://metacyc.org/compound?orgid=META&id=GLYCEROL)
-backbone, a (usually) saturated fatty acid bonded to carbon 1, a
-(usually) unsaturated fatty acid bonded to carbon 2, and a phosphate
-group esterified to carbon 3.
-
-PA is an intermediate in structural lipid biosynthesis (see
-[superpathway of phospholipid biosynthesis II
-(plants)](https://metacyc.org/pathway?orgid=META&id=PHOSLIPSYN2-PWY) and
-[diacylglycerol and triacylglycerol
-biosynthesis](https://metacyc.org/pathway?orgid=META&id=TRIGLSYN-PWY)),
-and an important second messenger. In plants, PA is rapidly and
-transiently generated in response to a number of biotic (pathogens) and
-abiotic (such as cold and salt stress) stimulates (reviewed in
-\[[Testerink05](http://www.ncbi.nlm.nih.gov/pubmed/16023886)\]). Using a
-so-called differential labeling method, it was shown that there are two
-pathways, the phospholipase C and diacylglycerol kinase pathway (PLC
-pathway), and the phospholipase D pathway (PLD pathway), that generate
-PA as a signaling molecule in response to environmental signals
-(reviewed in
-\[[Arisz09](http://www.ncbi.nlm.nih.gov/pubmed/19394438)\]). In the PLC
-pathway, phosphatidylinositol-4,5-bisphosphate, derived from
-phosphatidylinositol, is converted to diacylglycerol which is rapidly
-phosphorylated to PA. In the PLD pathway, PA is directly formed from
-structural lipid phosphatidylcholine. The two pathways are
-differentially activated in response to different stimulates
-\[[Testerink05](http://www.ncbi.nlm.nih.gov/pubmed/16023886)\]. Once
-formed, PA can be further converted to diacylglycerol pyrophosphate
-(DGPP) by PA kinase (reviewed in
-\[[vanSchooten06](http://www.ncbi.nlm.nih.gov/pubmed/16469533)\]). This
-is a possible mechanism in PA attenuation. Interestingly, mammals do not
-seem to have PA kinase activity
 
 ### PWY-6165
 
@@ -588,7 +515,7 @@ important pathways, including collagen hydroxylation, carnitine
 biosynthesis, norepinephrine biosynthesis, and hormone and tyrosine
 metabolism. In plants L-ascorbate is also implicated in defense against
 pathogens and in control of plant growth and development. A significant
-proportion of a plant's ascorbate is found in the apoplast (the aqueous
+proportion of a plant’s ascorbate is found in the apoplast (the aqueous
 solution permeating the cell walls) \[Green05\].
 
 Under aerobic conditions L-ascorbate is oxidized in cells to
@@ -609,7 +536,7 @@ pathway proceeds via 2,3-didehydro-L-gulonate. Both pathways produce
 D-xylulose 5-phosphate, a centeral metabolite that is fed into the
 pentose phosphate pathway \[Campos08\].
 
-Plants from the Vitaceae family (e.g. grapes) metabolize ascorbate to
+Plants from the Vitaceae family (e.g. grapes) metabolize ascorbate to
 L-tartrate via the intermediates 2-keto-L-gulonate and L-idonate (see
 pathway L-ascorbate degradation IV). The tartrate skeleton is derived
 from carbons 1-4 of L-ascorbate, indicating a cleavage between carbons 4
@@ -718,8 +645,8 @@ lumbricoides*](https://metacyc.org/META/NEW-IMAGE?object=TAX-6252) and
 parasitic intestinal helminths whose metabolism is predominantly
 anaerobic \[[Epps50](http://www.ncbi.nlm.nih.gov/pubmed/14774531)\]. The
 organisms ferment glucose to
-[CO~2~](https://metacyc.org/compound?orgid=META&id=CARBON-DIOXIDE) and a
-mixture of products. The major product (about 20%) is
+[CO<sub>2</sub>](https://metacyc.org/compound?orgid=META&id=CARBON-DIOXIDE)
+and a mixture of products. The major product (about 20%) is
 [2-methylbutanoate](https://metacyc.org/compound?orgid=META&id=CPD-7076)
 \[[Bueding51](http://www.ncbi.nlm.nih.gov/pubmed/14907729)\].
 
@@ -916,7 +843,7 @@ coli*](https://metacyc.org/META/NEW-IMAGE?object=TAX-562)
 [Bugg93](http://www.ncbi.nlm.nih.gov/pubmed/8399388),
 [Ferrandez97](http://www.ncbi.nlm.nih.gov/pubmed/9098055)\].
 
-The pathway's enzyme are also able to metabolize
+The pathway’s enzyme are also able to metabolize
 [*trans*-cinnamate](https://metacyc.org/compound?orgid=META&id=CPD-674)
 and [3-coumarate](https://metacyc.org/compound?orgid=META&id=CPD-10797),
 as described in [cinnamate and 3-hydroxycinnamate degradation to
@@ -1014,104 +941,6 @@ propanal dehydrogenase (CoA-propanoylating) to propanoyl-CoA, which can
 be converted into the central metabolite succinyl-CoA as described in
 propanoyl CoA degradation I.
 
-### PWY-5182
-
-[**toluene degradation II (aerobic) (*via
-4-methylcatechol*)**](https://biocyc.org/pathway?orgid=META&id=TOLUENE-DEG-3-OH-PWY&sid=biocyc15-3987718044)
-
-Some taxa known to possess this pathway include : [Ralstonia
-pickettii](https://biocyc.org/META/NEW-IMAGE?object=TAX-329)
-
-Expected Taxonomic Range:
-[Pseudomonadota](https://biocyc.org/META/NEW-IMAGE?object=TAX-1224)
-
-### **Pathway Summary**
-
-Toluene is widely used as an industrial additive and solvent. Toluene
-and related aromatic compounds can be degraded by bacteria, and have
-been studied in the metabolically versatile genus
-[*Pseudomonas*](https://biocyc.org/META/NEW-IMAGE?object=TAX-286) and
-closely related genera. These studies have been directed toward
-bioremediation of environmental pollutants by metabolic engineering, and
-the development of syntrophic bacterial consortia (reviewed in
-\[[Diaz04](http://www.ncbi.nlm.nih.gov/pubmed/15492931)\]). Aerobic
-pathways of toluene degradation have been identified in various species
-that involve different initial monooxygenase, or hydroxylating
-dioxygenase reactions. Several of these pathways converge in the
-formation of
-[3-methylcatechol](https://biocyc.org/compound?orgid=META&id=CPD-111)
-\[[Shields91](http://www.ncbi.nlm.nih.gov/pubmed/1892384)\]. This
-compound is a substrate for ring cleavage enzymes, the products of which
-are metabolized via a common *meta* fission pathway, resulting in the
-formation of compounds of central metabolism (see this pathway and
-pathways [toluene degradation to 2-hydroxypentadienoate I (*via*
-*o*-cresol)](https://biocyc.org/pathway?orgid=META&id=TOLUENE-DEG-2-OH-PWY)
-and [toluene degradation to 2-hydroxypentadienoate (*via*
-toluene-*cis*-diol)](https://biocyc.org/pathway?orgid=META&id=TOLUENE-DEG-DIOL-PWY)).
-
-Toluene degradation in [*Ralstonia pickettii* (previously known as
-*Pseudomonas pickettii* and *Burkholderia
-pickettii*)](https://biocyc.org/META/NEW-IMAGE?object=TAX-329) is
-controlled by a chromosomal regulon
-\[[Kahng00](http://www.ncbi.nlm.nih.gov/pubmed/10671442)\]. The initial
-hydroxylation reactions are catalyzed by [toluene
-4-monooxygenase](https://biocyc.org/complex?orgid=META&id=CPLX-6542),
-followed by *meta* cleavage of the benzene ring by catechol
-2,3-dioxygenase, and subsequent degradation via the *meta* cleavage
-pathway \[[Olsen94](http://www.ncbi.nlm.nih.gov/pubmed/8206853)\].
-
-There is disagreement in the literature over the hydroxylation reactions
-of the first enzyme of this pathway. Initial reports suggested that the
-first hydroxylation is at the *meta* position yielding
-[3-methylphenol](https://biocyc.org/compound?orgid=META&id=CPD-112) as
-an intermediate, and the second yields
-[3-methylcatechol](https://biocyc.org/compound?orgid=META&id=CPD-111)
-\[[Olsen94](http://www.ncbi.nlm.nih.gov/pubmed/8206853)\]. However,
-later work suggested that toluene 3-monooxygenase is predominantly a
-*para* cleaving enzyme, and its initial products were shown in that
-study to be 90%
-[4-methylphenol](https://biocyc.org/compound?orgid=META&id=CPD-108), and
-only 10%
-[3-methylphenol](https://biocyc.org/compound?orgid=META&id=CPD-112).
-[4-methylphenol](https://biocyc.org/compound?orgid=META&id=CPD-108) was
-further hydroxylated to
-[4-methylcatechol](https://biocyc.org/compound?orgid=META&id=4-METHYLCATECHOL)
-\[[Fishman04](http://www.ncbi.nlm.nih.gov/pubmed/15126473)\]. Although
-further metabolism of 4-methylcatechol was not studied in that report,
-it has been shown to be a substrate of catechol 2,3-dioxygenase in
-[*Ralstonia
-pickettii*](https://biocyc.org/META/NEW-IMAGE?object=TAX-329)
-\[[Kukor91](http://www.ncbi.nlm.nih.gov/pubmed/1856161)\].
-
-Ring fission of
-[4-methylcatechol](https://biocyc.org/compound?orgid=META&id=4-METHYLCATECHOL),
-catalyzed by catechol 2,3-dioxygenase, produces
-[(2Z,4E)-2-hydroxy-5-methyl-6-oxohexa-2,4-dienoate](https://biocyc.org/compound?orgid=META&id=CPD-8781).
-This compound is hydrolyzed to
-[(2Z)-2-hydroxyhexa-2,5-dienoate](https://biocyc.org/compound?orgid=META&id=CPD-22385),
-or its tautomeric dienol form (this tautomerization occurs spontaneously
-in aqueous solution
-\[[Johnson04](http://www.ncbi.nlm.nih.gov/pubmed/15301547)\]). A second
-hydrolysis, catalyzed by TbuJ afford
-[(*S*)-4-hydroxy-2-oxohexanoate](https://biocyc.org/compound?orgid=META&id=CPD-13722),
-which is cleaved by the aldolase TbuK into
-[pyruvate](https://biocyc.org/compound?orgid=META&id=PYRUVATE) and
-[1-propanal](https://biocyc.org/compound?orgid=META&id=CPD-665)
-\[[Kukor91](http://www.ncbi.nlm.nih.gov/pubmed/1856161)\].
-
-The final products of the pathway are
-[pyruvate](https://biocyc.org/compound?orgid=META&id=PYRUVATE), which
-enters central metabolism, and
-[1-propanal](https://biocyc.org/compound?orgid=META&id=CPD-665), which
-may be converted by [EC 1.2.1.87, propanal dehydrogenase
-(CoA-propanoylating)](https://biocyc.org/META/NEW-IMAGE?type=EC-NUMBER&object=EC-1.2.1.87)
-to
-[propanoyl-CoA](https://biocyc.org/compound?orgid=META&id=PROPIONYL-COA),
-which can be converted into the central metabolite
-[succinyl-CoA](https://biocyc.org/compound?orgid=META&id=SUC-COA) as
-described in [propanoyl CoA degradation
-I](https://biocyc.org/pathway?orgid=META&id=PROPIONMET-PWY).
-
 ## Chlorinated Compound Degradation
 
 ### PCPDEG-PWY
@@ -1141,7 +970,7 @@ tetrachlorobenzoquinone reductase, which reduces the latter to
 transferase encoded by the pcpC gene, catalyzes the next two steps,
 resulting in 2,6-dichlorohydroquinone. PcpC is susceptible to oxidative
 damage, and the damaged PcpC produces glutathionyl (GS) conjugates which
-it can't process further. These conjugates can be rescued by the action
+it can’t process further. These conjugates can be rescued by the action
 of another glutathione transferase encoded by pcpF, which completes the
 reduction reaction and removes the glutathione moiety.
 
@@ -1173,9 +1002,9 @@ evolved recently \[Copley00\].
 
 ### 14DICHLORBENZDEG-PWY
 
-::: callout-note
-Aromatic & Chlorinated Compound Degradation !
-:::
+> [!NOTE]
+>
+> Aromatic & Chlorinated Compound Degradation !
 
 [*14-dichlorobenzene
 degradation*](https://metacyc.org/pathway?orgid=META&id=14DICHLORBENZDEG-PWY)
@@ -1224,9 +1053,9 @@ handling
 
 ### PWY-6084
 
-::: callout-note
-Aromatic & Chlorinated Compound Degradation !
-:::
+> [!NOTE]
+>
+> Aromatic & Chlorinated Compound Degradation !
 
 [*3,5-dichlorocatechol
 degradation*](https://metacyc.org/pathway?orgid=META&id=PWY-6084)
@@ -1277,9 +1106,9 @@ intermediates by chromosomally encoded enzymes.
 
 \### PWY-7039
 
-::: callout-note
-Biosynthesis fatty acid / lipids phospholipid biosynthesis signaling
-:::
+> [!NOTE]
+>
+> Biosynthesis fatty acid / lipids phospholipid biosynthesis signaling
 
 [*phosphatidate metabolism, as a signaling
 molecule*](https://metacyc.org/pathway?orgid=META&id=PWY-7039)
@@ -1318,7 +1147,7 @@ Interestingly, mammals do not seem to have PA kinase activity.
 > The plot helps to visualize the clustering patterns and distribution
 > of samples across different groups.
 
-```{r}
+``` r
 # Perform PCA on pathway abundance data
 pca_comp <- prcomp(path, scale. = TRUE)
 
@@ -1342,7 +1171,7 @@ pc2_var <- round(percentVar[2], 1)
 
 Labels for grouping variables
 
-```{r}
+``` r
 labs_leachate <- c(control = "0 mg/L (control)",
                    low = "0.01 mg/L (low)",
                    mid = "0.1 mg/L (mid)",
@@ -1351,7 +1180,7 @@ labs_leachate <- c(control = "0 mg/L (control)",
 labs_stage <- c(cleavage = "Cleavage", prawnchip = "Prawn chip", earlygastrula = "Early gastrula")
 ```
 
-```{r}
+``` r
 # Create a scatter plot of PC1 vs PC2 with density plots
 ggplot(pca_df, aes(x = PC1, y = PC2, color = leachate)) +
   geom_point(size = 3) +
@@ -1365,14 +1194,13 @@ ggplot(pca_df, aes(x = PC1, y = PC2, color = leachate)) +
 
 # ggpicrust2 package for visualizing results
 
-Git repo [here](https://github.com/cafferychen777/ggpicrust2#workflow)
-...
+Git repo [here](https://github.com/cafferychen777/ggpicrust2#workflow) …
 
-```{r ggpicrust2}
+``` r
 library(ggpicrust2)
 ```
 
-```{r}
+``` r
 results_data_input <- ggpicrust2(data = abundance_data,
                                  metadata = metadata,
                                  group = "your_group_column", # For example dataset, group = "Environment"
@@ -1384,7 +1212,7 @@ results_data_input <- ggpicrust2(data = abundance_data,
                                  x_lab = "pathway_name")
 ```
 
-```{r}
+``` r
 # If you want to analysis the EC. MetaCyc. KO without conversions.
 
 path_rows <- t(path)
@@ -1417,7 +1245,7 @@ p <- pathway_errorbar(
 p
 ```
 
-```{r}
+``` r
 # Filter features with p < 0.05
 feature_with_p_0.05 <- metacyc_daa_annotated_results_df %>%
   filter(p_adjust < 0.05)
