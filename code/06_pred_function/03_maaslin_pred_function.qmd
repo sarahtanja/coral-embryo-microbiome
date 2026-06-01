@@ -1310,7 +1310,7 @@ diacylglycerol pyrophosphate (DGPP) by PA kinase (reviewed in
 \[vanSchooten06\]). This is a possible mechanism in PA attenuation.
 Interestingly, mammals do not seem to have PA kinase activity.
 
-# PCA of pathway matrix
+# 000PCA of pathway matrix
 
 > Goal: Perform PCA analysis on pathway abundance data and create an
 > informative visualization that includes a scatter plot of the first

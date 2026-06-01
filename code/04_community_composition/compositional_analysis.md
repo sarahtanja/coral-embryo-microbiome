@@ -1195,7 +1195,7 @@ sessionInfo()
     [10] pkgconfig_2.0.3         crayon_1.5.3            fastmap_1.2.0          
     [13] backports_1.5.0         XVector_0.48.0          labeling_0.4.3         
     [16] rmarkdown_2.30          tzdb_0.5.0              UCSC.utils_1.4.0       
-    [19] ragg_1.5.0              bit_4.6.0               xfun_0.54              
+    [19] ragg_1.5.0              bit_4.6.0               xfun_0.57              
     [22] GenomeInfoDb_1.44.3     jsonlite_2.0.0          biomformat_1.36.0      
     [25] rhdf5filters_1.20.0     Rhdf5lib_1.30.0         parallel_4.5.1         
     [28] cluster_2.1.8.1         R6_2.6.1                stringi_1.8.7          

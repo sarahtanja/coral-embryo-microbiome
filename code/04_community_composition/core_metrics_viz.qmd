@@ -148,7 +148,7 @@ theme_sleek_axe <- function() {
 
 ## Set colorschemes
 
-```{r}
+```{r colors}
 leachate.colors <- c(control = "#AEF1FF", 
                 low = "#BBC7FF",
                 mid = "#7D8BFF", 
