@@ -1115,6 +1115,11 @@ alpha_shannon_faith <- shannon_combo / faith_combo +
 
 alpha_shannon_faith
 ```
+```{r}
+ggsave(filename = file.path(figures_dir, "alpha_shannon_faith.png"), plot = alpha_shannon_faith, width = 10, height = 6, dpi = 900)
+```
+
+
 ## Shannon, Faith, Pielou, Observed Features
 
 ```{r, fig.height=8, fig.width=9}

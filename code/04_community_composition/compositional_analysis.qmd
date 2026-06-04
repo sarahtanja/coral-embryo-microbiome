@@ -92,6 +92,7 @@ library(reshape2)
 library(corrplot)
 library(ggsidekick) # for theme_sleek from sean anderson
 library(patchwork)
+library(ape)
 ```
 
 ## Set custom ggplot theme
@@ -150,24 +151,31 @@ theme_sleek_axe <- function() {
 
 ```{r}
 leachate.colors <- c(control = "#AEF1FF", 
-                low = "#BBC7FF",
-                mid = "#7D8BFF", 
-                high = "#592F7D")
+                     low     = "#BBC7FF",
+                     mid     = "#7D8BFF", 
+                     high    = "#592F7D")
 
-stage.5.colors <- c(egg = "#FFE362",
-                    cleavage = "#EBA600", 
-                    morula = "#E6AA83",
-                    prawnchip = "#D9685B", 
+stage.5.colors <- c(egg           = "#FFE362",
+                    cleavage      = "#EBA600", 
+                    morula        = "#E6AA83",
+                    prawnchip     = "#D9685B", 
                     earlygastrula = "#A2223C")
 
+stage.3.colors <- c(cleavage      = "#EBA600", 
+                    prawnchip     = "#D9685B", 
+                    earlygastrula = "#A2223C")
 
-stage.3.colors <- c(cleavage = "#EBA600", 
-                  prawnchip = "#D9685B", 
-                  earlygastrula = "#A2223C")
+status.colors <- c(typical   = "#75C165", 
+                   uncertain = "#E3FAA5", 
+                   malformed = "#8B0069")
 
-night.colors <- c("July 6th" = "#E3FAA5", 
-                  "July 7th" = "#578B21", 
-                  "July 8th" = "#1E2440")
+night.colors <- c(July_6th = "#E3FAA5", 
+                  July_7th = "#578B21", 
+                  July_8th = "#1E2440")
+
+night.colors.alt <- c(July_6th = "#21918C", 
+                      July_7th = "#578B21", 
+                      July_8th = "#1E2440")
 ```
 
 # Load Data
@@ -469,6 +477,13 @@ pca_plot_hpf_interactive
 
 ```
 
+
+```{r}
+
+```
+
+
+
 # PERMANOVA
 
 Here we run a PERMANOVA (Permutational Multivariate Analysis of Variance) on the Aitchison distance matrix to test for differences in microbial composition across experimental factors.
@@ -505,7 +520,7 @@ grp_night <- meta_filt$spawn_night
 
 ### night
 
-```{r}
+```{r perm-test}
 set.seed(02192026)
 # Fit beta dispersion model 
 bd_night <- betadisper(aitchison_dist, group = grp_night, type = "centroid")
@@ -528,7 +543,7 @@ If your primary tests are leachate/stage, treat night as a nuisance: block by ni
 This keeps night-to-night variance/dispersion from inflating your p-values for treatment effects.
 :::
 
-```{r}
+```{r pca-plot}
 plot(bd_night, hull = TRUE, ellipse = TRUE, label = FALSE, cex = 0.8)
 ```
 
@@ -536,7 +551,12 @@ In a betadisper object, the sample coordinates are in `bd_night$vectors` and the
 You can extract these for custom plotting or further analysis.
 `chull()` is a function convex hull that finds the outermost points that form the smallest convex polygon around a set of points, which is useful for visualizing group dispersion in ordination plots, wrapped in `slice()` which keeps only the rows corresponding to those hull points for each group.
 
-```{r}
+```{r custom-pca}
+# color palette
+night.colors.alt <- c("July 6th" = "#21918C", 
+                      "July 7th" = "#578B21", 
+                      "July 8th" = "#1E2440")
+
 # sample scores (vectors)
 bd_night_df <- as.data.frame(bd_night$vectors[, 1:2])
 bd_night_df$group <- bd_night$group
@@ -558,14 +578,13 @@ hulls <- bd_night_df %>%
 
 # force consistent factor levels across spawn night
 unique(bd_night_df$group)
-names(night.colors)
+names(night.colors.alt)
 
 lvls <- levels(factor(bd_night_df$group))
 
 bd_night_df <- bd_night_df %>% mutate(group = factor(group, levels = lvls))
 hulls <- hulls %>% mutate(group = factor(group, levels = lvls))
 bd_night_centroids <- bd_night_centroids %>% mutate(group = factor(group, levels = lvls))
-
 
 # plot
 bd_night_plot <- ggplot(bd_night_df, aes(PCoA1, PCoA2, color = group)) +
@@ -574,7 +593,7 @@ bd_night_plot <- ggplot(bd_night_df, aes(PCoA1, PCoA2, color = group)) +
     data = hulls,
     aes(fill = group),
     alpha = 0.2,
-    color = NA,
+    color = NA, 
     show.legend = FALSE
   ) +
   geom_point(
@@ -585,11 +604,11 @@ bd_night_plot <- ggplot(bd_night_df, aes(PCoA1, PCoA2, color = group)) +
   ) +
   stat_ellipse(level = 0.68, linewidth = 0.8) +
   coord_equal() +
-  scale_color_manual(values = night.colors) +
-  scale_fill_manual(values = night.colors) +
+  scale_color_manual(values = night.colors.alt) +
+  scale_fill_manual(values = night.colors.alt) +
   theme_sleek_axe() +
   labs(
-    title = "betadisper (spawn night)",
+    title = "Spawn Night",
     x = xlab,
     y = ylab,
     color = "spawn night"
@@ -675,7 +694,7 @@ bd_leachate_plot <- ggplot(bd_leachate_df, aes(PCoA1, PCoA2, color = group)) +
   scale_fill_manual(values = leachate.colors) +
   theme_sleek_axe() +
   labs(
-    title = "betadisper (leachate)",
+    title = "Leachate",
     x = xlab,
     y = ylab,
     color = "leachate"
@@ -704,7 +723,7 @@ A permutation test for homogeneity of multivariate dispersions revealed no signi
 plot(bd_stage, hull = TRUE, ellipse = TRUE, label = FALSE, cex = 0.8)
 ```
 
-```{r}
+```{r betadisp-stage-plot}
 # sample scores (vectors)
 bd_stage_df <- as.data.frame(bd_stage$vectors[, 1:2])
 bd_stage_df$group <- bd_stage$group
@@ -755,8 +774,12 @@ bd_stage_plot <- ggplot(bd_stage_df, aes(PCoA1, PCoA2, color = group)) +
   scale_color_manual(values = stage.3.colors) +
   scale_fill_manual(values = stage.3.colors) +
   theme_sleek_axe() +
+  guides(
+    color = guide_legend(reverse = TRUE),
+    fill = guide_legend(reverse = TRUE)
+  )+
   labs(
-    title = "betadisper (stage)",
+    title = "Stage",
     x = xlab,
     y = ylab,
     color = "stage"
@@ -883,11 +906,13 @@ This analysis implemented the key recommendations from Gloor et al. 2017 for com
 3.  **PCA Biplot**: Created variance-based PCA visualizations on CLR-transformed data
 4.  **PERMANOVA**: Tested for significant differences in microbial composition across experimental factors
 
-```{r, fig.width=5, fig.height=9}
+```{r betadispr-combo-plot, fig.width=5, fig.height=9}
 bd_plots <- (bd_night_plot / bd_leachate_plot / bd_stage_plot) +
-  plot_annotation(tag_levels = "A") &
+  plot_annotation(tag_levels = "A", 
+                  title = "Principle Coordinates Analysis (PCoA) \nof Within-Group Beta Diversity Dispersion") &
   theme(
     plot.tag = element_text(color = "grey60", size = 11),
+    plot.title = element_text(size = 14, color = "grey40", hjust = 0.5, margin = margin(b = 20)),
     legend.position = "right",
     panel.spacing = unit(0.2, "lines")
   ) +
@@ -897,8 +922,157 @@ bd_plots
 ```
 Save combined plot
 ```{r}
-ggsave("../../output/figs/betadisper_plots.png", plot = bd_plots, height = 12, dpi = 900)
+ggsave("../../figs/betadisper_plots.png", plot = bd_plots, width = 5, height = 9, dpi = 900)
 ```
+
+# PCoA on Aitchison distance (Euclidean distance on CLR-transformed data) with betadisper hulls and ellipses for spawn night, leachate, and stage.
+
+```{r}
+
+# PCoA
+ord <- ape::pcoa(aitchison_dist)
+
+scores <- as.data.frame(ord$vectors[,1:2]) %>% 
+  rename(PC1 = Axis.1, PC2 = Axis.2) %>%
+  mutate(sample_id = rownames(.)) %>%
+  left_join(meta_filt, by = "sample_id")
+
+eig <- ord$values$Relative_eig * 100
+
+spawnhulls <- scores %>%
+  group_by(spawn_night) %>%
+  slice(chull(PC1, PC2))
+```
+
+```{r pcoa-spawn}
+pcoa_spawn <- ggplot(scores, aes(PC1, PC2, color = spawn_night, fill = spawn_night)) +
+  geom_point(size = 4, alpha = 0.7) +
+  stat_ellipse(
+  aes(fill = spawn_night),
+  geom = "polygon",
+  level = 0.68,
+  alpha = 0.2,
+  color = NA, 
+  show.legend = FALSE
+) +
+stat_ellipse(
+  level = 0.68,
+  linewidth = 0.8, 
+  show.legend = FALSE
+)+
+  scale_color_manual(values = night.colors.alt) +
+  scale_fill_manual(values = night.colors.alt) +
+  labs(x = paste0("PC1 (", round(eig[1], 2), "%)"), 
+       y = paste0("PC2 (", round(eig[2], 2), "%)")) +
+  guides(fill = "none") +
+  coord_equal() +
+  
+  labs(
+    title = "Spawn Night",
+    x = xlab,
+    y = ylab,
+    color = "spawn night"
+  )+
+  
+  theme_sleek_axe()
+
+pcoa_spawn
+```
+
+```{r}
+pcoa_leachate <- ggplot(scores, aes(PC1, PC2, color = leachate, fill = leachate)) +
+  geom_point(size = 4, alpha = 0.7) +
+  stat_ellipse(
+  aes(fill = leachate),
+  geom = "polygon",
+  level = 0.68,
+  alpha = 0.2,
+  color = NA, 
+  show.legend = FALSE
+) +
+stat_ellipse(
+  level = 0.68,
+  linewidth = 0.8, 
+  show.legend = FALSE
+)+
+  scale_color_manual(values = leachate.colors) +
+  scale_fill_manual(values = leachate.colors) +
+  labs(x = paste0("PC1 (", round(eig[1], 2), "%)"), 
+       y = paste0("PC2 (", round(eig[2], 2), "%)")) +
+  guides(fill = "none") +
+  coord_equal() +
+  
+  labs(
+    title = "Leachate",
+    x = xlab,
+    y = ylab,
+    color = "leachate"
+  )+
+  
+  theme_sleek_axe()
+
+pcoa_leachate
+```
+
+
+
+```{r pcoa-stage}
+pcoa_stage <- ggplot(scores, aes(PC1, PC2, color = stage, fill = stage)) +
+  geom_point(size = 4, alpha = 0.7) +
+  stat_ellipse(
+  aes(fill = stage),
+  geom = "polygon",
+  level = 0.68,
+  alpha = 0.2,
+  color = NA, 
+  show.legend = FALSE
+) +
+stat_ellipse(
+  level = 0.68,
+  linewidth = 0.8, 
+  show.legend = FALSE
+)+
+  scale_color_manual(values = stage.3.colors) +
+  scale_fill_manual(values = stage.3.colors) +
+  labs(x = paste0("PC1 (", round(eig[1], 2), "%)"), 
+       y = paste0("PC2 (", round(eig[2], 2), "%)")) +
+  guides(fill = "none",
+         color = guide_legend(reverse = TRUE)) +
+  coord_equal() +
+  
+  labs(
+    title = "Stage",
+    x = xlab,
+    y = ylab,
+    color = "stage"
+  )+
+  
+  theme_sleek_axe()
+
+pcoa_stage
+```
+
+PCoA combined plots 
+```{r pcoa-combo, fig.width=5, fig.height=9}
+pcoa_combined <- (pcoa_spawn / pcoa_leachate / pcoa_stage) +
+  plot_annotation(tag_levels = "A", 
+                  title = "Principal Coordinates Analysis (PCoA) \nof Aitchison Beta Diversity") &
+  theme(
+    plot.tag = element_text(color = "grey60", size = 11),
+    plot.title = element_text(size = 14, color = "grey40", hjust = 0.5, margin = margin(b = 20)),
+    legend.position = "right",
+    panel.spacing = unit(0.2, "lines")
+  ) +
+  
+  plot_layout(guides = "collect", heights = c(1,1,1))
+
+pcoa_combined
+```
+```{r}
+ggsave("../../figs/pcoa_combined.png", plot = pcoa_combined, width = 5, height = 9, dpi = 900)
+```
+
+
 
 
 ## Key Findings
