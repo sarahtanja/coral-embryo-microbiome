@@ -62,11 +62,8 @@ This document creates a publication-ready taxa barplot visualization from QIIME2
 qzv_file <- "../../salipante/Sarah_StonyCoral/250414_StonyCoral_270x200_filtered_taxa-bar-plots.qzv"
 metadata_path <- "../../metadata/meta.csv"
 
-# Output directory
-output_dir <- "../../output/figures"
-
-# Create output directory if it doesn't exist
-dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+# Figure directory
+fig_dir <- "../../figs/"
 ```
 
 ## Load libraries
@@ -307,7 +304,7 @@ process_taxa_level <- function(taxa_data, metadata, rank_name, top_n = 15) {
     mutate(
       taxon_grouped = if_else(taxon_name %in% top_taxa, taxon_name, "Other")
     ) %>%
-    group_by(sample_id, taxon_grouped, stage, hpf, leachate.y) %>%
+    group_by(sample_id, taxon_grouped, stage, hpf, leachate.y, spawn_night) %>%
     summarize(rel_abundance = sum(rel_abundance), .groups = "drop") %>%
     mutate(
       sample_id = factor(sample_id),
@@ -320,98 +317,13 @@ process_taxa_level <- function(taxa_data, metadata, rank_name, top_n = 15) {
 
 # Visualization
 ```{r}
-# install if needed:
-# install.packages(c("ggplot2", "ggthemes", "pals", "Polychrome", "viridisLite"))
-library(ggplot2)
 library(ggthemes)
-library(pals)
-library(Polychrome)
-library(viridisLite)
-library(dplyr)
-library(tidyr)
-library(stringr)
 
-# helper to turn a vector of colors into a swatch data frame
-as_swatch <- function(cols, name) {
-  tibble(palette = name,
-         idx = seq_along(cols),
-         hex = cols)
-}
-
-# build the four palettes (16 colors each)
-pal_glasbey  <- pals::glasbey(16)
-pal_tableau  <- ggthemes::tableau_color_pal("Tableau 20")(20)[1:16]
-pal_poly36   <- Polychrome::palette36.colors(16)
-pal_mako16   <- viridisLite::viridis(16, option = "mako")
-
-swatches <- bind_rows(
-  as_swatch(pal_glasbey, "Glasbey (16)"),
-  as_swatch(pal_tableau, "Tableau 20 (first 16)"),
-  as_swatch(pal_poly36, "Polychrome 36 (first 16)"),
-  as_swatch(pal_mako16, "Viridis 'mako' (16)")
-) %>%
-  mutate(idx = factor(idx, levels = 1:16))
-
-# plot swatches
-ggplot(swatches, aes(x = idx, y = 1, fill = hex)) +
-  geom_tile(color = "grey20") +
-  geom_text(aes(label = hex),
-            size = 3, vjust = 1.7, color = "white", fontface = "bold",
-            data = ~ .x %>% filter(palette != "Viridis 'mako' (16)")) +
-  scale_fill_identity() +
-  facet_wrap(~ palette, ncol = 1, strip.position = "top") +
-  scale_x_discrete(drop = FALSE) +
-  labs(x = NULL, y = NULL,
-       title = "Quick swatch view (16 colors each)") +
-  theme_minimal(base_size = 12) +
-  theme(panel.grid = element_blank(),
-        axis.text.y = element_blank(),
-        axis.ticks = element_blank(),
-        plot.title = element_text(hjust = 0.5),
-        strip.text = element_text(face = "bold"))
-
+taxa_colors <- ggthemes::tableau_color_pal("Tableau 20")(20)
 ```
+
 
 # Main Figures - Taxa Barplots for All Taxonomic Levels
-
-## Level 1 - Kingdom/Domain
-
-```{r}
-#| fig-width: 12
-#| fig-height: 8
-#| fig-dpi: 300
-
-# Process Level 1 data
-level1_processed <- process_taxa_level(taxa_l1, metadata, "Kingdom", top_n = 10)
-
-# Create color palette
-n_colors_l1 <- length(level1_processed$top_taxa) + 1
-colors_l1 <- pal_tableau[1:n_colors_l1]
-
-# Create the barplot
-p_level1 <- ggplot(level1_processed$taxa_plot, 
-             aes(x = sample_id, y = rel_abundance, fill = taxon_grouped)) +
-  geom_bar(stat = "identity", width = 0.9) +
-  scale_fill_manual(values = colors_l1, name = "Kingdom") +
-  scale_y_continuous(labels = percent_format(scale = 1)) +
-  labs(
-    title = "Bacterial Community Composition - Level 1 (Kingdom/Domain)",
-    subtitle = "Taxonomic composition across developmental stages and leachate treatments",
-    x = "Sample",
-    y = "Relative Abundance (%)"
-  ) +
-  theme_classic(base_size = 12) +
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8),
-    legend.position = "right",
-    legend.key.size = unit(0.5, "cm"),
-    legend.text = element_text(size = 9),
-    plot.title = element_text(face = "bold", size = 14),
-    plot.subtitle = element_text(size = 11)
-  )
-
-print(p_level1)
-```
 
 ## Level 2 - Phylum
 
@@ -423,15 +335,11 @@ print(p_level1)
 # Process Level 2 data
 level2_processed <- process_taxa_level(taxa_l2, metadata, "Phylum", top_n = 15)
 
-# Create color palette
-n_colors_l2 <- length(level2_processed$top_taxa) + 1
-colors_l2 <- pal_tableau[1:n_colors_l2]
-
 # Create the barplot
 p_level2 <- ggplot(level2_processed$taxa_plot, 
              aes(x = sample_id, y = rel_abundance, fill = taxon_grouped)) +
   geom_bar(stat = "identity", width = 0.9) +
-  scale_fill_manual(values = colors_l2, name = "Phylum") +
+  scale_fill_manual(values = taxa_colors, name = "Phylum") +
   scale_y_continuous(labels = percent_format(scale = 1)) +
   labs(
     title = "Bacterial Community Composition - Level 2 (Phylum)",
@@ -462,15 +370,12 @@ print(p_level2)
 # Process Level 3 data
 level3_processed <- process_taxa_level(taxa_l3, metadata, "Class", top_n = 15)
 
-# Create color palette
-n_colors_l3 <- length(level3_processed$top_taxa) + 1
-colors_l3 <- pal_tableau[1:n_colors_l3]
 
 # Create the barplot
 p_level3 <- ggplot(level3_processed$taxa_plot, 
              aes(x = sample_id, y = rel_abundance, fill = taxon_grouped)) +
   geom_bar(stat = "identity", width = 0.9) +
-  scale_fill_manual(values = colors_l3, name = "Class") +
+  scale_fill_manual(values = taxa_colors, name = "Class") +
   scale_y_continuous(labels = percent_format(scale = 1)) +
   labs(
     title = "Bacterial Community Composition - Level 3 (Class)",
@@ -577,42 +482,134 @@ print(p_level5)
 #| fig-dpi: 300
 
 # Process Level 6 data
-level6_processed <- process_taxa_level(taxa_l6, metadata, "Genus", top_n = 15)
+level6_processed <- process_taxa_level(taxa_l6, metadata, "Genus", top_n = 19)
 
-# Create color palette
-n_colors_l6 <- length(level6_processed$top_taxa) + 1
-colors_l6 <- pal_tableau[1:n_colors_l6]
 
 # Create the barplot
-p_level6 <- ggplot(level6_processed$taxa_plot, 
-             aes(x = sample_id, y = rel_abundance, fill = taxon_grouped)) +
+p_level6 <- ggplot(level6_processed$taxa_plot %>%
+    arrange(stage, leachate.y, sample_id) %>%
+    mutate(sample_id = factor(sample_id, levels = unique(sample_id))),
+  
+  aes(x = sample_id, y = rel_abundance, fill = taxon_grouped)) +
+
   geom_bar(stat = "identity", width = 0.9) +
-  scale_fill_manual(values = colors_l6, name = "Genus") +
+
+  facet_grid(~stage, scales = "free_x", space = "free_x") +
+
+  scale_fill_manual(values = taxa_colors, name = "Genus") +
+
   scale_y_continuous(labels = percent_format(scale = 1)) +
+  
   labs(
     title = "Bacterial Community Composition - Level 6 (Genus)",
     subtitle = "Top 15 genera across developmental stages and leachate treatments",
     x = "Sample",
     y = "Relative Abundance (%)"
   ) +
-  theme_classic(base_size = 12) +
+  
+ theme_classic(base_size = 12) +
+
   theme(
-    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8),
+    axis.text.x = element_text(
+      angle = 90,
+      hjust = 1,
+      vjust = 0.5,
+      size = 8
+    ),
     legend.position = "right",
     legend.key.size = unit(0.5, "cm"),
     legend.text = element_text(size = 9),
     plot.title = element_text(face = "bold", size = 14),
-    plot.subtitle = element_text(size = 11)
+    plot.subtitle = element_text(size = 11),
+    strip.background = element_blank(),
+    strip.text = element_text(face = "bold")
   )
 
-print(p_level6)
 
-# Keep old variable names for compatibility with later code
-p1 <- p_level6
-taxa_plot <- level6_processed$taxa_plot
-top_genera <- level6_processed$top_taxa
-taxa_long <- level6_processed$taxa_long
+print(p_level6)
 ```
+### Cluster by sample similarity aitchison distance
+
+```{r}
+#| fig-width: 12
+#| fig-height: 8
+#| fig-dpi: 300
+library(tidyverse)
+library(compositions)
+
+# small pseudocount because CLR cannot handle zeros
+pseudo <- 1e-6
+
+comm_mat_l6 <- level6_processed$taxa_plot %>%
+  select(sample_id, taxon_grouped, rel_abundance) %>%
+  pivot_wider(
+    names_from = taxon_grouped,
+    values_from = rel_abundance,
+    values_fill = 0
+  ) %>%
+  column_to_rownames("sample_id") %>%
+  as.matrix()
+
+# CLR transform
+comm_clr_l6 <- clr(comm_mat_l6 + pseudo)
+
+# Aitchison distance = Euclidean distance on CLR-transformed data
+dist_l6 <- dist(comm_clr_l6, method = "euclidean")
+
+# Cluster samples
+sample_clust_l6 <- hclust(dist_l6, method = "average")
+
+sample_order_l6 <- sample_clust_l6$labels[sample_clust_l6$order]
+
+plot_df_l6 <- level6_processed$taxa_plot %>%
+  mutate(
+    sample_id = factor(sample_id, levels = sample_order_l6)
+  )
+
+p_level6 <- ggplot(
+  plot_df_l6,
+  aes(x = sample_id, y = rel_abundance, fill = taxon_grouped)
+) +
+  geom_bar(stat = "identity", width = 0.9) +
+  facet_grid(~stage, scales = "free_x", space = "free_x") +
+  scale_fill_manual(values = taxa_colors, name = "Genus") +
+  scale_y_continuous(labels = scales::percent_format(scale = 1)) +
+  labs(
+    title = "Bacterial Community Composition - Level 6 (Genus)",
+    subtitle = "Samples ordered by Aitchison community similarity",
+    x = "Sample",
+    y = "Relative Abundance (%)"
+  ) +
+  theme_classic(base_size = 12) +
+
+  theme(
+    axis.text.x = element_text(
+      angle = 90,
+      hjust = 1,
+      vjust = 0.5,
+      size = 8
+    ),
+    legend.position = "right",
+    legend.key.size = unit(0.5, "cm"),
+    legend.text = element_text(size = 9),
+    plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 11),
+    strip.background = element_blank(),
+    strip.text = element_text(face = "bold")
+  )
+
+p_level6
+```
+```{r}
+ggsave(
+  "../../figs/taxa_barplot_genus_pptx.png",
+  width=16,
+  height=9,
+  dpi=600,
+  plot=p_level6
+)
+```
+
 
 ## Level 7 - Species
 
@@ -622,130 +619,55 @@ taxa_long <- level6_processed$taxa_long
 #| fig-dpi: 300
 
 # Process Level 7 data
-level7_processed <- process_taxa_level(taxa_l7, metadata, "Species", top_n = 15)
+level7_processed <- process_taxa_level(taxa_l7, metadata, "Species", top_n = 19)
 
-# Create color palette
-n_colors_l7 <- length(level7_processed$top_taxa) + 1
-colors_l7 <- pal_tableau[1:n_colors_l7]
+p_level7 <- ggplot(
+  level7_processed$taxa_plot %>%
+    arrange(stage, leachate.y  , sample_id) %>%
+    mutate(sample_id = factor(sample_id, levels = unique(sample_id))),
+  
+  aes(x = sample_id, y = rel_abundance, fill = taxon_grouped)
+) +
 
-# Create the barplot
-p_level7 <- ggplot(level7_processed$taxa_plot, 
-             aes(x = sample_id, y = rel_abundance, fill = taxon_grouped)) +
   geom_bar(stat = "identity", width = 0.9) +
-  scale_fill_manual(values = colors_l7, name = "Species") +
+
+  facet_grid(~stage, scales = "free_x", space = "free_x") +
+
+  scale_fill_manual(values = taxa_colors, name = "Species") +
+
   scale_y_continuous(labels = percent_format(scale = 1)) +
+
   labs(
     title = "Bacterial Community Composition - Level 7 (Species)",
     subtitle = "Top 15 species across developmental stages and leachate treatments",
     x = "Sample",
     y = "Relative Abundance (%)"
   ) +
+
   theme_classic(base_size = 12) +
+
   theme(
-    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8),
+    axis.text.x = element_text(
+      angle = 90,
+      hjust = 1,
+      vjust = 0.5,
+      size = 8
+    ),
     legend.position = "right",
     legend.key.size = unit(0.5, "cm"),
     legend.text = element_text(size = 9),
     plot.title = element_text(face = "bold", size = 14),
-    plot.subtitle = element_text(size = 11)
+    plot.subtitle = element_text(size = 11),
+    strip.background = element_blank(),
+    strip.text = element_text(face = "bold")
   )
 
 print(p_level7)
 ```
 
-## Taxa barplot - Faceted by Treatment
 
-```{r}
-#| fig-width: 14
-#| fig-height: 10
-#| fig-dpi: 300
 
-# Aggregate by treatment groups
-taxa_treatment <- taxa_long %>%
-  mutate(
-    genus_grouped = if_else(genus %in% top_genera, genus, "Other"),
-    leachate_label = paste0("Leachate: ", leachate.y),
-    timepoint_label = paste0(timepoint, " hpf")
-  ) %>%
-  group_by(leachate_label, timepoint_label, genus_grouped) %>%
-  summarize(mean_rel_abundance = mean(rel_abundance), .groups = "drop") %>%
-  mutate(
-    genus_grouped = factor(genus_grouped, levels = c(top_genera, "Other"))
-  )
 
-# Create faceted barplot
-p2 <- ggplot(taxa_treatment, 
-             aes(x = timepoint_label, y = mean_rel_abundance, fill = genus_grouped)) +
-  geom_bar(stat = "identity", width = 0.8) +
-  scale_fill_manual(values = colors, name = "Genus") +
-  scale_y_continuous(labels = percent_format(scale = 1)) +
-  facet_wrap(~ leachate_label, ncol = 4) +
-  labs(
-    title = "Bacterial Community Composition by Leachate Treatment and Timepoint",
-    x = "Timepoint (hours post fertilization)",
-    y = "Mean Relative Abundance (%)"
-  ) +
-  theme_classic(base_size = 12) +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
-    legend.position = "bottom",
-    legend.key.size = unit(0.4, "cm"),
-    strip.background = element_rect(fill = "lightgray", color = "black"),
-    strip.text = element_text(face = "bold"),
-    plot.title = element_text(face = "bold", size = 14)
-  ) +
-  guides(fill = guide_legend(nrow = 2))
-
-print(p2)
-```
-
-## Taxa barplot - Phylum Level
-
-```{r}
-#| fig-width: 12
-#| fig-height: 8
-#| fig-dpi: 300
-
-# Calculate top phyla
-top_phyla <- taxa_long %>%
-  group_by(phylum) %>%
-  summarize(mean_abundance = mean(rel_abundance)) %>%
-  arrange(desc(mean_abundance)) %>%
-  slice_head(n = 10) %>%
-  pull(phylum)
-
-# Aggregate by phylum
-taxa_phylum <- taxa_long %>%
-  mutate(
-    phylum_grouped = if_else(phylum %in% top_phyla, phylum, "Other")
-  ) %>%
-  group_by(sample_id, phylum_grouped, stage, 
-           timepoint, leachate.x) %>%
-  summarize(rel_abundance = sum(rel_abundance), .groups = "drop") %>%
-  mutate(
-    phylum_grouped = factor(phylum_grouped, levels = c(top_phyla, "Other"))
-  )
-
-# Create phylum-level barplot
-p3 <- ggplot(taxa_phylum, 
-             aes(x = sample_id, y = rel_abundance, fill = phylum_grouped)) +
-  geom_bar(stat = "identity", width = 0.9) +
-  scale_fill_brewer(palette = "Paired", name = "Phylum") +
-  scale_y_continuous(labels = percent_format(scale = 1)) +
-  labs(
-    title = "Bacterial Community Composition at Phylum Level",
-    x = "Sample",
-    y = "Relative Abundance (%)"
-  ) +
-  theme_classic(base_size = 12) +
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8),
-    legend.position = "right",
-    plot.title = element_text(face = "bold", size = 14)
-  )
-
-print(p3)
-```
 
 # Summary Statistics
 

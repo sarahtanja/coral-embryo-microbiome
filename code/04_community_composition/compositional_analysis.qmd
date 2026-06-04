@@ -95,53 +95,108 @@ library(patchwork)
 library(ape)
 ```
 
-## Set custom ggplot theme
 
-```{r}
+## Custom ggplot themes
+
+```{r theme}
 theme_sleek_axe <- function() {
   theme_sleek() +
     theme(
-      panel.border = element_line(color = "grey70", size = 0.5),
+      panel.border = element_blank(),
       axis.line.x  = element_line(color = "grey70"),
       axis.line.y  = element_line(color = "grey70"),
+      
       plot.title = element_text(
-      size  = 11,
-      color = "grey40",
-      hjust = 0.5,    # center
-      margin = margin(b = 20) # add space BELOW title
+        size  = 12,
+        color = "grey30",
+        hjust = 0.5,
+        margin = margin(b = 20)
       ),
+      
+      strip.text = element_text(size = 10, color = "grey30"),
+      
       plot.subtitle = element_text(
-      size   = 8,       # smaller than title
-      colour = "grey60", # lighter grey
-      hjust  = 0.5 ),      # center
-      margin = margin(b = 40) # add space BELOW title
-      )
+        size   = 10,
+        color  = "grey30",
+        hjust  = 0.5,
+        margin = margin(t = 0)
+      ),
+      
+      axis.title = element_text(size = 10, color = "grey30"),
+      axis.text = element_text(size = 10, color = "grey30"),
+      legend.title = element_text(size = 10, color = "grey30"),
+      legend.text = element_text(size = 10, color = "grey30")
+    )
+}
+
+
+theme_pptx <- function() {
+  theme_sleek() +
+    theme(
+      panel.border = element_blank(),
+      axis.line.x  = element_line(color = "grey70"),
+      axis.line.y  = element_line(color = "grey70"),
+      
+      plot.title = element_text(
+        size  = 40,
+        color = "grey30",
+        hjust = 0.5,
+        margin = margin(b = 20)
+      ),
+      
+      strip.text = element_text(size = 24, color = "grey30"),
+      
+      plot.subtitle = element_text(
+        size   = 24,
+        color  = "grey30",
+        hjust  = 0.5,
+        margin = margin(b = 40)
+      ),
+      
+      axis.title = element_text(size = 24, color = "grey30"),
+      axis.text = element_text(size = 24, color = "grey30"),
+      legend.title = element_text(size = 24, color = "grey30"),
+      legend.text = element_text(size = 24, color = "grey30")
+    )
 }
 
 ```
 
-```{r}
-theme_sleek_axe <- function() {
-  theme_sleek() +
-    theme(
-      panel.border = element_rect(color = "grey70", fill = NA, linewidth = 0.5),
-      axis.line.x  = element_line(color = "grey70"),
-      axis.line.y  = element_line(color = "grey70"),
+## Geoms
 
-      plot.title = element_text(
-        size  = 11,
-        color = "grey40",
-        hjust = 0.5,
-        margin = margin(b = 20)
-      ),
+```{r geoms}
+geom_defaults <- function() {
+  update_geom_defaults("point",      list(size = 4, stroke = 1))
+  update_geom_defaults("line",       list(linewidth = 0.5))
+  update_geom_defaults("boxplot",    list(linewidth = 0.5))
+  update_geom_defaults("violin",     list(linewidth = 0.5))
+  update_geom_defaults("vline",      list(linewidth = 0.5))
+  update_geom_defaults("hline",      list(linewidth = 0.5))
+  update_geom_defaults("abline",     list(linewidth = 0.5))
+  update_geom_defaults("errorbar",   list(linewidth = 0.5))
+  update_geom_defaults("pointrange", list(linewidth = 0.5))
+  update_geom_defaults("crossbar",   list(linewidth = 0.5))
+  update_geom_defaults("linerange",  list(linewidth = 0.5))
+  update_geom_defaults("path", list(linewidth = 1))
+  update_geom_defaults("segment", list(linewidth = 0.5))
+  update_geom_defaults("text", list(size = 3))
+}
 
-      plot.subtitle = element_text(
-        size   = 8,
-        color  = "grey60",
-        hjust  = 0.5,
-        margin = margin(b = 40)
-      )
-    )
+geom_pptx <- function() {
+  update_geom_defaults("point",   list(size = 10, stroke = 4))
+  update_geom_defaults("line",    list(linewidth = 1.5))
+  update_geom_defaults("boxplot", list(linewidth = 1.2))
+  update_geom_defaults("violin",  list(linewidth = 1.2))
+  update_geom_defaults("vline", list(linewidth = 1.5))
+  update_geom_defaults("hline", list(linewidth = 1.5))
+  update_geom_defaults("abline", list(linewidth = 1.5))
+  update_geom_defaults("errorbar", list(linewidth = 1.5))
+  update_geom_defaults("pointrange", list(linewidth = 1.5))
+  update_geom_defaults("crossbar", list(linewidth = 1.5))
+  update_geom_defaults("linerange", list(linewidth = 4))
+  update_geom_defaults("path", list(linewidth = 4))
+  update_geom_defaults("segment", list(linewidth = 1.5))
+  update_geom_defaults("text", list(size = 7))
 }
 
 ```
@@ -149,33 +204,33 @@ theme_sleek_axe <- function() {
 
 ## Set colorschemes
 
-```{r}
-leachate.colors <- c(control = "#AEF1FF", 
-                     low     = "#BBC7FF",
-                     mid     = "#7D8BFF", 
-                     high    = "#592F7D")
+```{r colors}
+leachate.colors <- c(control = "#5ABDAC", 
+                low = "#BBC7FF",
+                mid = "#7D8BFF", 
+                high = "#592F7D")
 
-stage.5.colors <- c(egg           = "#FFE362",
-                    cleavage      = "#EBA600", 
-                    morula        = "#E6AA83",
-                    prawnchip     = "#D9685B", 
-                    earlygastrula = "#A2223C")
+stage.5.colors <- c(
+  egg           = "#FFE066",
+  cleavage      = "#FFBA08",
+  morula        = "#F48C06",
+  prawnchip     = "#DC2F02",
+  earlygastrula = "#6A040F"
+  )
 
-stage.3.colors <- c(cleavage      = "#EBA600", 
-                    prawnchip     = "#D9685B", 
-                    earlygastrula = "#A2223C")
+stage.3.colors <- c(
+  cleavage      = "#FFBA08",
+  prawnchip     = "#DC2F02",
+  earlygastrula = "#6A040F"
+  )
+
+night.colors <- c(July_6th = "#21918C", 
+                  July_7th = "#578B21", 
+                  July_8th = "#1E2440")
 
 status.colors <- c(typical   = "#75C165", 
                    uncertain = "#E3FAA5", 
                    malformed = "#8B0069")
-
-night.colors <- c(July_6th = "#E3FAA5", 
-                  July_7th = "#578B21", 
-                  July_8th = "#1E2440")
-
-night.colors.alt <- c(July_6th = "#21918C", 
-                      July_7th = "#578B21", 
-                      July_8th = "#1E2440")
 ```
 
 # Load Data
@@ -478,12 +533,6 @@ pca_plot_hpf_interactive
 ```
 
 
-```{r}
-
-```
-
-
-
 # PERMANOVA
 
 Here we run a PERMANOVA (Permutational Multivariate Analysis of Variance) on the Aitchison distance matrix to test for differences in microbial composition across experimental factors.
@@ -551,12 +600,8 @@ In a betadisper object, the sample coordinates are in `bd_night$vectors` and the
 You can extract these for custom plotting or further analysis.
 `chull()` is a function convex hull that finds the outermost points that form the smallest convex polygon around a set of points, which is useful for visualizing group dispersion in ordination plots, wrapped in `slice()` which keeps only the rows corresponding to those hull points for each group.
 
-```{r custom-pca}
-# color palette
-night.colors.alt <- c("July 6th" = "#21918C", 
-                      "July 7th" = "#578B21", 
-                      "July 8th" = "#1E2440")
 
+```{r night-pcoa, fig.width=6, fig.height=4}
 # sample scores (vectors)
 bd_night_df <- as.data.frame(bd_night$vectors[, 1:2])
 bd_night_df$group <- bd_night$group
@@ -588,33 +633,58 @@ bd_night_centroids <- bd_night_centroids %>% mutate(group = factor(group, levels
 
 # plot
 bd_night_plot <- ggplot(bd_night_df, aes(PCoA1, PCoA2, color = group)) +
-  geom_point(size = 2.6, alpha = 0.85) +
-  geom_polygon(
-    data = hulls,
-    aes(fill = group),
-    alpha = 0.2,
-    color = NA, 
-    show.legend = FALSE
-  ) +
-  geom_point(
-    data = bd_night_centroids,
-    shape = 4,
-    stroke = 1.2,
-    size = 5
-  ) +
-  stat_ellipse(level = 0.68, linewidth = 0.8) +
-  coord_equal() +
-  scale_color_manual(values = night.colors.alt) +
-  scale_fill_manual(values = night.colors.alt) +
-  theme_sleek_axe() +
-  labs(
-    title = "Spawn Night",
-    x = xlab,
-    y = ylab,
-    color = "spawn night"
-  )
+                      geom_point(alpha = 0.85) +
+                      geom_polygon(
+                        data = hulls,
+                        aes(fill = group),
+                        alpha = 0.2,
+                        color = NA,
+                        show.legend = FALSE
+                      ) +
+                      geom_point(
+                        data = bd_night_centroids,
+                        shape = 4
+                      ) +
+                      stat_ellipse(level = 0.68) +
+                      coord_equal() +
+                     scale_x_continuous(
+                      breaks = c(-30, 0, 30)
+                    ) +
+                    scale_y_continuous(
+                      breaks = c(-20, 0, 20)
+                    ) +
+                      scale_color_manual(values = night.colors) +
+                      scale_fill_manual(values = night.colors) +
+                      theme_sleek_axe() +
+                      labs(
+                        title = "Spawn Night",
+                        x = xlab,
+                        y = ylab,
+                        color = "spawn night"
+                      )
 
+geom_defaults()
 bd_night_plot
+ggsave(
+  "../../figs/betadisp_night.png",
+  width=6,
+  height=4, 
+  dpi=600,
+  plot=bd_night_plot
+)
+```
+
+```{r night-pptx, fig.width=16, fig.height=9}
+geom_pptx()
+betadisp_night_pptx <- bd_night_plot + theme_pptx()
+betadisp_night_pptx
+ggsave(
+  "../../figs/betadisp_night_pptx.png",
+  width=16,
+  height=9,
+  dpi=600,
+  plot=betadisp_night_pptx
+)
 ```
 
 ### leachate
@@ -641,7 +711,7 @@ The distances depend on the PCoA, so permutation is safer than the plain ANOVA F
 plot(bd_leachate, hull = TRUE, ellipse = TRUE, label = FALSE, cex = 0.8)
 ```
 
-```{r}
+```{r leachate-pcoa}
 # sample scores (vectors)
 bd_leachate_df <- as.data.frame(bd_leachate$vectors[, 1:2])
 bd_leachate_df$group <- bd_leachate$group
@@ -674,33 +744,58 @@ bd_leachate_centroids <- bd_leachate_centroids %>% mutate(group = factor(group, 
 
 # plot
 bd_leachate_plot <- ggplot(bd_leachate_df, aes(PCoA1, PCoA2, color = group)) +
-  geom_point(size = 2.6, alpha = 0.85) +
-  geom_polygon(
-    data = hulls,
-    aes(fill = group),
-    alpha = 0.2,
-    color = NA,
-    show.legend = FALSE
-  ) +
-  geom_point(
-    data = bd_leachate_centroids,
-    shape = 4,
-    stroke = 1.2,
-    size = 5
-  ) +
-  stat_ellipse(level = 0.68, linewidth = 0.8) +
-  coord_equal() +
-  scale_color_manual(values = leachate.colors) +
-  scale_fill_manual(values = leachate.colors) +
-  theme_sleek_axe() +
-  labs(
-    title = "Leachate",
-    x = xlab,
-    y = ylab,
-    color = "leachate"
-  )
+                            geom_polygon(
+                              data = hulls,
+                              aes(fill = group),
+                              alpha = 0.2,
+                              color = NA,
+                              show.legend = FALSE
+                            ) +
+                            geom_point(
+                              data = bd_leachate_centroids,
+                              shape = 4
+                            ) +
+                            stat_ellipse(level = 0.68) +
+                            geom_point(alpha=0.85)+
+                            coord_equal() +
+                             scale_x_continuous(
+                              breaks = c(-30, 0, 30)
+                            ) +
+                            scale_y_continuous(
+                              breaks = c(-20, 0, 20)
+                            ) +
+                            scale_color_manual(values = leachate.colors) +
+                            scale_fill_manual(values = leachate.colors) +
+                            theme_sleek_axe() +
+                            labs(
+                              title = "Leachate",
+                              x = xlab,
+                              y = ylab,
+                              color = "leachate"
+                            )
 
+geom_defaults()
 bd_leachate_plot
+ggsave(
+  "../../figs/betadisp_leachate.png",
+  width=6,
+  height=4,
+  dpi=600,
+  plot=bd_leachate_plot
+)
+```
+
+```{r leachate-pptx, fig.width=16, fig.height=9}
+geom_pptx()
+betadisp_leachate_pptx <- bd_leachate_plot + theme_pptx()
+betadisp_leachate_pptx
+ggsave(
+  "../../figs/betadisp_leachate_pptx.png",
+  width=16, 
+  height=9,
+  dpi=600,
+  plot=betadisp_leachate_pptx
+)
 ```
 
 ### stage
@@ -723,7 +818,8 @@ A permutation test for homogeneity of multivariate dispersions revealed no signi
 plot(bd_stage, hull = TRUE, ellipse = TRUE, label = FALSE, cex = 0.8)
 ```
 
-```{r betadisp-stage-plot}
+```{r stage-pcoa}
+
 # sample scores (vectors)
 bd_stage_df <- as.data.frame(bd_stage$vectors[, 1:2])
 bd_stage_df$group <- bd_stage$group
@@ -755,7 +851,7 @@ bd_stage_centroids <- bd_stage_centroids %>% mutate(group = factor(group, levels
 
 # plot
 bd_stage_plot <- ggplot(bd_stage_df, aes(PCoA1, PCoA2, color = group)) +
-  geom_point(size = 2.6, alpha = 0.85) +
+  geom_point(alpha = 0.85) +
   geom_polygon(
     data = hulls,
     aes(fill = group),
@@ -765,12 +861,16 @@ bd_stage_plot <- ggplot(bd_stage_df, aes(PCoA1, PCoA2, color = group)) +
   ) +
   geom_point(
     data = bd_stage_centroids,
-    shape = 4,
-    stroke = 1.2,
-    size = 5
+    shape = 4
   ) +
   stat_ellipse(level = 0.68, linewidth = 0.8) +
   coord_equal() +
+   scale_x_continuous(
+    breaks = c(-30, 0, 30)
+  ) +
+  scale_y_continuous(
+    breaks = c(-20, 0, 20)
+  ) +
   scale_color_manual(values = stage.3.colors) +
   scale_fill_manual(values = stage.3.colors) +
   theme_sleek_axe() +
@@ -785,8 +885,31 @@ bd_stage_plot <- ggplot(bd_stage_df, aes(PCoA1, PCoA2, color = group)) +
     color = "stage"
   )
 
+geom_defaults()
 bd_stage_plot
+ggsave(
+  "../../figs/betadisp_stage.png",
+  width=6,
+  height=4,
+  dpi=600,
+  plot=bd_stage_plot
+)
 ```
+
+```{r stage-pptx, fig.width=16, fig.height=9}
+geom_pptx()
+betadisp_stage_pptx <- bd_stage_plot + theme_pptx()
+betadisp_stage_pptx
+ggsave(
+  "../../figs/betadisp_stage_pptx.png",
+  width=16, 
+  height=9, 
+  dpi=600,
+  plot=betadisp_stage_pptx
+)
+```
+
+
 
 ### leachate x stage
 
@@ -906,13 +1029,13 @@ This analysis implemented the key recommendations from Gloor et al. 2017 for com
 3.  **PCA Biplot**: Created variance-based PCA visualizations on CLR-transformed data
 4.  **PERMANOVA**: Tested for significant differences in microbial composition across experimental factors
 
-```{r betadispr-combo-plot, fig.width=5, fig.height=9}
-bd_plots <- (bd_night_plot / bd_leachate_plot / bd_stage_plot) +
-  plot_annotation(tag_levels = "A", 
-                  title = "Principle Coordinates Analysis (PCoA) \nof Within-Group Beta Diversity Dispersion") &
+
+```{r patch-plots, fig.width=5, fig.height=9}
+geom_defaults()
+bd_plots <- (bd_stage_plot / bd_night_plot / bd_leachate_plot) +
+  plot_annotation(tag_levels = "A") &
   theme(
-    plot.tag = element_text(color = "grey60", size = 11),
-    plot.title = element_text(size = 14, color = "grey40", hjust = 0.5, margin = margin(b = 20)),
+    plot.tag = element_text(color = "grey30", size = 10),
     legend.position = "right",
     panel.spacing = unit(0.2, "lines")
   ) +
@@ -921,6 +1044,7 @@ bd_plots <- (bd_night_plot / bd_leachate_plot / bd_stage_plot) +
 bd_plots
 ```
 Save combined plot
+
 ```{r}
 ggsave("../../figs/betadisper_plots.png", plot = bd_plots, width = 5, height = 9, dpi = 900)
 ```
@@ -1014,8 +1138,6 @@ stat_ellipse(
 pcoa_leachate
 ```
 
-
-
 ```{r pcoa-stage}
 pcoa_stage <- ggplot(scores, aes(PC1, PC2, color = stage, fill = stage)) +
   geom_point(size = 4, alpha = 0.7) +
@@ -1068,12 +1190,33 @@ pcoa_combined <- (pcoa_spawn / pcoa_leachate / pcoa_stage) +
 
 pcoa_combined
 ```
+
 ```{r}
 ggsave("../../figs/pcoa_combined.png", plot = pcoa_combined, width = 5, height = 9, dpi = 900)
 ```
 
 
+```{r save-patch-plot}
+ggsave("../../figs/betadisp_patched_plots.png", 
+       plot = bd_plots, 
+       width=5,
+       height = 9,
+       dpi = 900)
+```
 
+```{r}
+geom_defaults()
+bd_plots_pptx <- (bd_stage_plot / bd_night_plot / bd_leachate_plot) +
+  plot_annotation(tag_levels = "A") &
+  theme(
+    plot.tag = element_text(color = "grey30", size = 10),
+    legend.position = "right",
+    panel.spacing = unit(0.2, "lines")
+  ) +
+  plot_layout(guides = "collect", heights = c(1,1,1))
+
+bd_plots_pptx
+```
 
 ## Key Findings
 
