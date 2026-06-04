@@ -236,22 +236,24 @@ geom_pptx <- function() {
 ## Set colorschemes
 
 ```{r colors}
-leachate.colors <- c(control = "#AEF1FF", 
+leachate.colors <- c(control = "#5ABDAC", 
                 low = "#BBC7FF",
                 mid = "#7D8BFF", 
                 high = "#592F7D")
 
-stage.5.colors <- c(egg = "#FFE362",
-                    cleavage = "#EBA600", 
-                    morula = "#E6AA83",
-                    prawnchip = "#D9685B", 
-                    earlygastrula = "#A2223C")
+stage.5.colors <- c(
+  egg           = "#FFE066",
+  cleavage      = "#FFBA08",
+  morula        = "#F48C06",
+  prawnchip     = "#DC2F02",
+  earlygastrula = "#6A040F"
+  )
 
-
-stage.3.colors <- c(cleavage = "#EBA600", 
-                  prawnchip = "#D9685B", 
-                  earlygastrula = "#A2223C")
-
+stage.3.colors <- c(
+  cleavage      = "#FFBA08",
+  prawnchip     = "#DC2F02",
+  earlygastrula = "#6A040F"
+  )
 
 night.colors <- c("July 6th" = "#21918C", 
                   "July 7th" = "#578B21", 
